@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { subscriptions } from "@/mocks/data"
+import { useSubscriptionsData } from "@/hooks/use-subscriptions-data"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -31,6 +31,7 @@ const statusTone = {
 export default function SubscriptionsPage() {
   const [plan, setPlan] = useState<"All" | "Essential" | "Premium">("All")
   const [search, setSearch] = useState("")
+  const { subscriptions, loading, error } = useSubscriptionsData()
 
   const filtered = useMemo(() => {
     return subscriptions.filter((record) => {
@@ -178,14 +179,22 @@ export default function SubscriptionsPage() {
               ))}
             </TableBody>
           </Table>
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="rounded-lg border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
+              Loading subscriptions...
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
               No subscriptions found for the selected filters.
             </div>
           ) : null}
         </CardContent>
       </Card>
-
+      {error ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      ) : null}
     </section>
   )
 }

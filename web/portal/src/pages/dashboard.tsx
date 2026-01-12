@@ -1,13 +1,5 @@
 import { Fragment, useState } from "react"
-import {
-  dashboardMetrics,
-  patientRoster,
-  patientGrowth7Days,
-  patientGrowth30Days,
-  subscriptionBreakdown,
-  cityPatientData,
-  cityRevenueData,
-} from "@/mocks/data"
+import { useDashboardData } from "@/hooks/use-dashboard-data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -28,6 +20,16 @@ const riskTone = {
 
 export default function DashboardPage() {
   const [timeframe, setTimeframe] = useState<"7" | "30" | "90">("30")
+  const {
+    metrics,
+    patientGrowth7Days,
+    patientGrowth30Days,
+    subscriptionBreakdown,
+    cityPatients,
+    cityRevenue,
+    loading,
+    error,
+  } = useDashboardData()
 
   return (
     <section className="space-y-6">
@@ -65,7 +67,7 @@ export default function DashboardPage() {
       </Tabs> */}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {dashboardMetrics.map((metric) => (
+        {(loading ? [] : metrics).map((metric) => (
           <DashboardMetricCard key={metric.title} metric={metric} />
         ))}
       </div>
@@ -81,9 +83,15 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <CityPatientsBarChart data={cityPatientData} />
-        <CityRevenueGrid data={cityRevenueData} />
+        <CityPatientsBarChart data={cityPatients} />
+        <CityRevenueGrid data={cityRevenue} />
       </div>
+
+      {error ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      ) : null}
 
       {/* <div className="grid gap-4 lg:grid-cols-2">
         <AlertsCard alerts={dashboardAlerts} />

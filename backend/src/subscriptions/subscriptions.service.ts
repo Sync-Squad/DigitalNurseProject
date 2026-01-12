@@ -38,6 +38,75 @@ export class SubscriptionsService {
     }));
   }
 
+  async getActiveSubscriptions() {
+    const subscriptions = await this.prisma.subscription.findMany({
+      where: { status: 'active' },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            full_name: true,
+            userId: true,
+          },
+        },
+      },
+    });
+
+    const planIds = Array.from(
+      new Set(
+        subscriptions
+          .map((sub) => sub.planId?.toString())
+          .filter(Boolean) as string[],
+      ),
+    );
+
+    const plans =
+      planIds.length > 0
+        ? await this.prisma.subscriptionPlan.findMany({
+            where: { planId: { in: planIds.map((id) => BigInt(id)) } },
+          })
+        : [];
+
+    const planMap = new Map<string, string>();
+    for (const plan of plans) {
+      planMap.set(plan.planId.toString(), plan.planCode.toUpperCase());
+    }
+
+    return subscriptions.map((sub) => {
+      const planCode = sub.planId
+        ? planMap.get(sub.planId.toString()) || 'BASIC'
+        : 'FREE';
+      const plan =
+        planCode === 'PREMIUM'
+          ? 'Premium'
+          : planCode === 'FREE'
+            ? 'Free'
+            : 'Essential';
+
+      const renewalDate =
+        sub.endDate ??
+        new Date(sub.startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+      const daysUntilRenewal = Math.ceil(
+        (renewalDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
+      );
+
+      const paymentStatus =
+        daysUntilRenewal < 0 ? 'Past Due' : daysUntilRenewal <= 7 ? 'Due' : 'Paid';
+
+      return {
+        id: sub.subscriptionId.toString(),
+        patientId: sub.userId.toString(),
+        patient: sub.user?.full_name || 'Unknown',
+        plan,
+        renewalDate: renewalDate.toISOString(),
+        paymentStatus,
+        lastInvoice: `INV-${sub.subscriptionId.toString().padStart(6, '0')}`,
+        addOns: [] as string[],
+      };
+    });
+  }
+
   async getCurrentSubscription(userId: string) {
     const userIdBigInt = BigInt(userId);
     const subscription = await this.prisma.subscription.findFirst({

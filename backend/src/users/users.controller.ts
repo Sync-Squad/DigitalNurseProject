@@ -28,6 +28,13 @@ export class UsersController {
     return this.usersService.getProfile(userId);
   }
 
+  @Get('patients')
+  @ApiOperation({ summary: 'Get all patients with risk and activity info' })
+  @ApiResponse({ status: 200, description: 'Patients retrieved successfully' })
+  async getPatients() {
+    return this.usersService.getPatientsList();
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get user details by ID' })
   @ApiResponse({ status: 200, description: 'User details retrieved successfully' })

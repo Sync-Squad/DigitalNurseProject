@@ -28,17 +28,12 @@ import {
   Stethoscope,
   Users,
 } from "lucide-react"
-import {
-  documents as documentMocks,
-  notificationTemplates,
-  notifications,
-  patientRoster,
-  patientWorkspace,
-  vitalTrend,
-} from "@/mocks/data"
+import { notificationTemplates } from "@/mocks/data"
 import { VitalsTrendCard } from "@/components/dashboard/vitals-trend-card"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { usePatientsData } from "@/hooks/use-patients-data"
+import { usePatientWorkspaceData } from "@/hooks/use-patient-workspace-data"
 
 const riskTone = {
   low: "bg-emerald-500/10 text-emerald-600",
@@ -49,22 +44,71 @@ const riskTone = {
 
 export default function PatientWorkspacePage() {
   const { slug } = useParams<{ slug: string }>()
-  const rosterPatient = patientRoster.find((patient) => patient.slug === slug)
-
-  const workspace = slug === "ayesha-khan" ? patientWorkspace : undefined
-
-  const fallbackDocuments = useMemo(
-    () =>
-      documentMocks.filter((doc) => doc.patient === rosterPatient?.name),
-    [rosterPatient?.name]
+  const { patients, loading: patientsLoading, error: patientsError } = usePatientsData()
+  const rosterPatient = useMemo(
+    () => patients.find((patient) => patient.slug === slug),
+    [patients, slug],
   )
-  const documents = workspace?.documents ?? fallbackDocuments
-  const careTeam = workspace?.careTeam ?? []
-  const medications = workspace?.medications ?? []
-  const medicationLog = workspace?.medicationLog ?? []
-  const vitalsRecent = workspace?.vitals?.recent ?? []
-  const abnormalEvents = workspace?.vitals?.abnormalEvents ?? []
-  const lifestyle = workspace?.lifestyle
+  const {
+    data: workspace,
+    loading: workspaceLoading,
+    error: workspaceError,
+  } = usePatientWorkspaceData(rosterPatient?.id, {
+    careTeamNames: rosterPatient?.careTeam,
+  })
+
+  const demographics = workspace?.demographics || {
+    name: rosterPatient?.name || "Patient",
+    age: rosterPatient?.age ?? null,
+    gender: null,
+    subscription: rosterPatient?.subscription || "Essential",
+    riskLevel: rosterPatient?.risk || "low",
+    emergencyContact: null,
+    lastSynced: rosterPatient?.lastActivity || "",
+  }
+
+  const careTeam =
+    workspace?.careTeam ||
+    (rosterPatient?.careTeam || []).map((member) => ({
+      name: member,
+      role: "Caregiver",
+      status: "Active",
+    }))
+
+  const medications = workspace?.medications || []
+  const medicationLog = workspace?.medicationLog || []
+  const vitalsRecent = workspace?.vitalsRecent || []
+  const abnormalEvents = workspace?.abnormalEvents || []
+  const documents = workspace?.documents || []
+  const notificationsList = workspace?.notifications || []
+
+  const vitalTrendData = (vitalsRecent || []).map((vital, index) => {
+    const numeric = parseFloat(
+      Array.isArray(vital.value) ? vital.value[0] : vital.value,
+    )
+    return {
+      date: `Day ${index + 1}`,
+      systolic: numeric || 0,
+      diastolic: numeric || 0,
+      heartRate: numeric || 0,
+    }
+  })
+
+  const riskKey = (demographics.riskLevel || "low").toLowerCase() as keyof typeof riskTone
+  const lastSynced = demographics.lastSynced
+    ? new Date(demographics.lastSynced).toLocaleString()
+    : rosterPatient.lastActivity
+  const lifestyle = (workspace as any)?.lifestyle
+
+  if (patientsLoading) {
+    return (
+      <section className="space-y-6">
+        <div className="rounded-lg border border-dashed border-border/60 p-6 text-sm text-muted-foreground">
+          Loading patient directory...
+        </div>
+      </section>
+    )
+  }
 
   if (!rosterPatient) {
     return <Navigate to="/patients" replace />
@@ -77,19 +121,17 @@ export default function PatientWorkspacePage() {
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-3xl font-semibold tracking-tight">
-                {workspace?.demographics.name ?? rosterPatient.name}
+            {demographics.name}
               </h1>
               <Badge variant="outline">
-                {workspace?.demographics.subscription ?? rosterPatient.subscription} plan
+            {demographics.subscription} plan
               </Badge>
-              <Badge className={cn("uppercase", riskTone[rosterPatient.risk])}>
-                {workspace?.demographics.riskLevel ?? rosterPatient.risk}
+          <Badge className={cn("uppercase", riskTone[riskKey])}>
+            {demographics.riskLevel}
               </Badge>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              {workspace
-                ? `Age ${workspace.demographics.age} · ${workspace.demographics.gender} · Last synced ${workspace.demographics.lastSynced}`
-                : `Age ${rosterPatient.age} · Last activity ${rosterPatient.lastActivity}`}
+          {`Age ${demographics.age ?? "—"}${demographics.gender ? ` · ${demographics.gender}` : ""} · Last synced ${lastSynced}`}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -104,7 +146,7 @@ export default function PatientWorkspacePage() {
           <InfoTile
             icon={<Users className="size-4 text-primary" />}
             label="Care team"
-            value={`${careTeam.length || rosterPatient.careTeam.length} members`}
+            value={`${careTeam.length} members`}
           />
           <InfoTile
             icon={<Pill className="size-4 text-primary" />}
@@ -132,6 +174,12 @@ export default function PatientWorkspacePage() {
         </div>
       </header>
 
+      {(patientsError || workspaceError) ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          {patientsError || workspaceError}
+        </div>
+      ) : null}
+
       <Tabs defaultValue="medications" className="space-y-6">
         <TabsList className="flex w-full justify-start gap-2 overflow-x-auto bg-muted/40 p-1">
           <TabsTrigger value="medications">Medications</TabsTrigger>
@@ -143,7 +191,11 @@ export default function PatientWorkspacePage() {
         </TabsList>
 
         <TabsContent value="medications" className="space-y-4">
-          {workspace ? (
+          {workspaceLoading ? (
+            <div className="rounded-lg border border-dashed border-border/60 p-6 text-sm text-muted-foreground">
+              Loading medications...
+            </div>
+          ) : medications.length ? (
             <>
               <Card>
                 <CardHeader>
@@ -218,14 +270,14 @@ export default function PatientWorkspacePage() {
           ) : (
             <EmptyState
               title="No detailed medication data"
-              description="This mock dataset currently highlights Ayesha Khan. Additional patient detail views can be mapped as backend integration progresses."
+              description="This patient does not have medication history yet."
             />
           )}
         </TabsContent>
 
         <TabsContent value="vitals" className="space-y-4">
           <div className="grid gap-4 lg:grid-cols-5">
-            <VitalsTrendCard data={vitalTrend} />
+            <VitalsTrendCard data={vitalTrendData} />
             <Card className="lg:col-span-1">
               <CardHeader>
                 <CardTitle className="text-sm font-semibold text-muted-foreground">
@@ -381,7 +433,7 @@ export default function PatientWorkspacePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {notifications.slice(0, 4).map((notification) => (
+              {notificationsList.slice(0, 4).map((notification) => (
                 <div
                   key={notification.id}
                   className="rounded-xl border border-border/70 bg-muted/20 p-3"

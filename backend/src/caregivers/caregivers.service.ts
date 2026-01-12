@@ -65,6 +65,36 @@ export class CaregiversService {
   }
 
   /**
+   * Get all caregivers across the system with assignment counts
+   */
+  async findAllCaregivers() {
+    const caregivers = await this.prisma.user.findMany({
+      where: {
+        userRoles: { some: { role: { roleCode: 'caregiver' } } },
+      },
+      include: {
+        elderAssignmentsAsCaregiver: true,
+        loginEvents: {
+          orderBy: { loginAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    return caregivers.map((caregiver) => ({
+      id: caregiver.userId.toString(),
+      name: caregiver.full_name,
+      status: 'active' as const,
+      assignments: caregiver.elderAssignmentsAsCaregiver.length,
+      escalations: 0,
+      lastInteraction:
+        caregiver.loginEvents[0]?.loginAt?.toISOString() ||
+        caregiver.updatedAt.toISOString(),
+      notes: caregiver.status || '',
+    }));
+  }
+
+  /**
    * Get all elder assignments for a caregiver user
    */
   async findAssignmentsForCaregiver(userId: bigint) {

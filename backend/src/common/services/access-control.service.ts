@@ -30,6 +30,19 @@ export class AccessControlService {
     const actorUserId =
       typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
     const role = (user.activeRoleCode || 'patient').toString().toLowerCase();
+    const privilegedRoles = ['admin', 'provider', 'clinician', 'coordinator'];
+
+    if (privilegedRoles.includes(role)) {
+      const elderUserId = requestedElderUserId
+        ? BigInt(String(requestedElderUserId))
+        : actorUserId;
+
+      return {
+        actorUserId,
+        actorRole: role,
+        elderUserId,
+      };
+    }
 
     if (role === 'caregiver') {
       if (!requestedElderUserId) {

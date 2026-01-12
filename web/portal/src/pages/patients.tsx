@@ -1,9 +1,6 @@
 import { useMemo, useState } from "react"
-import {
-  patientRoster,
-  type PatientRosterRow,
-  type RiskLevel,
-} from "@/mocks/data"
+import type { PatientRosterRow, RiskLevel } from "@/mocks/data"
+import { usePatientsData } from "@/hooks/use-patients-data"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -51,9 +48,10 @@ export default function PatientsPage() {
   const [riskFilter, _setRiskFilter] = useState<(typeof riskFilters)[number]>("all")
   const [segment, _setSegment] = useState("all")
   const escalationsOnlyDisclosure = useDisclosure()
+  const { patients, loading, error } = usePatientsData()
 
   const filteredPatients = useMemo(() => {
-    return patientRoster.filter((patient) => {
+    return patients.filter((patient) => {
       const matchesSearch =
         search.length === 0 ||
         patient.name.toLowerCase().includes(search.toLowerCase())
@@ -81,7 +79,7 @@ export default function PatientsPage() {
         matchesEscalations
       )
     })
-  }, [search, planFilter, riskFilter, segment, escalationsOnlyDisclosure.isOpen])
+  }, [patients, search, planFilter, riskFilter, segment, escalationsOnlyDisclosure.isOpen])
 
   return (
     <section className="space-y-6">
@@ -227,13 +225,23 @@ export default function PatientsPage() {
               ))}
             </TableBody>
           </Table>
-          {filteredPatients.length === 0 ? (
+          {loading ? (
+            <div className="rounded-lg border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
+              Loading patients...
+            </div>
+          ) : filteredPatients.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
               No patients match the selected filters.
             </div>
           ) : null}
         </CardContent>
       </Card>
+
+      {error ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      ) : null}
     </section>
   )
 }

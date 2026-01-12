@@ -30,6 +30,13 @@ export class CaregiversController {
     return this.caregiversService.findAll(userId);
   }
 
+  @Get('all')
+  @ApiOperation({ summary: 'Get global list of caregivers and assignments' })
+  @ApiResponse({ status: 200, description: 'Global caregivers list' })
+  getAllCaregivers() {
+    return this.caregiversService.findAllCaregivers();
+  }
+
   @Get('assignments')
   @ApiOperation({ summary: 'Get all elder assignments for the current caregiver user' })
   @ApiResponse({ status: 200, description: 'List of caregiver assignments' })

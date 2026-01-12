@@ -20,6 +20,7 @@ import { AppConfigModule } from './config/config.module';
 import { AIModule } from './ai/ai.module';
 import { EmailModule } from './email/email.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
     AppConfigModule,
     AIModule,
     EmailModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [
