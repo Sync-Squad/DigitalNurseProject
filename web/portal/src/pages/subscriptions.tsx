@@ -42,7 +42,7 @@ export default function SubscriptionsPage() {
         record.lastInvoice.toLowerCase().includes(search.toLowerCase())
       return matchesPlan && matchesSearch
     })
-  }, [plan, search])
+  }, [plan, search, subscriptions])
 
   return (
     <section className="space-y-6">
@@ -67,7 +67,7 @@ export default function SubscriptionsPage() {
         </div> */}
       </div>
 
-    
+
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-semibold text-muted-foreground">

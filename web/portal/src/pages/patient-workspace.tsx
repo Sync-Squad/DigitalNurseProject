@@ -97,7 +97,7 @@ export default function PatientWorkspacePage() {
   const riskKey = (demographics.riskLevel || "low").toLowerCase() as keyof typeof riskTone
   const lastSynced = demographics.lastSynced
     ? new Date(demographics.lastSynced).toLocaleString()
-    : rosterPatient.lastActivity
+    : rosterPatient?.lastActivity || ""
   const lifestyle = (workspace as any)?.lifestyle
 
   if (patientsLoading) {
@@ -121,17 +121,17 @@ export default function PatientWorkspacePage() {
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-3xl font-semibold tracking-tight">
-            {demographics.name}
+                {demographics.name}
               </h1>
               <Badge variant="outline">
-            {demographics.subscription} plan
+                {demographics.subscription} plan
               </Badge>
-          <Badge className={cn("uppercase", riskTone[riskKey])}>
-            {demographics.riskLevel}
+              <Badge className={cn("uppercase", riskTone[riskKey])}>
+                {demographics.riskLevel}
               </Badge>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-          {`Age ${demographics.age ?? "—"}${demographics.gender ? ` · ${demographics.gender}` : ""} · Last synced ${lastSynced}`}
+              {`Age ${demographics.age ?? "—"}${demographics.gender ? ` · ${demographics.gender}` : ""} · Last synced ${lastSynced}`}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -151,14 +151,13 @@ export default function PatientWorkspacePage() {
           <InfoTile
             icon={<Pill className="size-4 text-primary" />}
             label="Medication adherence"
-            value={`${
-              medications.length
+            value={`${medications.length
                 ? Math.round(
-                    medications.reduce((acc, med) => acc + med.adherence, 0) /
-                      medications.length
-                  )
+                  medications.reduce((acc, med) => acc + med.adherence, 0) /
+                  medications.length
+                )
                 : rosterPatient.adherence
-            }%`}
+              }%`}
           />
           <InfoTile
             icon={<HeartPulse className="size-4 text-primary" />}

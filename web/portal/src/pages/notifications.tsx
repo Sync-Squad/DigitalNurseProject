@@ -35,7 +35,7 @@ export default function NotificationsPage() {
         notification.summary.toLowerCase().includes(query.toLowerCase())
       return matchesTab && matchesQuery
     })
-  }, [tab, query])
+  }, [tab, query, notifications])
 
   return (
     <section className="space-y-6">

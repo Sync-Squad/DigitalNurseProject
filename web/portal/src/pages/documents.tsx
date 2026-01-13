@@ -37,7 +37,7 @@ export default function DocumentsPage() {
         doc.patient.toLowerCase().includes(search.toLowerCase())
       return matchesVisibility && matchesSearch
     })
-  }, [visibility, search])
+  }, [visibility, search, documents])
 
   return (
     <section className="space-y-6">

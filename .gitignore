@@ -66,3 +66,6 @@ node_modules/
 .next/
 web/portal/dist.zip
 node_modules
+
+# Auto Claude data directory
+.auto-claude/

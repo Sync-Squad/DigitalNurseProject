@@ -46,7 +46,7 @@ export default function CaregiversPage() {
       const matchesStatus = status === "all" || caregiver.status === status
       return matchesSearch && matchesStatus
     })
-  }, [search, status])
+  }, [search, status, caregivers])
 
   return (
     <section className="space-y-6">

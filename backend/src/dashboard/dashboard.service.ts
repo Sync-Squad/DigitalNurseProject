@@ -4,7 +4,7 @@ import { SUBSCRIPTION_PLANS } from '../subscriptions/constants/plans.constant';
 
 type SubscriptionPlanCode = keyof typeof SUBSCRIPTION_PLANS;
 
-interface DashboardMetrics {
+export interface DashboardMetrics {
   totalPatients: number;
   totalCaregivers: number;
   totalVitals: number;
@@ -14,30 +14,30 @@ interface DashboardMetrics {
   currency: string;
 }
 
-interface GrowthPoint {
+export interface GrowthPoint {
   date: string;
   count: number;
 }
 
-interface SubscriptionSlice {
+export interface SubscriptionSlice {
   type: SubscriptionPlanCode | 'FREE';
   count: number;
   percentage: number;
 }
 
-interface CityPatientData {
+export interface CityPatientData {
   city: string;
   patients: number;
 }
 
-interface CityRevenueData {
+export interface CityRevenueData {
   city: string;
   revenue: number;
   subscriptions: number;
   growth: number;
 }
 
-interface DashboardStats {
+export interface DashboardStats {
   patientGrowth: {
     last7Days: GrowthPoint[];
     last30Days: GrowthPoint[];
@@ -53,7 +53,7 @@ interface DashboardStats {
 
 @Injectable()
 export class DashboardService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async getMetrics(): Promise<DashboardMetrics> {
     const patientWhere = {
@@ -144,13 +144,9 @@ export class DashboardService {
   }
 
   private async getPlanLookup(subscriptions: Array<{ planId: bigint | null }>) {
-    const planIds = Array.from(
-      new Set(
-        subscriptions
-          .map((sub) => (sub.planId ? sub.planId.toString() : null))
-          .filter(Boolean),
-      ),
-    );
+    const planIds = subscriptions
+      .map((sub) => sub.planId?.toString())
+      .filter((id): id is string => !!id);
 
     if (planIds.length === 0) {
       return new Map<string, SubscriptionPlanCode>();
