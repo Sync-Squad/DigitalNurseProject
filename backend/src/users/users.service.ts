@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
@@ -250,27 +250,35 @@ export class UsersService {
   }
 
   async updateProfile(userId: bigint, updateProfileDto: UpdateProfileDto) {
-    const updateData: any = {};
-    if (updateProfileDto.name) updateData.full_name = updateProfileDto.name;
-    if (updateProfileDto.phoneNumber) updateData.phone = updateProfileDto.phoneNumber;
-    if (updateProfileDto.dateOfBirth) updateData.dob = new Date(updateProfileDto.dateOfBirth);
-    if (updateProfileDto.address) updateData.address = updateProfileDto.address;
-    // Note: Database schema doesn't have separate city/country fields, combining into address
-    if (updateProfileDto.city || updateProfileDto.country) {
-      const parts = [updateProfileDto.address || updateData.address, updateProfileDto.city, updateProfileDto.country].filter(Boolean);
-      updateData.address = parts.join(', ');
+    try {
+      const updateData: any = {};
+      if (updateProfileDto.name) updateData.full_name = updateProfileDto.name;
+      if (updateProfileDto.phoneNumber) updateData.phone = updateProfileDto.phoneNumber;
+      if (updateProfileDto.dateOfBirth) updateData.dob = new Date(updateProfileDto.dateOfBirth);
+      if (updateProfileDto.address) updateData.address = updateProfileDto.address;
+      // Note: Database schema doesn't have separate city/country fields, combining into address
+      if (updateProfileDto.city || updateProfileDto.country) {
+        const parts = [updateProfileDto.address || updateData.address, updateProfileDto.city, updateProfileDto.country].filter(Boolean);
+        updateData.address = parts.join(', ');
+      }
+      if (updateProfileDto.medicalConditions !== undefined)
+        updateData.medicalConditions = updateProfileDto.medicalConditions;
+      if (updateProfileDto.emergencyContact !== undefined)
+        updateData.emergencyContact = updateProfileDto.emergencyContact;
+
+      const user = await this.prisma.user.update({
+        where: { userId },
+        data: updateData,
+      });
+
+      return this.getProfile(userId);
+    } catch (error) {
+      console.error('Profile update error:', error);
+      if (error.code === 'P2002') {
+        throw new ConflictException('Phone number already exists');
+      }
+      throw error;
     }
-    if (updateProfileDto.medicalConditions !== undefined)
-      updateData.medicalConditions = updateProfileDto.medicalConditions;
-    if (updateProfileDto.emergencyContact !== undefined)
-      updateData.emergencyContact = updateProfileDto.emergencyContact;
-
-    const user = await this.prisma.user.update({
-      where: { userId },
-      data: updateData,
-    });
-
-    return this.getProfile(userId);
   }
 
   async completeProfile(userId: bigint, completeProfileDto: CompleteProfileDto) {
