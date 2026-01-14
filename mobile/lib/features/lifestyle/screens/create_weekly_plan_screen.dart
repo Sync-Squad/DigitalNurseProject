@@ -127,6 +127,23 @@ class _CreateWeeklyPlanScreenState extends State<CreateWeeklyPlanScreen> {
     });
   }
 
+  void _editItem(int dayOfWeek, int index) {
+    final item = _itemsByDay[dayOfWeek]![index];
+    showDialog(
+      context: context,
+      builder: (context) => _AddItemDialog(
+        dayOfWeek: dayOfWeek,
+        isDietPlan: widget.isDietPlan,
+        existingItem: item,
+        onAdd: (updatedItem) {
+          setState(() {
+            _itemsByDay[dayOfWeek]![index] = updatedItem;
+          });
+        },
+      ),
+    );
+  }
+
   Future<void> _savePlan() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -344,6 +361,7 @@ class _CreateWeeklyPlanScreenState extends State<CreateWeeklyPlanScreen> {
                           isDietPlan: widget.isDietPlan,
                           onAddItem: () => _addItem(index),
                           onRemoveItem: (itemIndex) => _removeItem(index, itemIndex),
+                          onEditItem: (itemIndex) => _editItem(index, itemIndex),
                         );
                       }),
                     ],
@@ -390,6 +408,7 @@ class _DaySection extends StatelessWidget {
   final bool isDietPlan;
   final VoidCallback onAddItem;
   final Function(int) onRemoveItem;
+  final Function(int) onEditItem;
 
   const _DaySection({
     required this.dayOfWeek,
@@ -397,6 +416,7 @@ class _DaySection extends StatelessWidget {
     required this.isDietPlan,
     required this.onAddItem,
     required this.onRemoveItem,
+    required this.onEditItem,
   });
 
   static const List<String> dayNames = [
@@ -455,6 +475,7 @@ class _DaySection extends StatelessWidget {
                 item: item,
                 isDietPlan: isDietPlan,
                 onRemove: () => onRemoveItem(index),
+                onEdit: () => onEditItem(index),
               );
             }),
         ],
@@ -467,11 +488,13 @@ class _ItemCard extends StatelessWidget {
   final dynamic item;
   final bool isDietPlan;
   final VoidCallback onRemove;
+  final VoidCallback onEdit;
 
   const _ItemCard({
     required this.item,
     required this.isDietPlan,
     required this.onRemove,
+    required this.onEdit,
   });
 
   @override
@@ -523,9 +546,16 @@ class _ItemCard extends StatelessWidget {
             ),
           ),
           IconButton(
+            icon: const Icon(Icons.edit_outlined, size: 20),
+            onPressed: onEdit,
+            color: colorScheme.primary,
+            tooltip: 'Edit',
+          ),
+          IconButton(
             icon: const Icon(Icons.delete_outline, size: 20),
             onPressed: onRemove,
             color: Colors.red,
+            tooltip: 'Delete',
           ),
         ],
       ),
@@ -537,11 +567,13 @@ class _AddItemDialog extends StatefulWidget {
   final int dayOfWeek;
   final bool isDietPlan;
   final Function(dynamic) onAdd;
+  final dynamic existingItem;
 
   const _AddItemDialog({
     required this.dayOfWeek,
     required this.isDietPlan,
     required this.onAdd,
+    this.existingItem,
   });
 
   @override
@@ -558,6 +590,29 @@ class _AddItemDialogState extends State<_AddItemDialog> {
   MealType _mealType = MealType.breakfast;
   ActivityType _activityType = ActivityType.walking;
   String _intensity = 'moderate';
+
+  @override
+  void initState() {
+    super.initState();
+    // If editing an existing item, populate the fields
+    if (widget.existingItem != null) {
+      if (widget.isDietPlan) {
+        final item = widget.existingItem as DietPlanItemModel;
+        _mealType = item.mealType;
+        _descriptionController.text = item.description;
+        _caloriesController.text = item.calories.toString();
+        _notesController.text = item.notes;
+      } else {
+        final item = widget.existingItem as ExercisePlanItemModel;
+        _activityType = item.activityType;
+        _descriptionController.text = item.description;
+        _durationController.text = item.durationMinutes.toString();
+        _caloriesBurnedController.text = item.caloriesBurned.toString();
+        _intensity = item.intensity;
+        _notesController.text = item.notes;
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -581,9 +636,16 @@ class _AddItemDialogState extends State<_AddItemDialog> {
     }
 
     dynamic item;
+    // Preserve the existing ID when editing, or generate a new one when adding
+    final String itemId = widget.existingItem != null
+        ? (widget.isDietPlan
+            ? (widget.existingItem as DietPlanItemModel).id
+            : (widget.existingItem as ExercisePlanItemModel).id)
+        : DateTime.now().millisecondsSinceEpoch.toString();
+
     if (widget.isDietPlan) {
       item = DietPlanItemModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: itemId,
         dayOfWeek: widget.dayOfWeek,
         mealType: _mealType,
         description: _descriptionController.text.trim(),
@@ -592,7 +654,7 @@ class _AddItemDialogState extends State<_AddItemDialog> {
       );
     } else {
       item = ExercisePlanItemModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: itemId,
         dayOfWeek: widget.dayOfWeek,
         activityType: _activityType,
         description: _descriptionController.text.trim(),
@@ -612,7 +674,7 @@ class _AddItemDialogState extends State<_AddItemDialog> {
     final textTheme = Theme.of(context).textTheme;
 
     return AlertDialog(
-      title: Text('Add ${widget.isDietPlan ? 'Meal' : 'Workout'}'),
+      title: Text('${widget.existingItem != null ? 'Edit' : 'Add'} ${widget.isDietPlan ? 'Meal' : 'Workout'}'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -749,7 +811,7 @@ class _AddItemDialogState extends State<_AddItemDialog> {
         ),
         ElevatedButton(
           onPressed: _addItem,
-          child: const Text('Add'),
+          child: Text(widget.existingItem != null ? 'Update' : 'Add'),
         ),
       ],
     );

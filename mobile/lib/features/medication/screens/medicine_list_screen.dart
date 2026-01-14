@@ -21,17 +21,35 @@ class MedicineListScreen extends StatefulWidget {
   State<MedicineListScreen> createState() => _MedicineListScreenState();
 }
 
-class _MedicineListScreenState extends State<MedicineListScreen> {
+class _MedicineListScreenState extends State<MedicineListScreen> with WidgetsBindingObserver {
   DateTime _selectedDate = DateTime.now();
   String? _lastContextKey;
+  int _refreshKey = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Defer data loading until after the build phase
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMedicines();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh when app comes back to foreground
+      setState(() {
+        _refreshKey++;
+      });
+    }
   }
 
   Future<void> _loadMedicines() async {
@@ -347,31 +365,40 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
         children: [
           if (categorized['morning']!.isNotEmpty)
             MedicineScheduleCard(
+              key: ValueKey('morning-$_refreshKey'),
               timeOfDay: MedicineTimeOfDay.morning,
               medicines: categorized['morning']!,
               selectedDate: _selectedDate,
               onStatusChanged: () {
-                setState(() {});
+                setState(() {
+                  _refreshKey++;
+                });
               },
             ),
           if (categorized['afternoon']!.isNotEmpty) SizedBox(height: 12.h),
           if (categorized['afternoon']!.isNotEmpty)
             MedicineScheduleCard(
+              key: ValueKey('afternoon-$_refreshKey'),
               timeOfDay: MedicineTimeOfDay.afternoon,
               medicines: categorized['afternoon']!,
               selectedDate: _selectedDate,
               onStatusChanged: () {
-                setState(() {});
+                setState(() {
+                  _refreshKey++;
+                });
               },
             ),
           if (categorized['evening']!.isNotEmpty) SizedBox(height: 12.h),
           if (categorized['evening']!.isNotEmpty)
             MedicineScheduleCard(
+              key: ValueKey('evening-$_refreshKey'),
               timeOfDay: MedicineTimeOfDay.evening,
               medicines: categorized['evening']!,
               selectedDate: _selectedDate,
               onStatusChanged: () {
-                setState(() {});
+                setState(() {
+                  _refreshKey++;
+                });
               },
             ),
           SizedBox(height: 16.h),

@@ -93,10 +93,8 @@ class MedicineItemTile extends StatelessWidget {
           icon: FIcons.check,
         );
       case IntakeStatus.missed:
-        return _StatusChip(
-          color: AppTheme.getErrorColor(context),
-          icon: FIcons.x,
-        );
+        // Don't show any icon for missed medications
+        return const SizedBox.shrink();
       case IntakeStatus.pending:
         final now = DateTime.now();
         final parts = reminderTime.split(':');
@@ -111,11 +109,8 @@ class MedicineItemTile extends StatelessWidget {
         );
 
         if (scheduledTime.isBefore(now)) {
-          // Past time, show missed status
-          return _StatusChip(
-            color: AppTheme.getWarningColor(context),
-            icon: FIcons.x,
-          );
+          // Past time, don't show icon (status will be shown in header)
+          return const SizedBox.shrink();
         } else {
           return SizedBox(
             width: 38.w,
