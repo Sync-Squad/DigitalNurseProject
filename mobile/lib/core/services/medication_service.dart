@@ -380,9 +380,10 @@ class MedicationService {
       return 100.0;
     }
 
-    // Calculate overall adherence across all medications
-    double totalPercentage = 0.0;
-    int medicationCount = 0;
+    // Calculate overall adherence using global method (all intakes combined)
+    // This matches the backend calculation and is more medically accurate
+    int totalIntakes = 0;
+    int takenIntakes = 0;
 
     for (var medicine in medicines) {
       try {
@@ -396,9 +397,10 @@ class MedicationService {
 
         if (response.statusCode == 200) {
           final data = response.data;
-          final percentage = (data['percentage'] ?? 100.0).toDouble();
-          totalPercentage += percentage;
-          medicationCount++;
+          final total = (data['total'] ?? 0) as int;
+          final taken = (data['taken'] ?? 0) as int;
+          totalIntakes += total;
+          takenIntakes += taken;
         }
       } catch (e) {
         _log('⚠️ Warning: Failed to get adherence for ${medicine.id}: $e');
@@ -406,13 +408,13 @@ class MedicationService {
       }
     }
 
-    if (medicationCount == 0) {
+    if (totalIntakes == 0) {
       return 100.0;
     }
 
-    final averagePercentage = totalPercentage / medicationCount;
-    _log('✅ Overall adherence: ${averagePercentage.toStringAsFixed(1)}%');
-    return averagePercentage;
+    final adherencePercentage = (takenIntakes / totalIntakes) * 100;
+    _log('✅ Overall adherence: ${adherencePercentage.toStringAsFixed(1)}% ($takenIntakes/$totalIntakes)');
+    return adherencePercentage;
   }
 
   // Get adherence streak (consecutive days with 100% adherence)
