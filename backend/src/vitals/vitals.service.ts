@@ -6,7 +6,7 @@ import { ActorContext } from '../common/services/access-control.service';
 
 @Injectable()
 export class VitalsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   /**
    * Map app enum to database kindCode
@@ -100,7 +100,7 @@ export class VitalsService {
   async create(context: ActorContext, createDto: CreateVitalDto) {
     try {
       const { type, value, timestamp, notes } = createDto;
-      
+
       // Ensure value is a string for parsing
       const valueStr = typeof value === 'string' ? value : String(value);
       const { value1, value2, valueText } = this.parseValue(type, valueStr);
@@ -289,14 +289,14 @@ export class VitalsService {
     if (measurements.length === 0) {
       return kindCode
         ? [
-            {
-              kindCode,
-              average: 0,
-              count: 0,
-              hasAbnormal: false,
-              measurements: [],
-            },
-          ]
+          {
+            kindCode,
+            average: 0,
+            count: 0,
+            hasAbnormal: false,
+            measurements: [],
+          },
+        ]
         : [];
     }
 
@@ -428,7 +428,46 @@ export class VitalsService {
       timestamp: measurement.recordedAt.toISOString(),
       notes: measurement.notes || null,
       userId: measurement.elderUserId.toString(),
+      value1: measurement.value1,
+      value2: measurement.value2,
+      status: this.getStatus(measurement),
     };
+  }
+
+  /**
+   * Get clinical status for a measurement
+   */
+  private getStatus(measurement: any): string {
+    const kindCode = measurement.kindCode.toLowerCase();
+    const v1 = measurement.value1 ? parseFloat(measurement.value1.toString()) : null;
+    const v2 = measurement.value2 ? parseFloat(measurement.value2.toString()) : null;
+
+    if (kindCode === "bp" && v1 && v2) {
+      if (v1 > 140 || v2 > 90) return "High";
+      if (v1 < 90 || v2 < 60) return "Low";
+      return "In range";
+    }
+    if (kindCode === "hr" && v1) {
+      if (v1 > 100) return "High";
+      if (v1 < 60) return "Low";
+      return "In range";
+    }
+    if (kindCode === "bs" && v1) {
+      if (v1 > 140) return "High";
+      if (v1 < 70) return "Low";
+      return "In range";
+    }
+    if (kindCode === "o2" && v1) {
+      if (v1 < 95) return "Low";
+      return "In range";
+    }
+    if (kindCode === "temp" && v1) {
+      if (v1 > 100.4) return "High";
+      if (v1 < 97) return "Low";
+      return "In range";
+    }
+
+    return "Stable";
   }
 }
 

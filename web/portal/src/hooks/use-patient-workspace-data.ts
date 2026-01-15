@@ -24,6 +24,9 @@ type VitalRecent = {
   type: string
   value: string
   status: string
+  recordedAt: string
+  value1?: number | string
+  value2?: number | string
 }
 
 type VitalEvent = {
@@ -56,6 +59,16 @@ export interface PatientWorkspaceData {
   abnormalEvents: VitalEvent[]
   documents: DocumentRecord[]
   notifications: PortalNotification[]
+  lifestyle: {
+    diet: {
+      compliance: number
+      highlights: string[]
+    }
+    exercise: {
+      compliance: number
+      highlights: string[]
+    }
+  }
 }
 
 export function usePatientWorkspaceData(
@@ -73,13 +86,16 @@ export function usePatientWorkspaceData(
       ; (async () => {
         try {
           setLoading(true)
-          const [userDetail, medicationsRes, vitalsRes, documentsRes, notificationsRes] =
+          const [userDetail, medicationsRes, vitalsRes, documentsRes, notificationsRes, lifestyleSummaryRes, dietLogsRes, exerciseLogsRes] =
             await Promise.all([
               api.get<any>(API_ENDPOINTS.users.detail(patientId)),
               api.get<any[]>(`${API_ENDPOINTS.medications.list}?elderUserId=${patientId}`),
               api.get<any[]>(`${API_ENDPOINTS.vitals.list}?elderUserId=${patientId}`),
               api.get<any[]>(`${API_ENDPOINTS.documents.list}?elderUserId=${patientId}`),
               api.get<any[]>(`${API_ENDPOINTS.notifications.list}?elderUserId=${patientId}`),
+              api.get<any>(`${API_ENDPOINTS.lifestyle.summaryWeekly}?elderUserId=${patientId}`),
+              api.get<any[]>(`${API_ENDPOINTS.lifestyle.dietLogs}?elderUserId=${patientId}`),
+              api.get<any[]>(`${API_ENDPOINTS.lifestyle.exerciseLogs}?elderUserId=${patientId}`),
             ])
 
           if (!isMounted) return
@@ -109,9 +125,12 @@ export function usePatientWorkspaceData(
           )
 
           const vitalsRecent: VitalRecent[] = (vitalsRes || []).slice(0, 5).map((vital) => ({
-            type: vital.type || vital.kindCode || "Vital",
+            type: formatVitalType(vital.type || vital.kindCode || "Vital"),
             value: vital.value,
-            status: "Stable",
+            status: calculateVitalStatus(vital),
+            recordedAt: vital.timestamp || vital.recordedAt || new Date().toISOString(),
+            value1: vital.value1,
+            value2: vital.value2,
           }))
 
           const abnormalEvents: VitalEvent[] = (vitalsRes || [])
@@ -178,6 +197,16 @@ export function usePatientWorkspaceData(
             abnormalEvents,
             documents,
             notifications,
+            lifestyle: {
+              diet: {
+                compliance: dietLogsRes?.length ? Math.min(Math.round((dietLogsRes.length / 21) * 100), 100) : 0,
+                highlights: (dietLogsRes || []).slice(0, 3).map((log: any) => `${log.mealType}: ${log.description || 'Logged'}`),
+              },
+              exercise: {
+                compliance: lifestyleSummaryRes?.totalExerciseMinutes ? Math.min(Math.round((lifestyleSummaryRes.totalExerciseMinutes / 150) * 100), 100) : 0,
+                highlights: (exerciseLogsRes || []).slice(0, 3).map((log: any) => `${log.activityType}: ${log.durationMinutes} mins`),
+              },
+            },
           })
           setError(null)
         } catch (err) {
@@ -197,27 +226,76 @@ export function usePatientWorkspaceData(
   return { data, loading, error }
 }
 
-function isAbnormal(measurement: any): boolean {
-  const kindCode = measurement.kindCode?.toLowerCase();
-  const value1 = measurement.value1 ? parseFloat(measurement.value1.toString()) : null;
-  const value2 = measurement.value2 ? parseFloat(measurement.value2.toString()) : null;
+function formatVitalType(type: string): string {
+  // Handle some common mappings
+  const mapping: Record<string, string> = {
+    bloodPressure: "Blood Pressure",
+    bloodSugar: "Blood Sugar",
+    oxygenSaturation: "O2 Saturation",
+    heartRate: "Heart Rate",
+    bodyTemp: "Temperature",
+    weight: "Weight",
+  }
 
-  if (kindCode === 'bp' && value1 && value2) {
-    return value1 > 140 || value1 < 80 || value2 > 90 || value2 < 50;
+  if (mapping[type]) return mapping[type]
+
+  // Fallback: convert camelCase to Title Case
+  return type
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (str) => str.toUpperCase())
+    .trim()
+}
+
+function calculateVitalStatus(measurement: any): string {
+  const type = (measurement.type || measurement.kindCode || "").toLowerCase()
+  let v1 = measurement.value1 ? parseFloat(measurement.value1.toString()) : null
+  let v2 = measurement.value2 ? parseFloat(measurement.value2.toString()) : null
+
+  // If specialized fields are missing, try to parse from the main value string
+  if (v1 === null && measurement.value) {
+    if (Array.isArray(measurement.value)) {
+      v1 = parseFloat(measurement.value[0])
+      v2 = measurement.value[1] ? parseFloat(measurement.value[1]) : null
+    } else {
+      const parts = String(measurement.value).split(/[/\s,]+/)
+      v1 = parseFloat(parts[0])
+      v2 = parts[1] ? parseFloat(parts[1]) : null
+    }
   }
-  if (kindCode === 'bs' && value1 !== null) {
-    return value1 > 125 || value1 < 60;
+
+  if (v1 === null) return measurement.status || "In range"
+
+  if (type.includes("bp") || type.includes("pressure")) {
+    if (v1 > 140 || (v2 !== null && v2 > 90)) return "High"
+    if (v1 < 80 || (v2 !== null && v2 < 50)) return "Low"
+    return "In range"
   }
-  if (kindCode === 'hr' && value1 !== null) {
-    return value1 < 50 || value1 > 110;
+  if (type.includes("bs") || type.includes("glucose") || type.includes("sugar")) {
+    if (v1 > 125) return "High"
+    if (v1 < 60) return "Low"
+    return "In range"
   }
-  if (kindCode === 'temp' && value1 !== null) {
-    return value1 < 96.0 || value1 > 100.4;
+  if (type.includes("hr") || type.includes("heart")) {
+    if (v1 > 110) return "High"
+    if (v1 < 50) return "Low"
+    return "In range"
   }
-  if (kindCode === 'o2' && value1 !== null) {
-    return value1 < 90;
+  if (type.includes("temp")) {
+    if (v1 > 100.4) return "High"
+    if (v1 < 96.0) return "Low"
+    return "In range"
   }
-  return false;
+  if (type.includes("o2") || type.includes("oxygen") || type.includes("spo2")) {
+    if (v1 < 90) return "Low"
+    return "In range"
+  }
+
+  return measurement.status || "In range"
+}
+
+function isAbnormal(measurement: any): boolean {
+  const status = calculateVitalStatus(measurement)
+  return status === "High" || status === "Low"
 }
 
 function calculateAge(dob: string) {

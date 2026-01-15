@@ -127,14 +127,16 @@ Emergency Contact: ${demographics.emergencyContact ?? 'No contact listed'}
   const notificationsList = workspace?.notifications || []
 
   const vitalTrendData = (vitalsRecent || []).map((vital, index) => {
-    const numeric = parseFloat(
-      Array.isArray(vital.value) ? vital.value[0] : vital.value,
-    )
+    const v1 = parseFloat(String(vital.value1 || (Array.isArray(vital.value) ? vital.value[0] : vital.value)));
+    const v2 = parseFloat(String(vital.value2 || 0));
+    const type = String(vital.type).toLowerCase();
+
     return {
       date: `Day ${index + 1}`,
-      systolic: numeric || 0,
-      diastolic: numeric || 0,
-      heartRate: numeric || 0,
+      systolic: type.includes("pressure") ? v1 : 0,
+      diastolic: type.includes("pressure") ? v2 : 0,
+      heartRate: type.includes("heart") ? v1 : 0,
+      value: v1 // Fallback for other vitals
     }
   })
 
@@ -142,7 +144,7 @@ Emergency Contact: ${demographics.emergencyContact ?? 'No contact listed'}
   const lastSynced = demographics.lastSynced
     ? new Date(demographics.lastSynced).toLocaleString()
     : rosterPatient?.lastActivity || ""
-  const lifestyle = (workspace as any)?.lifestyle
+  const lifestyle = workspace?.lifestyle
 
   if (patientsLoading) {
     return (
@@ -319,7 +321,7 @@ Emergency Contact: ${demographics.emergencyContact ?? 'No contact listed'}
         </TabsContent>
 
         <TabsContent value="vitals" className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-5">
+          <div className="grid gap-4 lg:grid-cols-4">
             <VitalsTrendCard data={vitalTrendData} />
             <Card className="lg:col-span-1">
               <CardHeader>
@@ -328,50 +330,68 @@ Emergency Contact: ${demographics.emergencyContact ?? 'No contact listed'}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {vitalsRecent.map((vital) => (
+                {vitalsRecent.map((vital, index) => (
                   <div
-                    key={vital.type}
+                    key={`${vital.type}-${index}`}
                     className="rounded-lg border border-border/60 p-3 text-sm"
                   >
-                    <p className="font-medium">{vital.type}</p>
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">{vital.type}</p>
+                      <span className="text-[10px] text-muted-foreground">
+                        {new Date(vital.recordedAt).toLocaleString([], {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
                     <p className="text-muted-foreground">{vital.value}</p>
-                    <Badge variant="outline" className="mt-2">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "mt-2 uppercase text-[10px]",
+                        vital.status === "High" || vital.status === "Low"
+                          ? "border-rose-500/50 bg-rose-500/10 text-rose-600"
+                          : "border-emerald-500/50 bg-emerald-500/10 text-emerald-600"
+                      )}
+                    >
                       {vital.status}
                     </Badge>
                   </div>
                 ))}
               </CardContent>
             </Card>
-          </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold text-muted-foreground">
-                Abnormal events
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {abnormalEvents.length ? (
-                <Accordion type="single" collapsible>
-                  {abnormalEvents.map((event) => (
-                    <AccordionItem key={event.id} value={event.id}>
-                      <AccordionTrigger>
-                        {new Date(event.recordedAt).toLocaleString()}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <p className="text-sm text-muted-foreground">
+            <Card className="lg:col-span-1 h-full overflow-hidden flex flex-col">
+              <CardHeader>
+                <CardTitle className="text-sm font-semibold text-muted-foreground">
+                  Abnormal events
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-y-auto">
+                {abnormalEvents.length ? (
+                  <Accordion type="single" collapsible className="w-full">
+                    {abnormalEvents.map((event) => (
+                      <AccordionItem key={event.id} value={event.id} className="border-b-0">
+                        <AccordionTrigger className="py-2 text-xs hover:no-underline">
+                          <span className="truncate">
+                            {new Date(event.recordedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent className="text-[11px] leading-relaxed text-muted-foreground">
                           {event.note}
-                        </p>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No abnormal readings captured in the selected period.
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                ) : (
+                  <p className="text-xs text-muted-foreground py-4 text-center italic">
+                    All readings stable
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="lifestyle" className="space-y-4">

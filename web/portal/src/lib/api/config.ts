@@ -69,6 +69,14 @@ export const API_ENDPOINTS = {
     plans: "/subscriptions/plans",
     current: "/subscriptions/current",
   },
+  // Lifestyle endpoints
+  lifestyle: {
+    summaryWeekly: "/lifestyle/summary/weekly",
+    dietPlans: "/lifestyle/diet-plans",
+    exercisePlans: "/lifestyle/exercise-plans",
+    dietLogs: "/lifestyle/diet",
+    exerciseLogs: "/lifestyle/exercise",
+  },
 } as const;
 
 /**
