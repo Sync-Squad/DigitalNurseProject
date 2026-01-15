@@ -5,7 +5,7 @@ import { CompleteProfileDto } from './dto/complete-profile.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getProfile(userId: bigint) {
     const user = await this.prisma.user.findUnique({
@@ -38,8 +38,8 @@ export class UsersService {
     // Get subscription tier
     const subscriptionTier = user.subscriptions[0]?.planId
       ? await this.prisma.subscriptionPlan.findUnique({
-          where: { planId: user.subscriptions[0].planId },
-        })
+        where: { planId: user.subscriptions[0].planId },
+      })
       : null;
 
     const activeRoleCode = user.userRoles[0]?.role?.roleCode;
@@ -134,8 +134,8 @@ export class UsersService {
     const planLookup =
       planIds.length > 0
         ? await this.prisma.subscriptionPlan.findMany({
-            where: { planId: { in: planIds.map((id) => BigInt(id)) } },
-          })
+          where: { planId: { in: planIds.map((id) => BigInt(id)) } },
+        })
         : [];
 
     const planMap = new Map<string, string>();
@@ -161,10 +161,10 @@ export class UsersService {
           medIntakes.length === 0
             ? 100
             : Math.round(
-                (medIntakes.filter((i) => i.status === 'taken').length /
-                  medIntakes.length) *
-                  100,
-              );
+              (medIntakes.filter((i) => i.status === 'taken').length /
+                medIntakes.length) *
+              100,
+            );
 
         const alerts = patient.vitalMeasurements.filter((m) =>
           this.isAbnormal(m),
@@ -172,14 +172,14 @@ export class UsersService {
 
         const age = patient.dob
           ? Math.floor(
-              (new Date().getTime() - new Date(patient.dob).getTime()) /
-                (365.25 * 24 * 60 * 60 * 1000),
-            )
+            (new Date().getTime() - new Date(patient.dob).getTime()) /
+            (365.25 * 24 * 60 * 60 * 1000),
+          )
           : null;
 
         const plan =
           patient.subscriptions[0]?.planId &&
-          planMap.get(patient.subscriptions[0].planId.toString())
+            planMap.get(patient.subscriptions[0].planId.toString())
             ? planMap.get(patient.subscriptions[0].planId.toString())
             : 'Essential';
 
@@ -272,9 +272,9 @@ export class UsersService {
       });
 
       return this.getProfile(userId);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Profile update error:', error);
-      if (error.code === 'P2002') {
+      if (error?.code === 'P2002') {
         throw new ConflictException('Phone number already exists');
       }
       throw error;

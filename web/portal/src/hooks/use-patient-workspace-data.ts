@@ -70,121 +70,124 @@ export function usePatientWorkspaceData(
     if (!patientId) return
     let isMounted = true
 
-    ;(async () => {
-      try {
-        setLoading(true)
-        const [userDetail, medicationsRes, vitalsRes, documentsRes, notificationsRes] =
-          await Promise.all([
-            api.get<any>(API_ENDPOINTS.users.detail(patientId)),
-            api.get<any[]>(`${API_ENDPOINTS.medications.list}?elderUserId=${patientId}`),
-            api.get<any[]>(`${API_ENDPOINTS.vitals.list}?elderUserId=${patientId}`),
-            api.get<any[]>(`${API_ENDPOINTS.documents.list}?elderUserId=${patientId}`),
-            api.get<any[]>(`${API_ENDPOINTS.notifications.list}?elderUserId=${patientId}`),
-          ])
+      ; (async () => {
+        try {
+          setLoading(true)
+          const [userDetail, medicationsRes, vitalsRes, documentsRes, notificationsRes] =
+            await Promise.all([
+              api.get<any>(API_ENDPOINTS.users.detail(patientId)),
+              api.get<any[]>(`${API_ENDPOINTS.medications.list}?elderUserId=${patientId}`),
+              api.get<any[]>(`${API_ENDPOINTS.vitals.list}?elderUserId=${patientId}`),
+              api.get<any[]>(`${API_ENDPOINTS.documents.list}?elderUserId=${patientId}`),
+              api.get<any[]>(`${API_ENDPOINTS.notifications.list}?elderUserId=${patientId}`),
+            ])
 
-        if (!isMounted) return
+          if (!isMounted) return
 
-        const medications: WorkspaceMedication[] = (medicationsRes || []).map((med) => ({
-          id: med.id,
-          name: med.name,
-          dosage: med.dosage || med.doseAmount || "",
-          schedule: med.reminderTimes?.[0]?.time
-            ? `${med.reminderTimes[0].time} · ${med.frequency || ""}`
-            : med.frequency || "Daily",
-          adherence: 100,
-          status: "In range",
-        }))
+          const medications: WorkspaceMedication[] = (medicationsRes || []).map((med) => {
+            const times = (med.reminderTimes || []).map((t: any) => t.time).join(", ")
+            return {
+              id: med.id,
+              name: med.name,
+              dosage: med.dosage || med.doseAmount || "",
+              schedule: times
+                ? `${times} · ${med.frequency || ""}`
+                : med.frequency || "Daily",
+              adherence: med.adherence ?? 100,
+              status: (med.adherence ?? 100) < 80 ? "Below target" : "In range",
+            }
+          })
 
-        const medicationLog: MedicationLogEntry[] = (medicationsRes || []).flatMap((med) =>
-          (med.reminderTimes || []).slice(0, 2).map((timeObj: any) => ({
-            date: med.startDate || new Date().toISOString(),
-            time: timeObj.time,
-            medication: med.name,
-            status: "Scheduled",
-            recordedBy: userDetail?.name || "System",
-          })),
-        )
+          const medicationLog: MedicationLogEntry[] = (medicationsRes || []).flatMap((med) =>
+            (med.reminderTimes || []).map((timeObj: any) => ({
+              date: med.startDate || new Date().toISOString(),
+              time: timeObj.time,
+              medication: med.name,
+              status: "Scheduled",
+              recordedBy: userDetail?.name || "System",
+            })),
+          )
 
-        const vitalsRecent: VitalRecent[] = (vitalsRes || []).slice(0, 5).map((vital) => ({
-          type: vital.type || vital.kindCode || "Vital",
-          value: vital.value,
-          status: "Stable",
-        }))
-
-        const abnormalEvents: VitalEvent[] = (vitalsRes || [])
-          .filter((vital) => isAbnormal(vital))
-          .map((vital) => ({
-            id: vital.id || crypto.randomUUID(),
-            recordedAt: vital.timestamp || vital.recordedAt || new Date().toISOString(),
-            note: `Abnormal ${vital.type || vital.kindCode} value: ${vital.value}`,
+          const vitalsRecent: VitalRecent[] = (vitalsRes || []).slice(0, 5).map((vital) => ({
+            type: vital.type || vital.kindCode || "Vital",
+            value: vital.value,
+            status: "Stable",
           }))
 
-        const documents: DocumentRecord[] = (documentsRes || []).map((doc) => ({
-          id: doc.id,
-          patient: doc.userId ? `User ${doc.userId}` : "Unknown",
-          type: (doc.type as DocumentRecord["type"]) || "Care Plan",
-          author: doc.title || "Uploaded file",
-          createdAt: doc.uploadDate
-            ? new Date(doc.uploadDate).toLocaleString()
-            : new Date().toLocaleString(),
-          visibility: (doc.visibility as DocumentRecord["visibility"]) || "Private",
-          status: (doc.description as DocumentRecord["status"]) || "Published",
-        }))
+          const abnormalEvents: VitalEvent[] = (vitalsRes || [])
+            .filter((vital) => isAbnormal(vital))
+            .map((vital) => ({
+              id: vital.id || crypto.randomUUID(),
+              recordedAt: vital.timestamp || vital.recordedAt || new Date().toISOString(),
+              note: `Abnormal ${vital.type || vital.kindCode} value: ${vital.value}`,
+            }))
 
-        const notifications: PortalNotification[] = (notificationsRes || []).map((item) => ({
-          id: item.notificationId?.toString() || crypto.randomUUID(),
-          category: mapCategory(item.notificationType),
-          title: item.title,
-          summary: item.message,
-          recipients: [],
-          createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
-          severity: item.notificationType?.toLowerCase().includes("critical")
-            ? "critical"
-            : item.notificationType?.toLowerCase().includes("warning")
-              ? "warning"
-              : "info",
-          read: item.isRead ?? false,
-        }))
+          const documents: DocumentRecord[] = (documentsRes || []).map((doc) => ({
+            id: doc.id,
+            patient: doc.userId ? `User ${doc.userId}` : "Unknown",
+            type: (doc.type as DocumentRecord["type"]) || "Care Plan",
+            author: doc.title || "Uploaded file",
+            createdAt: doc.uploadDate
+              ? new Date(doc.uploadDate).toLocaleString()
+              : new Date().toLocaleString(),
+            visibility: (doc.visibility as DocumentRecord["visibility"]) || "Private",
+            status: (doc.description as DocumentRecord["status"]) || "Published",
+          }))
 
-        const age = userDetail?.age
-          ? Number(userDetail.age)
-          : userDetail?.dob
-            ? calculateAge(userDetail.dob)
-            : null
+          const notifications: PortalNotification[] = (notificationsRes || []).map((item) => ({
+            id: item.notificationId?.toString() || crypto.randomUUID(),
+            category: mapCategory(item.notificationType),
+            title: item.title,
+            summary: item.message,
+            recipients: [],
+            createdAt: item.createdAt ? new Date(item.createdAt) : new Date(),
+            severity: item.notificationType?.toLowerCase().includes("critical")
+              ? "critical"
+              : item.notificationType?.toLowerCase().includes("warning")
+                ? "warning"
+                : "info",
+            read: item.isRead ?? false,
+          }))
 
-        const careTeam: CareTeamMember[] = (options?.careTeamNames || []).map((name) => ({
-          name,
-          role: "Caregiver",
-          status: "Active",
-        }))
+          const age = userDetail?.age
+            ? Number(userDetail.age)
+            : userDetail?.dob
+              ? calculateAge(userDetail.dob)
+              : null
 
-        setData({
-          demographics: {
-            name: userDetail?.name || userDetail?.full_name || "Patient",
-            age,
-            gender: userDetail?.gender ?? null,
-            subscription: userDetail?.subscription || "Essential",
-            riskLevel: "Moderate",
-            emergencyContact: userDetail?.emergencyContact ?? null,
-            lastSynced: new Date().toISOString(),
-          },
-          careTeam,
-          medications,
-          medicationLog,
-          vitalsRecent,
-          abnormalEvents,
-          documents,
-          notifications,
-        })
-        setError(null)
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Unable to load patient workspace data"
-        if (isMounted) setError(message)
-      } finally {
-        if (isMounted) setLoading(false)
-      }
-    })()
+          const careTeam: CareTeamMember[] = (options?.careTeamNames || []).map((name) => ({
+            name,
+            role: "Caregiver",
+            status: "Active",
+          }))
+
+          setData({
+            demographics: {
+              name: userDetail?.name || userDetail?.full_name || "Patient",
+              age,
+              gender: userDetail?.gender ?? null,
+              subscription: userDetail?.subscription || "Essential",
+              riskLevel: "Moderate",
+              emergencyContact: userDetail?.emergencyContact ?? null,
+              lastSynced: new Date().toISOString(),
+            },
+            careTeam,
+            medications,
+            medicationLog,
+            vitalsRecent,
+            abnormalEvents,
+            documents,
+            notifications,
+          })
+          setError(null)
+        } catch (err) {
+          const message =
+            err instanceof Error ? err.message : "Unable to load patient workspace data"
+          if (isMounted) setError(message)
+        } finally {
+          if (isMounted) setLoading(false)
+        }
+      })()
 
     return () => {
       isMounted = false

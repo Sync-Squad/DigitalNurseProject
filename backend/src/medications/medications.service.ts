@@ -7,7 +7,7 @@ import { ActorContext } from '../common/services/access-control.service';
 
 @Injectable()
 export class MedicationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   /**
    * Convert days array to bitmask (1=Monday, 7=Sunday)
@@ -112,7 +112,7 @@ export class MedicationsService {
         },
       });
 
-      return this.mapToResponse(medication);
+      return this.mapToResponse(context, medication);
     } catch (error) {
       console.error('Error creating medication:', error);
       if (error instanceof NotFoundException || error instanceof BadRequestException) {
@@ -145,7 +145,9 @@ export class MedicationsService {
       },
     });
 
-    return medications.map((medication: any) => this.mapToResponse(medication));
+    return Promise.all(
+      medications.map((medication: any) => this.mapToResponse(context, medication)),
+    );
   }
 
   /**
@@ -170,7 +172,7 @@ export class MedicationsService {
       throw new NotFoundException('Medication not found');
     }
 
-    return this.mapToResponse(medication);
+    return this.mapToResponse(context, medication);
   }
 
   /**
@@ -832,6 +834,9 @@ export class MedicationsService {
 
       if (!Array.isArray(times)) continue;
 
+      // Map medication once per medication, not once per reminder time
+      const mappedMedicine = await this.mapToResponse(context, medication);
+
       for (const timeStr of times) {
         const [hours, minutes] = timeStr.split(':').map(Number);
         const reminderTime = new Date(now);
@@ -842,7 +847,7 @@ export class MedicationsService {
         }
 
         reminders.push({
-          medicine: this.mapToResponse(medication),
+          medicine: mappedMedicine,
           reminderTime: reminderTime.toISOString(),
         });
       }
@@ -858,14 +863,23 @@ export class MedicationsService {
   /**
    * Map database model to API response
    */
-  private mapToResponse(medication: any) {
+  private async mapToResponse(context: ActorContext, medication: any) {
     const schedule = medication.schedules?.[0];
     const timesLocal = (schedule?.timesLocal as string[]) || [];
+
+    // Fetch adherence if we have medicationId
+    let adherence = 100;
+    try {
+      const adherenceData = await this.getAdherence(context, medication.medicationId);
+      adherence = adherenceData.percentage;
+    } catch (error) {
+      console.warn(`Failed to fetch adherence for medication ${medication.medicationId}:`, error);
+    }
 
     return {
       id: medication.medicationId.toString(),
       name: medication.medicationName,
-      dosage: medication.instructions || '',
+      dosage: medication.instructions || "",
       frequency: this.determineFrequency(schedule),
       startDate: schedule?.startDate?.toISOString() || medication.createdAt.toISOString(),
       endDate: schedule?.endDate?.toISOString() || null,
@@ -875,9 +889,10 @@ export class MedicationsService {
       medicineForm: medication.formCode || null,
       strength: medication.doseUnitCode || null,
       doseAmount: medication.doseValue
-        ? `${medication.doseValue} ${medication.doseUnitCode || ''}`
+        ? `${medication.doseValue} ${medication.doseUnitCode || ""}`
         : null,
       periodicDays: schedule ? this.bitmaskToDays(schedule.daysMask) : null,
+      adherence,
     };
   }
 
