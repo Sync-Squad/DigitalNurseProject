@@ -34,6 +34,16 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { usePatientsData } from "@/hooks/use-patients-data"
 import { usePatientWorkspaceData } from "@/hooks/use-patient-workspace-data"
+import { useState } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Video } from "lucide-react"
 
 const riskTone = {
   low: "bg-emerald-500/10 text-emerald-600",
@@ -65,6 +75,40 @@ export default function PatientWorkspacePage() {
     riskLevel: rosterPatient?.risk || "low",
     emergencyContact: null,
     lastSynced: rosterPatient?.lastActivity || "",
+  }
+
+  const [isTelevisitOpen, setIsTelevisitOpen] = useState(false)
+
+  const handleDownloadSummary = () => {
+    const summary = `
+Patient Summary: ${demographics.name}
+Age: ${demographics.age ?? '—'}
+Risk level: ${demographics.riskLevel}
+Subscription: ${demographics.subscription}
+Last Synced: ${lastSynced}
+
+Vitals Overview:
+${vitalsRecent.map(v => `- ${v.type}: ${v.value} (${v.status})`).join('\n')}
+
+Medications:
+${medications.map(m => `- ${m.name}: ${m.dosage} (${m.adherence}% adherence)`).join('\n')}
+
+Emergency Contact: ${demographics.emergencyContact ?? 'No contact listed'}
+    `.trim();
+
+    const blob = new Blob([summary], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${demographics.name.replace(/\s+/g, '_')}_Summary.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleStartTelevisit = () => {
+    setIsTelevisitOpen(true)
   }
 
   const careTeam =
@@ -135,8 +179,8 @@ export default function PatientWorkspacePage() {
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline">Download summary</Button>
-            <Button className="gap-2">
+            <Button variant="outline" onClick={handleDownloadSummary}>Download summary</Button>
+            <Button className="gap-2" onClick={handleStartTelevisit}>
               <Stethoscope className="size-4" />
               Start televisit
             </Button>
@@ -152,11 +196,11 @@ export default function PatientWorkspacePage() {
             icon={<Pill className="size-4 text-primary" />}
             label="Medication adherence"
             value={`${medications.length
-                ? Math.round(
-                  medications.reduce((acc, med) => acc + med.adherence, 0) /
-                  medications.length
-                )
-                : rosterPatient.adherence
+              ? Math.round(
+                medications.reduce((acc, med) => acc + med.adherence, 0) /
+                medications.length
+              )
+              : rosterPatient.adherence
               }%`}
           />
           <InfoTile
@@ -508,6 +552,40 @@ export default function PatientWorkspacePage() {
         </Link>
         .
       </div>
+
+      <Dialog open={isTelevisitOpen} onOpenChange={setIsTelevisitOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Start Televisit</DialogTitle>
+            <DialogDescription>
+              Connect with {demographics.name} via a secure video consultation.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center gap-6 py-8">
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-primary/10">
+              <Video className="h-12 w-12 text-primary animate-pulse" />
+              <div className="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping" />
+            </div>
+            <div className="space-y-2 text-center">
+              <p className="text-sm font-medium">Ready to start the session</p>
+              <p className="text-xs text-muted-foreground">
+                Ensure your camera and microphone are accessible.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-center gap-2">
+            <Button variant="outline" onClick={() => setIsTelevisitOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="gap-2" onClick={() => {
+              window.open(`https://meet.jit.si/DigitalNurse-${demographics.name.replace(/\s+/g, '-')}`, '_blank');
+              setIsTelevisitOpen(false);
+            }}>
+              Join Call Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
