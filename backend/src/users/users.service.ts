@@ -90,14 +90,41 @@ export class UsersService {
     };
   }
 
-  async getPatientsList() {
+  async getPatientsList(user: any) {
+    const actorUserId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
+    const role = (user.role || user.activeRoleCode || 'patient').toString().toLowerCase();
+
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - 7);
 
+    const privilegedRoles = ['super_admin', 'admin', 'clinician', 'coordinator', 'provider'];
+
+    // Define filtering based on role
+    let whereClause: any = {
+      userRoles: { some: { role: { roleCode: 'patient' } } },
+    };
+
+    if (!privilegedRoles.includes(role)) {
+      if (role === 'caregiver') {
+        whereClause = {
+          ...whereClause,
+          elderAssignmentsAsElder: {
+            some: { caregiverUserId: actorUserId },
+          },
+        };
+      } else if (role === 'patient') {
+        whereClause = {
+          ...whereClause,
+          userId: actorUserId,
+        };
+      } else {
+        // Unknown role or restricted role
+        return [];
+      }
+    }
+
     const patients = await this.prisma.user.findMany({
-      where: {
-        userRoles: { some: { role: { roleCode: 'patient' } } },
-      },
+      where: whereClause,
       include: {
         vitalMeasurements: {
           where: { recordedAt: { gte: cutoff } },

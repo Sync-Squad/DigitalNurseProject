@@ -23,8 +23,10 @@ type MedicationLogEntry = {
 type VitalRecent = {
   type: string
   value: string
+  unit?: string
   status: string
   recordedAt: string
+  notes?: string
   value1?: number | string
   value2?: number | string
 }
@@ -32,6 +34,10 @@ type VitalRecent = {
 type VitalEvent = {
   id: string
   recordedAt: string
+  type: string
+  value: string
+  unit: string
+  status: string
   note: string
 }
 
@@ -124,22 +130,37 @@ export function usePatientWorkspaceData(
             })),
           )
 
-          const vitalsRecent: VitalRecent[] = (vitalsRes || []).slice(0, 5).map((vital) => ({
-            type: formatVitalType(vital.type || vital.kindCode || "Vital"),
-            value: vital.value,
-            status: calculateVitalStatus(vital),
-            recordedAt: vital.timestamp || vital.recordedAt || new Date().toISOString(),
-            value1: vital.value1,
-            value2: vital.value2,
-          }))
+          const vitalsRecent: VitalRecent[] = (vitalsRes || []).slice(0, 5).map((vital) => {
+            const type = vital.type || vital.kindCode || "Vital";
+            return {
+              type: formatVitalType(type),
+              value: vital.value,
+              unit: vital.unitCode || getVitalUnit(type),
+              status: calculateVitalStatus(vital),
+              recordedAt: vital.timestamp || vital.recordedAt || new Date().toISOString(),
+              notes: vital.notes || null,
+              value1: vital.value1,
+              value2: vital.value2,
+            };
+          })
 
           const abnormalEvents: VitalEvent[] = (vitalsRes || [])
             .filter((vital) => isAbnormal(vital))
-            .map((vital) => ({
-              id: vital.id || crypto.randomUUID(),
-              recordedAt: vital.timestamp || vital.recordedAt || new Date().toISOString(),
-              note: `Abnormal ${vital.type || vital.kindCode} value: ${vital.value}`,
-            }))
+            .map((vital) => {
+              const type = vital.type || vital.kindCode || "Vital"
+              const status = calculateVitalStatus(vital)
+              return {
+                id: vital.id || crypto.randomUUID(),
+                recordedAt: vital.timestamp || vital.recordedAt || new Date().toISOString(),
+                type: formatVitalType(type),
+                value: vital.value,
+                unit: vital.unitCode || getVitalUnit(type),
+                status: status,
+                note:
+                  vital.notes ||
+                  `Abnormal ${formatVitalType(type)} reading detected: ${vital.value} ${vital.unitCode || getVitalUnit(type)}`,
+              }
+            })
 
           const documents: DocumentRecord[] = (documentsRes || []).map((doc) => ({
             id: doc.id,
@@ -245,6 +266,16 @@ function formatVitalType(type: string): string {
     .replace(/^./, (str) => str.toUpperCase())
     .trim()
 }
+function getVitalUnit(type: string): string {
+  const normalized = type.toLowerCase()
+  if (normalized.includes("bp") || normalized.includes("pressure")) return "mmHg"
+  if (normalized.includes("bs") || normalized.includes("glucose") || normalized.includes("sugar")) return "mg/dL"
+  if (normalized.includes("hr") || normalized.includes("heart")) return "bpm"
+  if (normalized.includes("temp")) return "°F"
+  if (normalized.includes("o2") || normalized.includes("oxygen") || normalized.includes("spo2")) return "%"
+  if (normalized.includes("weight")) return "lbs"
+  return ""
+}
 
 function calculateVitalStatus(measurement: any): string {
   const type = (measurement.type || measurement.kindCode || "").toLowerCase()
@@ -266,27 +297,27 @@ function calculateVitalStatus(measurement: any): string {
   if (v1 === null) return measurement.status || "In range"
 
   if (type.includes("bp") || type.includes("pressure")) {
-    if (v1 > 140 || (v2 !== null && v2 > 90)) return "High"
-    if (v1 < 80 || (v2 !== null && v2 < 50)) return "Low"
+    if (v1 >= 140 || (v2 !== null && v2 >= 90)) return "High"
+    if (v1 <= 90 || (v2 !== null && v2 <= 60)) return "Low"
     return "In range"
   }
   if (type.includes("bs") || type.includes("glucose") || type.includes("sugar")) {
-    if (v1 > 125) return "High"
-    if (v1 < 60) return "Low"
+    if (v1 >= 126) return "High"
+    if (v1 <= 60) return "Low"
     return "In range"
   }
   if (type.includes("hr") || type.includes("heart")) {
-    if (v1 > 110) return "High"
-    if (v1 < 50) return "Low"
+    if (v1 >= 110) return "High"
+    if (v1 <= 50) return "Low"
     return "In range"
   }
   if (type.includes("temp")) {
-    if (v1 > 100.4) return "High"
-    if (v1 < 96.0) return "Low"
+    if (v1 >= 100.4) return "High"
+    if (v1 <= 96.0) return "Low"
     return "In range"
   }
   if (type.includes("o2") || type.includes("oxygen") || type.includes("spo2")) {
-    if (v1 < 90) return "Low"
+    if (v1 <= 90) return "Low"
     return "In range"
   }
 

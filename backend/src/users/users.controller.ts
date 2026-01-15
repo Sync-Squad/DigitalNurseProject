@@ -17,7 +17,7 @@ import {
 @UseGuards(JwtAuthGuard)
 @Controller('users')
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(private usersService: UsersService) { }
 
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
@@ -31,8 +31,8 @@ export class UsersController {
   @Get('patients')
   @ApiOperation({ summary: 'Get all patients with risk and activity info' })
   @ApiResponse({ status: 200, description: 'Patients retrieved successfully' })
-  async getPatients() {
-    return this.usersService.getPatientsList();
+  async getPatients(@CurrentUser() user: any) {
+    return this.usersService.getPatientsList(user);
   }
 
   @Get(':id')

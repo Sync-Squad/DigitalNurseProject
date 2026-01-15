@@ -24,6 +24,7 @@ import {
   FileText,
   HeartPulse,
   Pill,
+  Search,
   Shield,
   Stethoscope,
   Users,
@@ -78,6 +79,7 @@ export default function PatientWorkspacePage() {
   }
 
   const [isTelevisitOpen, setIsTelevisitOpen] = useState(false)
+  const [abnormalSearch, setAbnormalSearch] = useState("")
 
   const handleDownloadSummary = () => {
     const summary = `
@@ -145,6 +147,14 @@ Emergency Contact: ${demographics.emergencyContact ?? 'No contact listed'}
     ? new Date(demographics.lastSynced).toLocaleString()
     : rosterPatient?.lastActivity || ""
   const lifestyle = workspace?.lifestyle
+
+  const filteredAbnormal = useMemo(() => {
+    return abnormalEvents.filter(event =>
+      event.type.toLowerCase().includes(abnormalSearch.toLowerCase()) ||
+      event.note.toLowerCase().includes(abnormalSearch.toLowerCase()) ||
+      event.status.toLowerCase().includes(abnormalSearch.toLowerCase())
+    )
+  }, [abnormalEvents, abnormalSearch])
 
   if (patientsLoading) {
     return (
@@ -346,7 +356,17 @@ Emergency Contact: ${demographics.emergencyContact ?? 'No contact listed'}
                         })}
                       </span>
                     </div>
-                    <p className="text-muted-foreground">{vital.value}</p>
+                    <div className="mt-1 flex items-baseline gap-1">
+                      <p className="text-lg font-semibold">{vital.value}</p>
+                      <span className="text-[10px] font-medium uppercase text-muted-foreground">
+                        {vital.unit}
+                      </span>
+                    </div>
+                    {vital.notes && (
+                      <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground/80 italic">
+                        &quot;{vital.notes}&quot;
+                      </p>
+                    )}
                     <Badge
                       variant="outline"
                       className={cn(
@@ -362,32 +382,65 @@ Emergency Contact: ${demographics.emergencyContact ?? 'No contact listed'}
                 ))}
               </CardContent>
             </Card>
-            <Card className="lg:col-span-1 h-full overflow-hidden flex flex-col">
-              <CardHeader>
-                <CardTitle className="text-sm font-semibold text-muted-foreground">
-                  Abnormal events
-                </CardTitle>
+            <Card className="lg:col-span-1 h-[450px] overflow-hidden flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground">
+                    Abnormal events
+                  </CardTitle>
+                  <Badge variant="secondary" className="text-[10px]">
+                    {filteredAbnormal.length}
+                  </Badge>
+                </div>
+                <div className="relative mt-2">
+                  <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                  <input
+                    placeholder="Filter events..."
+                    className="w-full rounded-md border border-input bg-background pl-8 py-1.5 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={abnormalSearch}
+                    onChange={(e) => setAbnormalSearch(e.target.value)}
+                  />
+                </div>
               </CardHeader>
               <CardContent className="flex-1 overflow-y-auto">
-                {abnormalEvents.length ? (
+                {filteredAbnormal.length ? (
                   <Accordion type="single" collapsible className="w-full">
-                    {abnormalEvents.map((event) => (
-                      <AccordionItem key={event.id} value={event.id} className="border-b-0">
-                        <AccordionTrigger className="py-2 text-xs hover:no-underline">
-                          <span className="truncate">
-                            {new Date(event.recordedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                          </span>
+                    {filteredAbnormal.map((event) => (
+                      <AccordionItem key={event.id} value={event.id} className="border-b border-border/40 last:border-0">
+                        <AccordionTrigger className="py-3 text-left hover:no-underline">
+                          <div className="flex flex-col gap-1 pr-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold">{event.type}</span>
+                              <Badge className={cn("text-[9px] px-1 h-3.5 uppercase",
+                                event.status === "High" ? "bg-rose-500/10 text-rose-600 border-rose-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20")}>
+                                {event.status}
+                              </Badge>
+                            </div>
+                            <span className="text-[10px] text-muted-foreground">
+                              {new Date(event.recordedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
                         </AccordionTrigger>
-                        <AccordionContent className="text-[11px] leading-relaxed text-muted-foreground">
-                          {event.note}
+                        <AccordionContent className="text-[11px] leading-relaxed text-muted-foreground pb-4">
+                          <div className="rounded-lg bg-muted/30 p-2 space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span>Value: <span className="font-medium text-foreground">{event.value} {event.unit}</span></span>
+                              <Badge variant="outline" className="text-[9px] h-4">Active</Badge>
+                            </div>
+                            <p className="border-t border-border/40 pt-2 italic leading-normal">
+                              {event.note}
+                            </p>
+                          </div>
                         </AccordionContent>
                       </AccordionItem>
                     ))}
                   </Accordion>
                 ) : (
-                  <p className="text-xs text-muted-foreground py-4 text-center italic">
-                    All readings stable
-                  </p>
+                  <div className="flex flex-col items-center justify-center h-full py-8 text-center">
+                    <p className="text-xs text-muted-foreground italic">
+                      {abnormalSearch ? "No events match your filter" : "All readings stable"}
+                    </p>
+                  </div>
                 )}
               </CardContent>
             </Card>

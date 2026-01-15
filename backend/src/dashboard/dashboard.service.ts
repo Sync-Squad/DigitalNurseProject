@@ -55,24 +55,49 @@ export interface DashboardStats {
 export class DashboardService {
   constructor(private readonly prisma: PrismaService) { }
 
-  async getMetrics(): Promise<DashboardMetrics> {
-    const patientWhere = {
+  async getMetrics(user: any): Promise<DashboardMetrics> {
+    const actorUserId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
+    const role = (user.role || user.activeRoleCode || 'patient').toString().toLowerCase();
+    const privilegedRoles = ['super_admin', 'admin', 'clinician', 'coordinator', 'provider'];
+    const isPrivileged = privilegedRoles.includes(role);
+
+    const patientWhere: any = {
       userRoles: { some: { role: { roleCode: 'patient' } } },
     };
-    const caregiverWhere = {
+    const caregiverWhere: any = {
       userRoles: { some: { role: { roleCode: 'caregiver' } } },
     };
+    const vitalWhere: any = {};
+    const medWhere: any = {};
+    const subWhere: any = { status: 'active' };
+
+    if (!isPrivileged) {
+      if (role === 'caregiver') {
+        patientWhere.elderAssignmentsAsElder = { some: { caregiverUserId: actorUserId } };
+        vitalWhere.elderUser = { elderAssignmentsAsElder: { some: { caregiverUserId: actorUserId } } };
+        medWhere.elderUser = { elderAssignmentsAsElder: { some: { caregiverUserId: actorUserId } } };
+        subWhere.user = { elderAssignmentsAsElder: { some: { caregiverUserId: actorUserId } } };
+      } else if (role === 'patient') {
+        patientWhere.userId = actorUserId;
+        caregiverWhere.elderAssignmentsAsCaregiver = { some: { elderUserId: actorUserId } };
+        vitalWhere.elderUserId = actorUserId;
+        medWhere.elderUserId = actorUserId;
+        subWhere.userId = actorUserId;
+      }
+    }
 
     const [totalPatients, totalCaregivers, totalVitals, totalMedications, activeSubscriptions] =
       await Promise.all([
         this.prisma.user.count({ where: patientWhere }),
         this.prisma.user.count({ where: caregiverWhere }),
-        this.prisma.vitalMeasurement.count(),
-        this.prisma.medication.count(),
-        this.prisma.subscription.count({ where: { status: 'active' } }),
+        this.prisma.vitalMeasurement.count({ where: vitalWhere }),
+        this.prisma.medication.count({ where: medWhere }),
+        this.prisma.subscription.count({ where: subWhere }),
       ]);
 
-    const { monthlyRevenue, currency } = await this.estimateMonthlyRevenue();
+    const { monthlyRevenue, currency } = await this.estimateMonthlyRevenue(
+      isPrivileged ? undefined : subWhere
+    );
 
     return {
       totalPatients,
@@ -85,10 +110,26 @@ export class DashboardService {
     };
   }
 
-  async getStats(): Promise<DashboardStats> {
-    const patientWhere = {
+  async getStats(user: any): Promise<DashboardStats> {
+    const actorUserId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
+    const role = (user.role || user.activeRoleCode || 'patient').toString().toLowerCase();
+    const privilegedRoles = ['super_admin', 'admin', 'clinician', 'coordinator', 'provider'];
+    const isPrivileged = privilegedRoles.includes(role);
+
+    const patientWhere: any = {
       userRoles: { some: { role: { roleCode: 'patient' } } },
     };
+    const subWhere: any = { status: 'active' };
+
+    if (!isPrivileged) {
+      if (role === 'caregiver') {
+        patientWhere.elderAssignmentsAsElder = { some: { caregiverUserId: actorUserId } };
+        subWhere.user = { elderAssignmentsAsElder: { some: { caregiverUserId: actorUserId } } };
+      } else if (role === 'patient') {
+        patientWhere.userId = actorUserId;
+        subWhere.userId = actorUserId;
+      }
+    }
 
     const patients = await this.prisma.user.findMany({
       where: patientWhere,
@@ -100,7 +141,7 @@ export class DashboardService {
     });
 
     const activeSubscriptions = await this.prisma.subscription.findMany({
-      where: { status: 'active' },
+      where: subWhere,
       include: {
         user: {
           select: { address: true, userId: true },
@@ -127,7 +168,7 @@ export class DashboardService {
     );
 
     const { monthlyRevenue, currency } = await this.estimateMonthlyRevenue(
-      activeSubscriptions,
+      isPrivileged ? undefined : subWhere,
       planLookup,
     );
 
@@ -281,14 +322,12 @@ export class DashboardService {
   }
 
   private async estimateMonthlyRevenue(
-    activeSubscriptions?: Array<{ planId: bigint | null }>,
+    activeSubWhere?: any,
     planLookup?: Map<string, SubscriptionPlanCode>,
   ) {
-    const subs =
-      activeSubscriptions ||
-      (await this.prisma.subscription.findMany({
-        where: { status: 'active' },
-      }));
+    const subs = await this.prisma.subscription.findMany({
+      where: activeSubWhere || { status: 'active' },
+    });
 
     const lookup =
       planLookup ||

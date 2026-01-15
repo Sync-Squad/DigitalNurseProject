@@ -13,7 +13,7 @@ export interface ActorContext {
 
 @Injectable()
 export class AccessControlService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   /**
    * Resolve the acting user (caregiver/patient) and target elder context.
@@ -30,7 +30,7 @@ export class AccessControlService {
     const actorUserId =
       typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
     const role = (user.activeRoleCode || 'patient').toString().toLowerCase();
-    const privilegedRoles = ['admin', 'provider', 'clinician', 'coordinator'];
+    const privilegedRoles = ['super_admin', 'admin', 'provider', 'clinician', 'coordinator'];
 
     if (privilegedRoles.includes(role)) {
       const elderUserId = requestedElderUserId
