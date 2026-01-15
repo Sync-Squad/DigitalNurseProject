@@ -30,8 +30,8 @@ export function AppLayout() {
       <SidebarInset>
         <header className="border-b border-border/40 bg-background/70 backdrop-blur transition-[height] duration-200 ease-linear supports-[backdrop-filter]:bg-background/60 group-data-[collapsible=icon]/sidebar-wrapper:h-14">
           <div className="mx-auto flex h-16 w-full max-w-6xl items-center gap-2 px-4">
-            <SidebarTrigger className="md:hidden" />
-            <Separator orientation="vertical" className="h-6 md:hidden" />
+            <SidebarTrigger className="" />
+            <Separator orientation="vertical" className="h-6" />
             {/* <div className="hidden flex-1 items-center gap-3 md:flex">
               <SidebarTrigger className="hidden h-9 w-9 items-center justify-center rounded-full border border-border/50 bg-background shadow-sm transition-all hover:bg-muted md:inline-flex" />
               <Input
@@ -75,11 +75,11 @@ function UserProfileMenu() {
 
   const userInitials = user?.name
     ? user.name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2)
     : "U"
 
   return (
