@@ -274,5 +274,67 @@ class ModernSurfaceTheme {
   static EdgeInsets cardPadding() => EdgeInsets.all(20.w);
 
   static BorderRadius cardRadius() => BorderRadius.circular(24);
+
+  /// Returns a BoxDecoration with a background image for cards.
+  /// Use this with a Stack to overlay content on top of the image.
+  static BoxDecoration imageCard(
+    BuildContext context, {
+    required ImageProvider image,
+    Color? accent,
+    BoxFit fit = BoxFit.cover,
+  }) {
+    final scheme = _scheme(context);
+    final isDark = _isDark(context);
+    final Color baseAccent = accent ?? scheme.primary;
+
+    return BoxDecoration(
+      borderRadius: cardRadius(),
+      image: DecorationImage(
+        image: image,
+        fit: fit,
+        colorFilter: isDark
+            ? ColorFilter.mode(
+                Colors.black.withValues(alpha: 0.3),
+                BlendMode.darken,
+              )
+            : null,
+      ),
+      border: Border.all(
+        color: baseAccent.withValues(alpha: isDark ? 0.25 : 0.12),
+        width: 1.2,
+      ),
+    );
+  }
+
+  /// Returns a BoxDecoration with a background image and gradient overlay.
+  /// The gradient overlay helps ensure text readability on top of the image.
+  static BoxDecoration imageCardWithOverlay(
+    BuildContext context, {
+    required ImageProvider image,
+    Color? accent,
+    BoxFit fit = BoxFit.cover,
+  }) {
+    final scheme = _scheme(context);
+    final isDark = _isDark(context);
+    final Color baseAccent = accent ?? scheme.primary;
+
+    return BoxDecoration(
+      borderRadius: cardRadius(),
+      image: DecorationImage(
+        image: image,
+        fit: fit,
+        colorFilter: ColorFilter.mode(
+          isDark
+              ? Colors.black.withValues(alpha: 0.4)
+              : Colors.white.withValues(alpha: 0.15),
+          BlendMode.srcOver,
+        ),
+      ),
+      border: Border.all(
+        color: baseAccent.withValues(alpha: isDark ? 0.25 : 0.12),
+        width: 1.2,
+      ),
+    );
+  }
 }
 

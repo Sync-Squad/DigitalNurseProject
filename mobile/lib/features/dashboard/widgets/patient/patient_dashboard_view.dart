@@ -72,7 +72,11 @@ class _PatientHero extends StatelessWidget {
 
     return Container(
       padding: EdgeInsets.all(20.w),
-      decoration: CaregiverDashboardTheme.heroDecoration(context),
+      decoration: CaregiverDashboardTheme.imageCardWithOverlay(
+        context,
+        image: const AssetImage('assets/Card-2.png'),
+        accent: Theme.of(context).colorScheme.primary,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -100,9 +100,10 @@ class PatientOverviewCard extends StatelessWidget {
             // Overview metrics card
             Container(
               padding: CaregiverDashboardTheme.cardPadding(),
-              decoration: CaregiverDashboardTheme.glassCard(
+              decoration: CaregiverDashboardTheme.imageCardWithOverlay(
                 context,
-                highlighted: true,
+                image: const AssetImage('assets/Card-2.png'),
+                accent: CaregiverDashboardTheme.primaryTeal,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -42,7 +42,11 @@ class AdherenceStreakCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: CaregiverDashboardTheme.cardPadding(),
-      decoration: CaregiverDashboardTheme.tintedCard(context, accent),
+      decoration: CaregiverDashboardTheme.imageCardWithOverlay(
+        context,
+        image: const AssetImage('assets/card-1.png'),
+        accent: accent,
+      ),
       child: Row(
         children: [
           // Left side - Streak info
