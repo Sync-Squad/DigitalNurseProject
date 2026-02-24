@@ -1,5 +1,6 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'platform_check_stub.dart' if (dart.library.io) 'platform_check_io.dart' as platform;
 
 class AppConfig {
   static const String _apiBaseUrlKey = 'api_base_url';
@@ -51,17 +52,17 @@ class AppConfig {
         print('🔍 [CONFIG] Using environment API URL: $envUrl');
         finalUrl = envUrl;
       } else {
-        // Smart defaults based on platform
-        if (Platform.isAndroid) {
-          // Use deployed API URL for Android
+        // Smart defaults based on platform (web-safe: no dart:io on web)
+        if (kIsWeb) {
+          print('🔍 [CONFIG] Web detected, using API URL: $_defaultLocalhost');
+          finalUrl = _defaultLocalhost;
+        } else if (platform.isAndroid) {
           print('🔍 [CONFIG] Android detected, using API URL: $_defaultAndroidEmulator');
           finalUrl = _defaultAndroidEmulator;
-        } else if (Platform.isIOS) {
-          // Use deployed API URL for iOS
+        } else if (platform.isIOS) {
           print('🔍 [CONFIG] iOS detected, using API URL: $_defaultLocalhost');
           finalUrl = _defaultLocalhost;
         } else {
-          // Fallback
           print('🔍 [CONFIG] Using default API URL: $_defaultLocalhost');
           finalUrl = _defaultLocalhost;
         }
@@ -69,7 +70,7 @@ class AppConfig {
     }
     
     // If running on Android and URL contains localhost/127.0.0.1, convert it
-    if (Platform.isAndroid) {
+    if (!kIsWeb && platform.isAndroid) {
       finalUrl = _convertToAndroidEmulatorUrl(finalUrl);
     }
     
@@ -91,12 +92,12 @@ class AppConfig {
   }
   
   // Get current API base URL (synchronous for backward compatibility)
-  // Note: This will use defaults, not saved URL
+  // Note: This will use defaults, not saved URL (web-safe)
   static String get baseUrl {
-    if (Platform.isAndroid) {
-      return _defaultAndroidEmulator;
+    if (kIsWeb || !platform.isAndroid) {
+      return _defaultLocalhost;
     }
-    return _defaultLocalhost;
+    return _defaultAndroidEmulator;
   }
 
   // Get Gemini API key with priority:

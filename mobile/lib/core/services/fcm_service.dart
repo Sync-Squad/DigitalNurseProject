@@ -7,6 +7,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:permission_handler/permission_handler.dart';
 import '../models/notification_model.dart';
+import '../../firebase_options.dart';
 
 /// Callback type for navigating to alarm screen
 typedef AlarmNavigationCallback = void Function(String? payload);
@@ -37,7 +38,7 @@ class FCMService {
 
     try {
       // Initialize Firebase if not already done
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
       // Initialize timezone data
       tz.initializeTimeZones();
@@ -668,6 +669,6 @@ class FCMService {
 /// Background message handler (must be top-level function)
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   print('Handling background message: ${message.messageId}');
 }

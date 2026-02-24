@@ -24,40 +24,48 @@ class PatientDashboardView extends StatelessWidget {
     final _ = context.locale;
 
     final cardSpacing = 16.h;
-    return SafeArea(
-      bottom: false,
-      child: SingleChildScrollView(
-        padding: EdgeInsets.only(
-          left: 16.w,
-          right: 16.w,
-          top: 16.h,
-          bottom: 40.h,
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('assets/images/appbackground.png'),
+          fit: BoxFit.cover,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const _WelcomeHeroCard(),
-            SizedBox(height: cardSpacing),
-            const _HealthTipCard(),
-            SizedBox(height: cardSpacing),
-            const _HealthOverviewCard(),
-            SizedBox(height: cardSpacing),
-            const _AdherenceCard(),
-            SizedBox(height: cardSpacing),
-            const _AlertsAndVitalsRow(),
-            SizedBox(height: cardSpacing),
-            const PatientActionShortcuts(),
-            SizedBox(height: cardSpacing),
-            const PatientUpcomingMedicationsCard(),
-            SizedBox(height: cardSpacing),
-            const PatientVitalsCard(),
-            SizedBox(height: cardSpacing),
-            const PatientDocumentsCard(),
-            SizedBox(height: cardSpacing),
-            const PatientLifestyleCard(),
-            SizedBox(height: cardSpacing),
-            const AIInsightsDashboardWidget(),
-          ],
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: 16.w,
+            right: 16.w,
+            top: 16.h,
+            bottom: 40.h,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const _WelcomeHeroCard(),
+              SizedBox(height: cardSpacing),
+              const _HealthTipCard(),
+              SizedBox(height: cardSpacing),
+              const _HealthOverviewCard(),
+              SizedBox(height: cardSpacing),
+              const _AdherenceCard(),
+              SizedBox(height: cardSpacing),
+              const _AlertsAndVitalsRow(),
+              SizedBox(height: cardSpacing),
+              const PatientActionShortcuts(),
+              SizedBox(height: cardSpacing),
+              const PatientUpcomingMedicationsCard(),
+              SizedBox(height: cardSpacing),
+              const PatientVitalsCard(),
+              SizedBox(height: cardSpacing),
+              const PatientDocumentsCard(),
+              SizedBox(height: cardSpacing),
+              const PatientLifestyleCard(),
+              SizedBox(height: cardSpacing),
+              const AIInsightsDashboardWidget(),
+            ],
+          ),
         ),
       ),
     );
@@ -75,20 +83,12 @@ class _WelcomeHeroCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            const Color(0xFFE8F5F3),
-            const Color(0xFFF0F9F7),
-          ],
-        ),
         image: const DecorationImage(
-          image: AssetImage('assets/Card-2.png'),
+          image: AssetImage('assets/images/cardbackground.png'),
           fit: BoxFit.cover,
-          opacity: 0.3,
         ),
       ),
       child: Stack(
@@ -101,10 +101,7 @@ class _WelcomeHeroCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(
-                      '👋',
-                      style: TextStyle(fontSize: 24.sp),
-                    ),
+                    Text('👋', style: TextStyle(fontSize: 24.sp)),
                     SizedBox(width: 8.w),
                     Expanded(
                       child: Column(
@@ -129,33 +126,32 @@ class _WelcomeHeroCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 12.h),
                 SizedBox(
                   width: 200.w,
                   child: Text(
-                    'patient.heroDescription'.tr(),
+                    "Let's take care of your health today—one step at a time.",
                     style: textTheme.bodyMedium?.copyWith(
                       color: const Color(0xFF4A4A4A),
                       height: 1.4,
                     ),
                   ),
                 ),
-                SizedBox(height: 60.h), // Space for illustration
+                SizedBox(height: 20.h),
+                const _EmbeddedHealthTip(),
               ],
             ),
           ),
-          // Placeholder for doctor illustration (right side)
+          // Doctor illustration aligned to top-right so it doesn't grow downward
           Positioned(
-            right: 0,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              width: 140.w,
-              alignment: Alignment.centerRight,
-              child: Icon(
-                Icons.person,
-                size: 100,
-                color: CaregiverDashboardTheme.primaryTeal.withValues(alpha:0.2),
+            right: 12.w,
+            top: 12.h,
+            child: SizedBox(
+              width: 90.w,
+              height: 90.h,
+              child: Image.asset(
+                'assets/images/Avatar6.png',
+                fit: BoxFit.contain,
+                alignment: Alignment.topRight,
               ),
             ),
           ),
@@ -165,43 +161,35 @@ class _WelcomeHeroCard extends StatelessWidget {
   }
 }
 
-/// Health Tip Card
-class _HealthTipCard extends StatelessWidget {
-  const _HealthTipCard();
+class _EmbeddedHealthTip extends StatelessWidget {
+  const _EmbeddedHealthTip();
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha:0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white.withValues(alpha: 0.8),
       ),
       child: Row(
         children: [
           Container(
-            width: 40.w,
-            height: 40.w,
+            width: 32.w,
+            height: 32.w,
             decoration: BoxDecoration(
-              color: CaregiverDashboardTheme.primaryTeal.withValues(alpha:0.1),
-              borderRadius: BorderRadius.circular(12),
+              color: CaregiverDashboardTheme.primaryTeal.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               Icons.chat_bubble_outline,
               color: CaregiverDashboardTheme.primaryTeal,
-              size: 20,
+              size: 16,
             ),
           ),
-          SizedBox(width: 12.w),
+          SizedBox(width: 10.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -210,43 +198,39 @@ class _HealthTipCard extends StatelessWidget {
                   'Health Tip Today',
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
+                    fontSize: 12.sp,
                     color: const Color(0xFF1A1A1A),
                   ),
                 ),
-                SizedBox(height: 4.h),
                 Text(
                   'Drink water before taking your medicine.',
                   style: textTheme.bodySmall?.copyWith(
+                    fontSize: 11.sp,
                     color: const Color(0xFF666666),
-                  ),
-                ),
-                Text(
-                  'Even small steps matter.',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: const Color(0xFF999999),
-                    fontStyle: FontStyle.italic,
                   ),
                 ),
               ],
             ),
           ),
-          // Placeholder for medicine/water illustration
-          Container(
-            width: 60.w,
-            height: 60.w,
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0F9F7),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.local_drink,
-              color: CaregiverDashboardTheme.primaryTeal,
-              size: 30,
-            ),
+          Image.asset(
+            'assets/card-1.png', // Using existing asset for tip visual if appropriate, or a placeholder
+            width: 40.w,
+            height: 40.w,
+            fit: BoxFit.contain,
           ),
         ],
       ),
     );
+  }
+}
+
+/// Health Tip Card - DEPRECATED (Moved inside WelcomeHeroCard)
+class _HealthTipCard extends StatelessWidget {
+  const _HealthTipCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox.shrink();
   }
 }
 
@@ -257,18 +241,22 @@ class _HealthOverviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final medicationProvider = context.watch<MedicationProvider>();
-    final adherencePercentage =
-        medicationProvider.adherencePercentage.clamp(0, 100).toDouble();
+    final adherencePercentage = medicationProvider.adherencePercentage
+        .clamp(0, 100)
+        .toDouble();
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-        color: Colors.white,
+        image: const DecorationImage(
+          image: AssetImage('assets/images/cardbackground.png'),
+          fit: BoxFit.cover,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -293,7 +281,7 @@ class _HealthOverviewCard extends StatelessWidget {
                   padding: EdgeInsets.all(16.w),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
-                    color: const Color(0xFFFFF9E6),
+                    color: Colors.white.withValues(alpha: 0.0),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -360,15 +348,16 @@ class _AdherenceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final medicationProvider = context.watch<MedicationProvider>();
-    final adherencePercentage =
-        medicationProvider.adherencePercentage.clamp(0, 100).toDouble();
+    final adherencePercentage = medicationProvider.adherencePercentage
+        .clamp(0, 100)
+        .toDouble();
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         image: const DecorationImage(
-          image: AssetImage('assets/card-1.png'),
+          image: AssetImage('assets/images/cardbackground.png'),
           fit: BoxFit.cover,
         ),
       ),
@@ -380,64 +369,71 @@ class _AdherenceCard extends StatelessWidget {
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
             colors: [
-              Colors.white.withValues(alpha:0.95),
-              Colors.white.withValues(alpha:0.7),
+              Colors.white.withValues(alpha: 0.95),
+              Colors.white.withValues(alpha: 0.7),
             ],
           ),
         ),
-        child: Row(
+        child: Stack(
           children: [
-            // Left side - Content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            Row(
+              children: [
+                // Left side - Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        width: 40.w,
-                        height: 40.w,
-                        decoration: BoxDecoration(
-                          color: CaregiverDashboardTheme.primaryTeal,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.grid_view_rounded,
-                          color: Colors.white,
-                          size: 22,
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            width: 40.w,
+                            height: 40.w,
+                            decoration: BoxDecoration(
+                              color: CaregiverDashboardTheme.primaryTeal,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.grid_view_rounded,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Text(
+                            'Adherence',
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1A1A1A),
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 12.w),
+                      SizedBox(height: 8.h),
                       Text(
-                        'Adherence',
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF1A1A1A),
+                        adherencePercentage >= 80
+                            ? 'You\'re doing great this week!'
+                            : 'You missed some doses this week.',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: const Color(0xFF666666),
                         ),
                       ),
+                      SizedBox(height: 16.h),
+                      _SetReminderButton(),
                     ],
                   ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    adherencePercentage >= 80
-                        ? 'You\'re doing great this week!'
-                        : 'You missed some doses this week.',
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: const Color(0xFF666666),
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                  _SetReminderButton(),
-                ],
-              ),
+                ),
+                // Spacer for avatar
+                SizedBox(width: 80.w),
+              ],
             ),
             // Right side - Illustration placeholder
-            SizedBox(
-              width: 100.w,
-              child: Icon(
-                Icons.medical_services,
-                size: 80,
-                color: CaregiverDashboardTheme.primaryTeal.withValues(alpha:0.3),
+            Positioned(
+              right: -10,
+              bottom: -10,
+              child: Image.asset(
+                'assets/images/Avatar5.png',
+                width: 100.w,
+                fit: BoxFit.contain,
               ),
             ),
           ],
@@ -454,22 +450,20 @@ class _AlertsAndVitalsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final healthProvider = context.watch<HealthProvider>();
-    final abnormalVitals =
-        healthProvider.vitals.where((vital) => vital.isAbnormal()).toList();
-    final latestVital =
-        healthProvider.vitals.isNotEmpty ? healthProvider.vitals.first : null;
+    final abnormalVitals = healthProvider.vitals
+        .where((vital) => vital.isAbnormal())
+        .toList();
+    final latestVital = healthProvider.vitals.isNotEmpty
+        ? healthProvider.vitals.first
+        : null;
 
     return Row(
       children: [
         // Alerts Card
-        Expanded(
-          child: _AlertsCard(alertCount: abnormalVitals.length),
-        ),
+        Expanded(child: _AlertsCard(alertCount: abnormalVitals.length)),
         SizedBox(width: 12.w),
         // Blood Pressure Card
-        Expanded(
-          child: _BloodPressureCard(latestVital: latestVital),
-        ),
+        Expanded(child: _BloodPressureCard(latestVital: latestVital)),
       ],
     );
   }
@@ -492,7 +486,7 @@ class _AlertsCard extends StatelessWidget {
         color: const Color(0xFFFFF5E6),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -507,7 +501,7 @@ class _AlertsCard extends StatelessWidget {
                 width: 32.w,
                 height: 32.w,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFB84D).withValues(alpha:0.2),
+                  color: const Color(0xFFFFB84D).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -553,7 +547,7 @@ class _AlertsCard extends StatelessWidget {
             child: Icon(
               Icons.health_and_safety,
               size: 40,
-              color: const Color(0xFFFFB84D).withValues(alpha:0.3),
+              color: const Color(0xFFFFB84D).withValues(alpha: 0.3),
             ),
           ),
         ],
@@ -584,7 +578,7 @@ class _BloodPressureCard extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -599,7 +593,9 @@ class _BloodPressureCard extends StatelessWidget {
                 width: 32.w,
                 height: 32.w,
                 decoration: BoxDecoration(
-                  color: CaregiverDashboardTheme.accentCoral.withValues(alpha:0.2),
+                  color: CaregiverDashboardTheme.accentCoral.withValues(
+                    alpha: 0.2,
+                  ),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
@@ -682,10 +678,7 @@ class _CircularProgressWidget extends StatelessWidget {
   final double percentage;
   final double size;
 
-  const _CircularProgressWidget({
-    required this.percentage,
-    required this.size,
-  });
+  const _CircularProgressWidget({required this.percentage, required this.size});
 
   @override
   Widget build(BuildContext context) {
@@ -781,9 +774,9 @@ class _SetReminderButton extends StatelessWidget {
       child: Text(
         'Set Reminder',
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
+          color: Colors.white,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
