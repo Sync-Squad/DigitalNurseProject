@@ -1,22 +1,24 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'platform_check_stub.dart' if (dart.library.io) 'platform_check_io.dart' as platform;
+import 'platform_check_stub.dart'
+    if (dart.library.io) 'platform_check_io.dart'
+    as platform;
 
 class AppConfig {
   static const String _apiBaseUrlKey = 'api_base_url';
   static const String _geminiApiKeyKey = 'gemini_api_key';
   static const String _geminiApiKeyFromDbKey = 'gemini_api_key_from_db';
-  
+
   // Default URLs for different environments
-//  static const String _defaultLocalhost = 'http://localhost:3000/api';
+  //  static const String _defaultLocalhost = 'http://localhost:3000/api';
   // static const String _defaultAndroidEmulator = 'http://localhost:3000/api';
-    static const String _defaultLocalhost = 'http://100.42.177.77:3000/api';
+  static const String _defaultLocalhost = 'http://100.42.177.77:3000/api';
   static const String _defaultAndroidEmulator = 'http://100.42.177.77:3000/api';
-  
+
   // Default Gemini API key (fallback if database fetch fails)
   // NOTE: This should be empty in production. API keys should come from the database.
   static const String _defaultGeminiApiKey = '';
-  
+
   // Convert localhost URLs to Android emulator URL (10.0.2.2)
   // This is needed because Android emulators can't access host machine's localhost directly
   // Note: Only converts localhost/127.0.0.1 URLs, not IP addresses
@@ -27,21 +29,23 @@ class AppConfig {
       final converted = url
           .replaceAll('localhost', '10.0.2.2')
           .replaceAll('127.0.0.1', '10.0.2.2');
-      print('🔄 [CONFIG] Converted localhost URL to Android emulator URL: $url -> $converted');
+      print(
+        '🔄 [CONFIG] Converted localhost URL to Android emulator URL: $url -> $converted',
+      );
       return converted;
     }
     // Return as-is for IP addresses (like 100.42.177.77)
     return url;
   }
-  
+
   // Get API base URL with smart defaults
   static Future<String> getBaseUrl() async {
     String finalUrl;
-    
+
     // First, check if user has set a custom URL
     final prefs = await SharedPreferences.getInstance();
     final savedUrl = prefs.getString(_apiBaseUrlKey);
-    
+
     if (savedUrl != null && savedUrl.isNotEmpty) {
       print('🔍 [CONFIG] Using saved API URL: $savedUrl');
       finalUrl = savedUrl;
@@ -57,7 +61,9 @@ class AppConfig {
           print('🔍 [CONFIG] Web detected, using API URL: $_defaultLocalhost');
           finalUrl = _defaultLocalhost;
         } else if (platform.isAndroid) {
-          print('🔍 [CONFIG] Android detected, using API URL: $_defaultAndroidEmulator');
+          print(
+            '🔍 [CONFIG] Android detected, using API URL: $_defaultAndroidEmulator',
+          );
           finalUrl = _defaultAndroidEmulator;
         } else if (platform.isIOS) {
           print('🔍 [CONFIG] iOS detected, using API URL: $_defaultLocalhost');
@@ -68,29 +74,29 @@ class AppConfig {
         }
       }
     }
-    
+
     // If running on Android and URL contains localhost/127.0.0.1, convert it
     if (!kIsWeb && platform.isAndroid) {
       finalUrl = _convertToAndroidEmulatorUrl(finalUrl);
     }
-    
+
     return finalUrl;
   }
-  
+
   // Set custom API base URL (useful for physical devices)
   static Future<void> setApiBaseUrl(String url) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_apiBaseUrlKey, url);
     print('✅ [CONFIG] API URL saved: $url');
   }
-  
+
   // Clear custom API base URL
   static Future<void> clearApiBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_apiBaseUrlKey);
     print('🗑️ [CONFIG] API URL cleared, will use defaults');
   }
-  
+
   // Get current API base URL (synchronous for backward compatibility)
   // Note: This will use defaults, not saved URL (web-safe)
   static String get baseUrl {
@@ -107,7 +113,7 @@ class AppConfig {
   // 4. Hardcoded default (fallback - should be empty in production)
   static Future<String?> getGeminiApiKey() async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // First priority: Database cached key (fetched after login)
     final dbCachedKey = prefs.getString(_geminiApiKeyFromDbKey);
     if (dbCachedKey != null && dbCachedKey.isNotEmpty) {
@@ -131,7 +137,9 @@ class AppConfig {
 
     // Last resort: Default API key (should be empty in production)
     if (_defaultGeminiApiKey.isNotEmpty) {
-      print('⚠️ [CONFIG] Using default Gemini API key (fallback - not recommended for production)');
+      print(
+        '⚠️ [CONFIG] Using default Gemini API key (fallback - not recommended for production)',
+      );
       return _defaultGeminiApiKey;
     }
 
@@ -187,4 +195,3 @@ class AppConfig {
     return clearGeminiApiKey();
   }
 }
-

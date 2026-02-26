@@ -21,7 +21,8 @@ class MedicineListScreen extends StatefulWidget {
   State<MedicineListScreen> createState() => _MedicineListScreenState();
 }
 
-class _MedicineListScreenState extends State<MedicineListScreen> with WidgetsBindingObserver {
+class _MedicineListScreenState extends State<MedicineListScreen>
+    with WidgetsBindingObserver {
   DateTime _selectedDate = DateTime.now();
   String? _lastContextKey;
   int _refreshKey = 0;
@@ -139,16 +140,16 @@ class _MedicineListScreenState extends State<MedicineListScreen> with WidgetsBin
             Text(
               'Medications',
               style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: onPrimary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: onPrimary,
+              ),
             ),
             if (isCaregiver && careContext?.selectedRecipient != null)
               Text(
                 'for ${careContext!.selectedRecipient!.name}',
                 style: textTheme.bodySmall?.copyWith(
-                      color: onPrimary.withValues(alpha: 0.7),
-                    ),
+                  color: onPrimary.withValues(alpha: 0.7),
+                ),
               ),
           ],
         ),
@@ -228,8 +229,10 @@ class _MedicineListScreenState extends State<MedicineListScreen> with WidgetsBin
       return const Center(child: CircularProgressIndicator());
     }
 
-    final medicinesForDate = medicationProvider.getMedicinesForDate(_selectedDate);
-    
+    final medicinesForDate = medicationProvider.getMedicinesForDate(
+      _selectedDate,
+    );
+
     return Column(
       children: [
         _HeroSummary(
@@ -254,7 +257,11 @@ class _MedicineListScreenState extends State<MedicineListScreen> with WidgetsBin
         Expanded(
           child: medicines.isEmpty
               ? _buildEmptyState(context, isCaregiver: isCaregiver)
-              : _buildMedicineSchedule(context, medicationProvider, medicinesForDate),
+              : _buildMedicineSchedule(
+                  context,
+                  medicationProvider,
+                  medicinesForDate,
+                ),
         ),
       ],
     );
@@ -272,18 +279,14 @@ class _MedicineListScreenState extends State<MedicineListScreen> with WidgetsBin
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            FIcons.pill,
-            size: 48,
-            color: colorScheme.primary,
-          ),
+          Icon(FIcons.pill, size: 48, color: colorScheme.primary),
           SizedBox(height: 12.h),
           Text(
             'No medicines added yet',
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
@@ -291,9 +294,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> with WidgetsBin
                 ? 'This patient has no medicines recorded yet.'
                 : 'Tap the button below to add your first medicine',
             textAlign: TextAlign.center,
-            style: textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
+            style: textTheme.bodySmall?.copyWith(color: muted),
           ),
           if (!isCaregiver) ...[
             SizedBox(height: 20.h),
@@ -449,17 +450,15 @@ class _MedicineListScreenState extends State<MedicineListScreen> with WidgetsBin
           Text(
             title,
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onSurface,
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 8.h),
           Text(
             message,
-            style: textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
+            style: textTheme.bodySmall?.copyWith(color: muted),
             textAlign: TextAlign.center,
           ),
           if (onRetry != null) ...[
@@ -509,9 +508,9 @@ class _ErrorBanner extends StatelessWidget {
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: errorColor,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: errorColor,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           TextButton(
@@ -548,50 +547,73 @@ class _HeroSummary extends StatelessWidget {
       width: double.infinity,
       decoration: ModernSurfaceTheme.heroDecoration(context),
       padding: ModernSurfaceTheme.heroPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Text(
-            isCaregiver ? 'Care schedule' : 'Today\'s plan',
-            style: textTheme.titleMedium?.copyWith(
-                  color: onPrimary.withValues(alpha: 0.85),
-                ),
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(22),
-                  color: AppTheme.appleGreen,
-                ),
-                child: Text(
-                  '$medicinesCount',
-                  style: textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Text(
-                'Medicines on $dateLabel',
-                style: textTheme.headlineSmall?.copyWith(
-                      color: onPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-            ],
-          ),
-          if (!isCaregiver) ...[
-            SizedBox(height: 12.h),
-            _HeroChip(
-              icon: Icons.add_circle_outline,
-              label: 'Add medicine',
-              onTap: () => context.push('/medicine/add'),
+          Positioned(
+            right: -16,
+            bottom: -16,
+            child: Image.asset(
+              'images/medicine.png',
+              width: 150.w,
+              height: 160.h,
+              fit: BoxFit.contain,
             ),
-          ],
+          ),
+          Padding(
+            padding: EdgeInsets.only(right: 115.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isCaregiver ? 'Care schedule' : 'Today\'s plan',
+                  style: textTheme.titleMedium?.copyWith(
+                    color: onPrimary.withValues(alpha: 0.85),
+                  ),
+                ),
+                SizedBox(height: 10.h),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 6.h,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(22),
+                        color: AppTheme.appleGreen,
+                      ),
+                      child: Text(
+                        '$medicinesCount',
+                        style: textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Flexible(
+                      child: Text(
+                        'Medicines on $dateLabel',
+                        style: textTheme.headlineSmall?.copyWith(
+                          color: onPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (!isCaregiver) ...[
+                  SizedBox(height: 12.h),
+                  _HeroChip(
+                    icon: Icons.add_circle_outline,
+                    label: 'Add medicine',
+                    onTap: () => context.push('/medicine/add'),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -621,11 +643,7 @@ class _HeroChip extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
 
-  const _HeroChip({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
+  const _HeroChip({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -643,9 +661,9 @@ class _HeroChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

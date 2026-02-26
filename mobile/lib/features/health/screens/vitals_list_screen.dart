@@ -87,7 +87,9 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Vital Measurement'),
-        content: const Text('Are you sure you want to delete this vital measurement?'),
+        content: const Text(
+          'Are you sure you want to delete this vital measurement?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -127,7 +129,8 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
             // Reload vitals to refresh the list
             await _reloadVitals();
           } else {
-            final errorMessage = healthProvider.error ?? 'Failed to delete vital measurement';
+            final errorMessage =
+                healthProvider.error ?? 'Failed to delete vital measurement';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(errorMessage),
@@ -181,9 +184,9 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         title: Text(
           'Health Vitals',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: onPrimary,
-                fontWeight: FontWeight.w600,
-              ),
+            color: onPrimary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         actions: [
           if (!isCaregiver)
@@ -266,8 +269,12 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final normalCount = vitals.where((v) => v.getHealthStatus() == VitalHealthStatus.normal).length;
-    final warningCount = vitals.where((v) => v.getHealthStatus() != VitalHealthStatus.normal).length;
+    final normalCount = vitals
+        .where((v) => v.getHealthStatus() == VitalHealthStatus.normal)
+        .length;
+    final warningCount = vitals
+        .where((v) => v.getHealthStatus() != VitalHealthStatus.normal)
+        .length;
 
     return Padding(
       padding: ModernSurfaceTheme.screenPadding(),
@@ -332,7 +339,10 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Container(
-                          decoration: ModernSurfaceTheme.glassCard(context, accent: accent),
+                          decoration: ModernSurfaceTheme.glassCard(
+                            context,
+                            accent: accent,
+                          ),
                           padding: EdgeInsets.all(16.w),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,35 +351,43 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
                                 children: [
                                   Container(
                                     padding: const EdgeInsets.all(12),
-                                    decoration: ModernSurfaceTheme.iconBadge(context, accent),
-                                    child: Icon(FIcons.activity, color: onPrimary),
+                                    decoration: ModernSurfaceTheme.iconBadge(
+                                      context,
+                                      accent,
+                                    ),
+                                    child: Icon(
+                                      FIcons.activity,
+                                      color: onPrimary,
+                                    ),
                                   ),
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           vital.type.displayName,
                                           style: textTheme.bodyMedium?.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                                color: onSurface,
-                                              ),
+                                            fontWeight: FontWeight.bold,
+                                            color: onSurface,
+                                          ),
                                         ),
                                         SizedBox(height: 4),
                                         Text(
-                                          DateFormat('MMM d, yyyy - h:mm a').format(vital.timestamp),
+                                          DateFormat(
+                                            'MMM d, yyyy - h:mm a',
+                                          ).format(vital.timestamp),
                                           style: textTheme.bodySmall?.copyWith(
-                                                color: muted,
-                                              ),
+                                            color: muted,
+                                          ),
                                         ),
                                         if (vital.notes != null) ...[
                                           SizedBox(height: 4),
                                           Text(
                                             vital.notes!,
-                                            style: textTheme.bodySmall?.copyWith(
-                                                  color: muted,
-                                                ),
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(color: muted),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -382,14 +400,19 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
                                     children: [
                                       Text(
                                         vital.value,
-                                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
                                               fontWeight: FontWeight.bold,
                                               color: accent,
                                             ),
                                       ),
                                       Text(
                                         vital.type.unit,
-                                        style: Theme.of(context).textTheme.bodySmall,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
                                       ),
                                     ],
                                   ),
@@ -409,20 +432,25 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
                                           onPressed: _deletingVitalId != null
                                               ? null
                                               : () => _handleDeleteVital(
-                                                    vital.id,
-                                                    isCaregiver,
-                                                    selectedElderId,
-                                                  ),
+                                                  vital.id,
+                                                  isCaregiver,
+                                                  selectedElderId,
+                                                ),
                                           icon: Icon(
                                             Icons.delete_outline,
-                                            color: AppTheme.getErrorColor(context),
+                                            color: AppTheme.getErrorColor(
+                                              context,
+                                            ),
                                           ),
                                           tooltip: 'Delete vital measurement',
                                         ),
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              VitalStatusBadge(status: healthStatus, vital: vital),
+                              VitalStatusBadge(
+                                status: healthStatus,
+                                vital: vital,
+                              ),
                             ],
                           ),
                         ),
@@ -449,27 +477,21 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              FIcons.activity,
-              size: 64.r,
-              color: colorScheme.primary,
-            ),
+            Icon(FIcons.activity, size: 64.r, color: colorScheme.primary),
             SizedBox(height: 16.h),
             Text(
               'No vitals logged yet',
               style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: onSurface,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: onSurface,
+              ),
             ),
             SizedBox(height: 8.h),
             Text(
               isCaregiver
                   ? 'This patient has no vitals recorded yet.'
                   : 'Start tracking your health vitals',
-              style: textTheme.bodySmall?.copyWith(
-                    color: muted,
-                  ),
+              style: textTheme.bodySmall?.copyWith(color: muted),
             ),
             if (!isCaregiver) ...[
               SizedBox(height: 24.h),
@@ -478,7 +500,10 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
                   foregroundColor: onPrimary,
-                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 24.w,
+                    vertical: 12.h,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
@@ -500,25 +525,19 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              FIcons.calendar,
-              size: 64.r,
-              color: colorScheme.primary,
-            ),
+            Icon(FIcons.calendar, size: 64.r, color: colorScheme.primary),
             SizedBox(height: 16.h),
             Text(
               'No vitals for ${_getFormattedDate(_selectedDate)}',
               style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: onSurface,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: onSurface,
+              ),
             ),
             SizedBox(height: 8.h),
             Text(
               'Select another date or add vitals',
-              style: textTheme.bodySmall?.copyWith(
-                    color: muted,
-                  ),
+              style: textTheme.bodySmall?.copyWith(color: muted),
             ),
           ],
         ),
@@ -572,17 +591,15 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
           Text(
             title,
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onSurface,
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 8.h),
           Text(
             message,
-            style: textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
+            style: textTheme.bodySmall?.copyWith(color: muted),
             textAlign: TextAlign.center,
           ),
           if (onRetry != null) ...[
@@ -628,9 +645,9 @@ class _ErrorBanner extends StatelessWidget {
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           TextButton(
@@ -669,68 +686,93 @@ class _VitalsHero extends StatelessWidget {
       width: double.infinity,
       decoration: ModernSurfaceTheme.heroDecoration(context),
       padding: ModernSurfaceTheme.heroPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Text(
-            isCaregiver ? 'Patient vitals overview' : 'Today’s vitals snapshot',
-            style: textTheme.bodyMedium?.copyWith(
-                  color: onPrimary.withValues(alpha: 0.85),
-                ),
+          // Right-side illustration
+          Positioned(
+            right: -16,
+            bottom: -16,
+            child: Image.asset(
+              'images/health.png',
+              width: 190.w,
+              height: 190.h,
+              fit: BoxFit.contain,
+            ),
           ),
-          SizedBox(height: 8.h),
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-                decoration: BoxDecoration(
-                  color: AppTheme.appleGreen,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '$totalCount',
-                  style: textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
+          // Left-side content
+          Padding(
+            padding: EdgeInsets.only(right: 110.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isCaregiver
+                      ? 'Patient vitals overview'
+                      : 'Today\u2019s vitals snapshot',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: onPrimary.withValues(alpha: 0.85),
                   ),
                 ),
-              ),
-              SizedBox(width: 8.w),
-              Expanded(
-                child: Text(
-                  'Checks on $dateLabel',
-                  style: textTheme.headlineSmall?.copyWith(
-                        color: onPrimary,
-                        fontWeight: FontWeight.w700,
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10.w,
+                        vertical: 6.h,
                       ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.appleGreen,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '$totalCount',
+                        style: textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        'Checks on $dateLabel',
+                        style: textTheme.headlineSmall?.copyWith(
+                          color: onPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          Wrap(
-            spacing: 8.w,
-            runSpacing: 8.h,
-            children: [
-              _HeroChip(
-                icon: Icons.favorite,
-                label: '$normalCount stable',
-              ),
-              _HeroChip(
-                icon: Icons.warning_amber_rounded,
-                label: '$warningCount needs attention',
-              ),
-              if (!isCaregiver)
-                _HeroChip(
-                  icon: Icons.add_circle_outline,
-                  label: 'Log Vital',
-                  onTap: () => context.push('/vitals/add'),
-                ),
-            ],
-          ),
+                SizedBox(height: 12.h),
+                Wrap(
+                  spacing: 8.w,
+                  runSpacing: 8.h,
+                  children: [
+                    _HeroChip(
+                      icon: Icons.favorite,
+                      label: '$normalCount stable',
+                    ),
+                    _HeroChip(
+                      icon: Icons.warning_amber_rounded,
+                      label: '$warningCount needs attention',
+                    ),
+                    if (!isCaregiver)
+                      _HeroChip(
+                        icon: Icons.add_circle_outline,
+                        label: 'Log Vital',
+                        onTap: () => context.push('/vitals/add'),
+                      ),
+                  ],
+                ), // Wrap
+              ],
+            ), // Column
+          ), // Padding
         ],
-      ),
-    );
+      ), // Stack
+    ); // Container
   }
 }
 
@@ -739,11 +781,7 @@ class _HeroChip extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
 
-  const _HeroChip({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
+  const _HeroChip({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -761,19 +799,16 @@ class _HeroChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
 
     if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: widget,
-      );
+      return GestureDetector(onTap: onTap, child: widget);
     }
     return widget;
   }

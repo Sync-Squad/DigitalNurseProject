@@ -32,7 +32,6 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
     });
   }
 
-
   Future<void> _loadData() async {
     final authProvider = context.read<AuthProvider>();
     final documentProvider = context.read<DocumentProvider>();
@@ -228,9 +227,15 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                   itemBuilder: (context, index) {
                     final document = documents[index];
                     // Use green color (labReport color) for all cards
-                    final accent = AppTheme.getDocumentColor(context, 'labreport');
+                    final accent = AppTheme.getDocumentColor(
+                      context,
+                      'labreport',
+                    );
                     return Container(
-                      decoration: ModernSurfaceTheme.glassCard(context, accent: accent),
+                      decoration: ModernSurfaceTheme.glassCard(
+                        context,
+                        accent: accent,
+                      ),
                       padding: EdgeInsets.all(16.w),
                       child: InkWell(
                         onTap: () => context.push('/documents/${document.id}'),
@@ -241,7 +246,10 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                             Container(
                               width: double.infinity,
                               height: 90,
-                              decoration: ModernSurfaceTheme.tintedCard(context, accent),
+                              decoration: ModernSurfaceTheme.tintedCard(
+                                context,
+                                accent,
+                              ),
                               child: Icon(
                                 _getDocumentIcon(document.type),
                                 size: 36,
@@ -252,9 +260,9 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                             Text(
                               document.title,
                               style: textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: onSurface,
-                                  ),
+                                fontWeight: FontWeight.w700,
+                                color: onSurface,
+                              ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -278,11 +286,12 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                             ),
                             const Spacer(),
                             Text(
-                              DateFormat('MMM d, yyyy')
-                                  .format(document.uploadDate),
+                              DateFormat(
+                                'MMM d, yyyy',
+                              ).format(document.uploadDate),
                               style: textTheme.bodySmall?.copyWith(
-                                    color: muted,
-                                  ),
+                                color: muted,
+                              ),
                             ),
                           ],
                         ),
@@ -308,18 +317,14 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            FIcons.fileText,
-            size: 56,
-            color: colorScheme.primary,
-          ),
+          Icon(FIcons.fileText, size: 56, color: colorScheme.primary),
           SizedBox(height: 12.h),
           Text(
             'No documents uploaded yet',
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
@@ -327,9 +332,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                 ? 'This patient has not shared any records.'
                 : 'Upload prescriptions, lab reports, and more.',
             textAlign: TextAlign.center,
-            style: textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
+            style: textTheme.bodySmall?.copyWith(color: muted),
           ),
           if (!isCaregiver) ...[
             SizedBox(height: 20.h),
@@ -381,17 +384,15 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
           Text(
             title,
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onSurface,
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 8.h),
           Text(
             message,
-            style: textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
+            style: textTheme.bodySmall?.copyWith(color: muted),
             textAlign: TextAlign.center,
           ),
           if (onRetry != null) ...[
@@ -433,7 +434,6 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         return FIcons.file;
     }
   }
-
 }
 
 class _ErrorBanner extends StatelessWidget {
@@ -456,9 +456,9 @@ class _ErrorBanner extends StatelessWidget {
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           TextButton(
@@ -491,50 +491,75 @@ class _DocumentsHero extends StatelessWidget {
       width: double.infinity,
       decoration: ModernSurfaceTheme.heroDecoration(context),
       padding: ModernSurfaceTheme.heroPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Text(
-            isCaregiver ? 'Shared records' : 'Your Health Vault',
-            style: textTheme.bodyMedium?.copyWith(
-                  color: onPrimary.withValues(alpha: 0.85),
-                ),
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(22),
-                  color: AppTheme.appleGreen,
-                ),
-                child: Text(
-                  '$documentCount',
-                  style: textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                      ),
-                ),
-              ),
-              SizedBox(width: 12.w),
-              Text(
-                'Documents Stored',
-                style: textTheme.headlineSmall?.copyWith(
-                      color: onPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-            ],
-          ),
-          if (!isCaregiver) ...[
-            SizedBox(height: 12.h),
-            _HeroChip(
-              icon: Icons.cloud_upload_outlined,
-              label: 'Upload document',
-              onTap: () => context.push('/documents/upload'),
+          // Right-side illustration
+          Positioned(
+            right: -16,
+            bottom: -16,
+            child: Image.asset(
+              'images/documentread.png',
+              width: 150.w,
+              height: 160.h,
+              fit: BoxFit.contain,
             ),
-          ],
+          ),
+          // Left-side content
+          Padding(
+            padding: EdgeInsets.only(right: 120.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isCaregiver ? 'Shared records' : 'Your Health Vault',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: onPrimary.withValues(alpha: 0.85),
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 6.h,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(22),
+                        color: AppTheme.appleGreen,
+                      ),
+                      child: Text(
+                        '$documentCount',
+                        style: textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Flexible(
+                      child: Text(
+                        'Documents Stored',
+                        style: textTheme.headlineSmall?.copyWith(
+                          color: onPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (!isCaregiver) ...[
+                  SizedBox(height: 12.h),
+                  _HeroChip(
+                    icon: Icons.cloud_upload_outlined,
+                    label: 'Upload document',
+                    onTap: () => context.push('/documents/upload'),
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -546,11 +571,7 @@ class _HeroChip extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
 
-  const _HeroChip({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
+  const _HeroChip({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -568,9 +589,9 @@ class _HeroChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

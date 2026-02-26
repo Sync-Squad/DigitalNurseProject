@@ -45,8 +45,8 @@ void main() async {
   // Load saved locale preference
   final prefs = await SharedPreferences.getInstance();
   final savedLocaleCode = prefs.getString('app_locale') ?? 'en';
-  final savedLocale = savedLocaleCode == 'ur' 
-      ? const Locale('ur') 
+  final savedLocale = savedLocaleCode == 'ur'
+      ? const Locale('ur')
       : const Locale('en');
 
   runApp(
@@ -103,10 +103,14 @@ class DigitalNurseApp extends StatelessWidget {
             );
           }
 
-          final lightMaterialTheme =
-              _buildMaterialTheme(AppTheme.lightTheme, isDark: false);
-          final darkMaterialTheme =
-              _buildMaterialTheme(AppTheme.darkTheme, isDark: true);
+          final lightMaterialTheme = _buildMaterialTheme(
+            AppTheme.lightTheme,
+            isDark: false,
+          );
+          final darkMaterialTheme = _buildMaterialTheme(
+            AppTheme.darkTheme,
+            isDark: true,
+          );
 
           return ScaffoldMessenger(
             child: MaterialApp.router(
@@ -125,16 +129,19 @@ class DigitalNurseApp extends StatelessWidget {
                 final isDark = themeProvider.isDarkMode;
                 SystemChrome.setSystemUIOverlayStyle(
                   SystemUiOverlayStyle(
-                    statusBarColor: Colors.transparent, // Make status bar transparent
-                    statusBarIconBrightness: isDark 
-                        ? Brightness.light  // Light icons for dark theme
-                        : Brightness.dark,  // Dark icons for light theme
-                    statusBarBrightness: isDark 
-                        ? Brightness.dark   // For iOS
+                    statusBarColor:
+                        Colors.transparent, // Make status bar transparent
+                    statusBarIconBrightness: isDark
+                        ? Brightness
+                              .light // Light icons for dark theme
+                        : Brightness.dark, // Dark icons for light theme
+                    statusBarBrightness: isDark
+                        ? Brightness
+                              .dark // For iOS
                         : Brightness.light, // For iOS
                   ),
                 );
-                
+
                 return ScreenUtilInit(
                   designSize: const Size(
                     375,
@@ -160,10 +167,7 @@ class DigitalNurseApp extends StatelessWidget {
   }
 }
 
-ThemeData _buildMaterialTheme(
-  FThemeData fTheme, {
-  required bool isDark,
-}) {
+ThemeData _buildMaterialTheme(FThemeData fTheme, {required bool isDark}) {
   final base = fTheme.toApproximateMaterialTheme();
   final colorScheme = base.colorScheme;
   final secondaryColor = const Color(0xFF7FD991);
@@ -178,24 +182,18 @@ ThemeData _buildMaterialTheme(
 
   final textButtonStyle = TextButton.styleFrom(
     foregroundColor: secondaryColor,
-    textStyle: base.textTheme.labelLarge?.copyWith(
-      fontWeight: FontWeight.w600,
-    ),
+    textStyle: base.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
   );
 
   final elevatedButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: secondaryColor,
     foregroundColor: Colors.white,
-    textStyle: base.textTheme.labelLarge?.copyWith(
-      fontWeight: FontWeight.w600,
-    ),
+    textStyle: base.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
   );
 
   final dialogTheme = base.dialogTheme.copyWith(
     backgroundColor: base.colorScheme.surface,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     titleTextStyle: base.textTheme.titleLarge?.copyWith(
       color: updatedColorScheme.onSurface,
       fontWeight: FontWeight.w600,
@@ -210,5 +208,17 @@ ThemeData _buildMaterialTheme(
     textButtonTheme: TextButtonThemeData(style: textButtonStyle),
     elevatedButtonTheme: ElevatedButtonThemeData(style: elevatedButtonStyle),
     dialogTheme: dialogTheme,
+    appBarTheme: AppBarTheme(
+      backgroundColor: const Color(0xFF008080), // teal-primary
+      foregroundColor: Colors.white,
+      iconTheme: const IconThemeData(color: Colors.white),
+      actionsIconTheme: const IconThemeData(color: Colors.white),
+      titleTextStyle: base.textTheme.titleLarge?.copyWith(
+        color: Colors.white,
+        fontWeight: FontWeight.w600,
+      ),
+      elevation: 0,
+      scrolledUnderElevation: 0,
+    ),
   );
 }

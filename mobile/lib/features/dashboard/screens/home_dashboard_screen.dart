@@ -195,7 +195,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       safeAreaTop: false,
       safeAreaBottom: false,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppTheme.teal, // #008080 teal-primary
         elevation: 0,
         centerTitle: false,
         title: Text(

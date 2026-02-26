@@ -53,11 +53,11 @@ async function bootstrap() {
         try {
           const originUrl = new URL(origin);
           const originHost = originUrl.hostname;
-          
+
           // Allow any numeric IP address format in development (allows same-host, different ports)
           // Matches patterns like: 100.42.177.77, 192.168.1.1, 10.0.0.1, etc.
           const isIPAddress = /^\d+\.\d+\.\d+\.\d+$/.test(originHost);
-          
+
           if (isIPAddress) {
             return callback(null, origin);
           }
@@ -115,11 +115,11 @@ async function bootstrap() {
   const authService = app.get(AuthService);
   const caregiversService = app.get(CaregiversService);
   const expressApp = app.getHttpAdapter().getInstance();
-  
+
   // Registration page endpoint (outside /api prefix) for caregiver invitations
   expressApp.get('/register', async (req: any, res: any) => {
     const inviteCode = req.query.inviteCode as string;
-    
+
     if (!inviteCode) {
       return res.status(400).send(`
         <!DOCTYPE html>
@@ -166,7 +166,7 @@ async function bootstrap() {
     try {
       const invitation = await caregiversService.getInvitationByCode(inviteCode);
       const patientName = invitation.elderUser?.name || 'your loved one';
-      
+
       return res.status(200).send(`
         <!DOCTYPE html>
         <html>
@@ -269,16 +269,16 @@ async function bootstrap() {
       } else if (typeof error.getStatus === 'function') {
         statusCode = error.getStatus();
       }
-      
+
       const message = error.message || 'An error occurred while validating the invitation';
       const isExpired = message.includes('expired') || message.includes('Expired');
       const isAlreadyProcessed = message.includes('already processed') || message.includes('Already processed');
       const isNotFound = message.includes('not found') || message.includes('Not found');
-      
+
       let errorTitle = 'Invalid Invitation';
       let errorIcon = '❌';
       let errorMessage = message;
-      
+
       if (isExpired) {
         errorTitle = 'Invitation Expired';
         errorIcon = '⏰';
@@ -338,10 +338,10 @@ async function bootstrap() {
       `);
     }
   });
-  
+
   expressApp.get('/email-verification', async (req: any, res: any) => {
     const token = req.query.token as string;
-    
+
     if (!token) {
       return res.status(400).send(`
         <!DOCTYPE html>
@@ -434,11 +434,11 @@ async function bootstrap() {
       const isExpired = message.includes('expired');
       const isAlreadyVerified = message.includes('already been verified');
       const isInvalid = message.includes('Invalid');
-      
+
       let errorTitle = 'Verification Failed';
       let errorIcon = '❌';
       let errorMessage = message;
-      
+
       if (isExpired) {
         errorTitle = 'Verification Link Expired';
         errorIcon = '⏰';

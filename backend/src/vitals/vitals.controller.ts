@@ -26,7 +26,7 @@ export class VitalsController {
   constructor(
     private readonly vitalsService: VitalsService,
     private readonly accessControlService: AccessControlService,
-  ) {}
+  ) { }
 
   private async resolveContext(user: any, elderUserId?: string) {
     return this.accessControlService.resolveActorContext(user, elderUserId);
@@ -38,8 +38,8 @@ export class VitalsController {
   async create(@CurrentUser() user: any, @Body() createDto: CreateVitalDto) {
     try {
       // Ensure elderUserId is a string if provided
-      const elderUserId = createDto.elderUserId 
-        ? String(createDto.elderUserId) 
+      const elderUserId = createDto.elderUserId
+        ? String(createDto.elderUserId)
         : undefined;
       const context = await this.resolveContext(user, elderUserId);
       return this.vitalsService.create(context, createDto);

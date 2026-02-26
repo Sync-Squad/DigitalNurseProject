@@ -18,16 +18,18 @@ class PatientOverviewCard extends StatelessWidget {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final medicationProvider = context.watch<MedicationProvider>();
     final healthProvider = context.watch<HealthProvider>();
 
-    final adherencePercentage =
-        medicationProvider.adherencePercentage.clamp(0, 100).toDouble();
+    final adherencePercentage = medicationProvider.adherencePercentage
+        .clamp(0, 100)
+        .toDouble();
     final adherenceStreak = medicationProvider.adherenceStreak;
 
-    final abnormalVitals =
-        healthProvider.vitals.where((vital) => vital.isAbnormal()).toList();
+    final abnormalVitals = healthProvider.vitals
+        .where((vital) => vital.isAbnormal())
+        .toList();
     final latestVital = healthProvider.vitals.isNotEmpty
         ? healthProvider.vitals.first
         : null;
@@ -35,8 +37,8 @@ class PatientOverviewCard extends StatelessWidget {
     final adherenceAccent = adherencePercentage >= 90
         ? CaregiverDashboardTheme.primaryTeal
         : adherencePercentage >= 75
-            ? CaregiverDashboardTheme.accentYellow
-            : CaregiverDashboardTheme.accentCoral;
+        ? CaregiverDashboardTheme.accentYellow
+        : CaregiverDashboardTheme.accentCoral;
     final alertsAccent = abnormalVitals.isEmpty
         ? CaregiverDashboardTheme.primaryTeal
         : const Color(0xFFFFB84D); // Orange-yellowish color
@@ -102,7 +104,8 @@ class PatientOverviewCard extends StatelessWidget {
               padding: CaregiverDashboardTheme.cardPadding(),
               decoration: CaregiverDashboardTheme.imageCardWithOverlay(
                 context,
-                image: const AssetImage('assets/Card-2.png'),
+                //image: const AssetImage('assets/Card-2.png'),
+                image: const AssetImage('images/cardbackground1.jpeg'),
                 accent: CaregiverDashboardTheme.primaryTeal,
               ),
               child: Column(
@@ -139,8 +142,8 @@ class PatientOverviewCard extends StatelessWidget {
                               'patient.overviewDescription'.tr(),
                               style:
                                   CaregiverDashboardTheme.sectionSubtitleStyle(
-                                context,
-                              ),
+                                    context,
+                                  ),
                             ),
                           ],
                         ),
@@ -157,7 +160,7 @@ class PatientOverviewCard extends StatelessWidget {
                             width: crossAxisCount == 1
                                 ? constraints.maxWidth
                                 : (constraints.maxWidth - crossAxisSpacing) /
-                                    crossAxisCount,
+                                      crossAxisCount,
                             child: metric,
                           ),
                         )
@@ -205,10 +208,7 @@ class _OverviewMetric extends StatelessWidget {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeOutCubic,
-      padding: EdgeInsets.symmetric(
-        horizontal: 16.w,
-        vertical: 18.h,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
       decoration: CaregiverDashboardTheme.tintedCard(context, accent),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,11 +220,7 @@ class _OverviewMetric extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: CaregiverDashboardTheme.iconBadge(context, accent),
-                child: Icon(
-                  icon,
-                  size: 20,
-                  color: Colors.white,
-                ),
+                child: Icon(icon, size: 20, color: Colors.white),
               ),
               SizedBox(width: 12.w),
               Expanded(
@@ -254,15 +250,9 @@ class _OverviewMetric extends StatelessWidget {
             ],
           ),
           SizedBox(height: 12.h),
-          Text(
-            description,
-            style: textTheme.xs.copyWith(
-              color: mutedContent,
-            ),
-          ),
+          Text(description, style: textTheme.xs.copyWith(color: mutedContent)),
         ],
       ),
     );
   }
 }
-
