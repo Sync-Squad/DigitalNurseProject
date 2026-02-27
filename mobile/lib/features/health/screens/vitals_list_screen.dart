@@ -682,97 +682,113 @@ class _VitalsHero extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final onPrimary = colorScheme.onPrimary;
 
-    return Container(
-      width: double.infinity,
-      decoration: ModernSurfaceTheme.heroDecoration(context),
-      padding: ModernSurfaceTheme.heroPadding(),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Right-side illustration
-          Positioned(
-            right: -16,
-            bottom: -16,
-            child: Image.asset(
-              'images/health.png',
-              width: 190.w,
-              height: 190.h,
-              fit: BoxFit.contain,
-            ),
-          ),
-          // Left-side content
-          Padding(
-            padding: EdgeInsets.only(right: 110.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final h = ModernSurfaceTheme.heroPadding();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final halfWidth = constraints.maxWidth * 0.4;
+          return Container(
+            width: double.infinity,
+            decoration: ModernSurfaceTheme.heroDecoration(context),
+            child: Stack(
               children: [
-                Text(
-                  isCaregiver
-                      ? 'Patient vitals overview'
-                      : 'Today\u2019s vitals snapshot',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: onPrimary.withValues(alpha: 0.85),
+                // ── Right 50%: image pinned to right edge ─────────────
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: halfWidth,
+                  child: Image.asset(
+                    'assets/images/health.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
                   ),
                 ),
-                SizedBox(height: 8.h),
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10.w,
-                        vertical: 6.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.appleGreen,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        '$totalCount',
-                        style: textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
+                // ── Left side: text column drives card height ─────────
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: h.left,
+                    top: h.top,
+                    bottom: h.bottom,
+                    right: halfWidth + h.right,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isCaregiver
+                            ? 'Patient vitals overview'
+                            : 'Today\u2019s vitals snapshot',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: onPrimary.withValues(alpha: 0.85),
                         ),
                       ),
-                    ),
-                    SizedBox(width: 8.w),
-                    Expanded(
-                      child: Text(
-                        'Checks on $dateLabel',
-                        style: textTheme.headlineSmall?.copyWith(
-                          color: onPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.appleGreen,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '$totalCount',
+                              style: textTheme.titleMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8.w),
+                          Flexible(
+                            child: Text(
+                              'Checks on $dateLabel',
+                              style: textTheme.headlineSmall?.copyWith(
+                                color: onPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              softWrap: true,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 12.h),
+                      Wrap(
+                        spacing: 8.w,
+                        runSpacing: 8.h,
+                        children: [
+                          _HeroChip(
+                            icon: Icons.favorite,
+                            label: '$normalCount stable',
+                          ),
+                          _HeroChip(
+                            icon: Icons.warning_amber_rounded,
+                            label: '$warningCount needs attention',
+                          ),
+                          if (!isCaregiver)
+                            _HeroChip(
+                              icon: Icons.add_circle_outline,
+                              label: 'Log Vital',
+                              onTap: () => context.push('/vitals/add'),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 12.h),
-                Wrap(
-                  spacing: 8.w,
-                  runSpacing: 8.h,
-                  children: [
-                    _HeroChip(
-                      icon: Icons.favorite,
-                      label: '$normalCount stable',
-                    ),
-                    _HeroChip(
-                      icon: Icons.warning_amber_rounded,
-                      label: '$warningCount needs attention',
-                    ),
-                    if (!isCaregiver)
-                      _HeroChip(
-                        icon: Icons.add_circle_outline,
-                        label: 'Log Vital',
-                        onTap: () => context.push('/vitals/add'),
-                      ),
-                  ],
-                ), // Wrap
               ],
-            ), // Column
-          ), // Padding
-        ],
-      ), // Stack
-    ); // Container
+            ),
+          );
+        },
+      ),
+    );
   }
 }
 

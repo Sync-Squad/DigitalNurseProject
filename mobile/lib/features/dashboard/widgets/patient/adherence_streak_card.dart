@@ -45,7 +45,7 @@ class AdherenceStreakCard extends StatelessWidget {
       decoration: CaregiverDashboardTheme.imageCardWithOverlay(
         context,
         //image: const AssetImage('assets/card-1.png'),
-        image: const AssetImage('images/cardbackground1.jpeg'),
+        image: const AssetImage('assets/images/cardbackground1.jpeg'),
         accent: accent,
       ),
       child: Row(

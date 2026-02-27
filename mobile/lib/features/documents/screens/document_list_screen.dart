@@ -487,80 +487,97 @@ class _DocumentsHero extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final onPrimary = colorScheme.onPrimary;
 
-    return Container(
-      width: double.infinity,
-      decoration: ModernSurfaceTheme.heroDecoration(context),
-      padding: ModernSurfaceTheme.heroPadding(),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Right-side illustration
-          Positioned(
-            right: -16,
-            bottom: -16,
-            child: Image.asset(
-              'images/documentread.png',
-              width: 150.w,
-              height: 160.h,
-              fit: BoxFit.contain,
-            ),
-          ),
-          // Left-side content
-          Padding(
-            padding: EdgeInsets.only(right: 120.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    final h = ModernSurfaceTheme.heroPadding();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final halfWidth = constraints.maxWidth * 0.4;
+          return Container(
+            width: double.infinity,
+            decoration: ModernSurfaceTheme.heroDecoration(context),
+            child: Stack(
               children: [
-                Text(
-                  isCaregiver ? 'Shared records' : 'Your Health Vault',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: onPrimary.withValues(alpha: 0.85),
+                // ── Right 50%: image pinned to right edge ─────────────
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: halfWidth,
+                  child: Image.asset(
+                    'assets/images/documentread.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
                   ),
                 ),
-                SizedBox(height: 8.h),
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 6.h,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(22),
-                        color: AppTheme.appleGreen,
-                      ),
-                      child: Text(
-                        '$documentCount',
-                        style: textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 12.w),
-                    Flexible(
-                      child: Text(
-                        'Documents Stored',
-                        style: textTheme.headlineSmall?.copyWith(
-                          color: onPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (!isCaregiver) ...[
-                  SizedBox(height: 12.h),
-                  _HeroChip(
-                    icon: Icons.cloud_upload_outlined,
-                    label: 'Upload document',
-                    onTap: () => context.push('/documents/upload'),
+                // ── Left side: text column drives card height ─────────
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: h.left,
+                    top: h.top,
+                    bottom: h.bottom,
+                    // reserve exactly the right half + gutter
+                    right: halfWidth + h.right,
                   ),
-                ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isCaregiver ? 'Shared records' : 'Your Health Vault',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: onPrimary.withValues(alpha: 0.85),
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(22),
+                              color: AppTheme.appleGreen,
+                            ),
+                            child: Text(
+                              '$documentCount',
+                              style: textTheme.titleLarge?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10.w),
+                          Flexible(
+                            child: Text(
+                              'Documents',
+                              style: textTheme.headlineSmall?.copyWith(
+                                color: onPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              softWrap: true,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!isCaregiver) ...[
+                        SizedBox(height: 10.h),
+                        _HeroChip(
+                          icon: Icons.cloud_upload_outlined,
+                          label: 'Upload',
+                          onTap: () => context.push('/documents/upload'),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

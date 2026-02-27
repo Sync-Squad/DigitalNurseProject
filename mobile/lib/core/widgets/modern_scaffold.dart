@@ -41,7 +41,7 @@ class ModernScaffold extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('images/cardbackground1.jpeg'),
+            image: AssetImage('assets/images/cardbackground1.jpeg'),
             fit: BoxFit.cover,
           ),
         ),

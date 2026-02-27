@@ -105,7 +105,7 @@ class PatientOverviewCard extends StatelessWidget {
               decoration: CaregiverDashboardTheme.imageCardWithOverlay(
                 context,
                 //image: const AssetImage('assets/Card-2.png'),
-                image: const AssetImage('images/cardbackground1.jpeg'),
+                image: const AssetImage('assets/images/cardbackground1.jpeg'),
                 accent: CaregiverDashboardTheme.primaryTeal,
               ),
               child: Column(

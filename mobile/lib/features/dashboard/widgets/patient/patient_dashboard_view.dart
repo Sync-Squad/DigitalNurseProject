@@ -30,7 +30,7 @@ class PatientDashboardView extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
-          image: AssetImage('images/cardbackground1.jpeg'),
+          image: AssetImage('assets/images/cardbackground1.jpeg'),
           fit: BoxFit.cover,
         ),
       ),
@@ -87,74 +87,86 @@ class _WelcomeHeroCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final onPrimary = colorScheme.onPrimary;
 
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: ModernSurfaceTheme.heroDecoration(context),
-      child: Stack(
-        children: [
-          // Main content
-          Padding(
-            padding: EdgeInsets.fromLTRB(20.w, 20.w, 170.w, 20.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final imageWidth = constraints.maxWidth * 0.4;
+          return Container(
+            decoration: ModernSurfaceTheme.heroDecoration(context),
+            child: Stack(
               children: [
-                Row(
-                  children: [
-                    Text('👋', style: TextStyle(fontSize: 24.sp)),
-                    SizedBox(width: 8.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                // Right side: Doctor illustration
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: imageWidth * 1.5,
+                  child: Image.asset(
+                    'assets/images/Avatar10.png',
+                    fit: BoxFit.contain,
+                    alignment: Alignment.bottomRight,
+                  ),
+                ),
+                // Left side: Content
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    20.w,
+                    20.w,
+                    imageWidth + 12.w,
+                    20.w,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
                         children: [
-                          Text(
-                            'patient.welcomeBack'.tr(namedArgs: {'name': ''}),
-                            style: textTheme.titleMedium?.copyWith(
-                              color: onPrimary.withValues(alpha: 0.85),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            userName,
-                            style: textTheme.headlineSmall?.copyWith(
-                              color: onPrimary,
-                              fontWeight: FontWeight.w700,
+                          Text('👋', style: TextStyle(fontSize: 24.sp)),
+                          SizedBox(width: 8.w),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'patient.welcomeBack'.tr(
+                                    namedArgs: {'name': ''},
+                                  ),
+                                  style: textTheme.titleMedium?.copyWith(
+                                    color: onPrimary.withValues(alpha: 0.85),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  userName,
+                                  style: textTheme.headlineSmall?.copyWith(
+                                    color: onPrimary,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: EdgeInsets.only(top: 16.h),
-                  child: Text(
-                    "Let's take care of your health today—one step at a time.",
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: onPrimary.withValues(alpha: 0.75),
-                      height: 1.4,
-                    ),
+                      Padding(
+                        padding: EdgeInsets.only(top: 16.h),
+                        child: Text(
+                          "Let's take care of your health today—one step at a time.",
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: onPrimary.withValues(alpha: 0.75),
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                      const _EmbeddedHealthTip(),
+                    ],
                   ),
                 ),
-                SizedBox(height: 20.h),
-                const _EmbeddedHealthTip(),
               ],
             ),
-          ),
-          // Doctor illustration aligned to top-right so it doesn't grow downward
-          Positioned(
-            right: 12.w,
-            top: 12.h,
-            child: SizedBox(
-              width: 200.w,
-              height: 230.h,
-              child: Image.asset(
-                'images/Avatar10.png',
-                fit: BoxFit.contain,
-                alignment: Alignment.topRight,
-              ),
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -201,7 +213,10 @@ class _HealthOverviewCard extends StatelessWidget {
 
     return Container(
       clipBehavior: Clip.antiAlias,
-      decoration: ModernSurfaceTheme.heroDecoration(context),
+      decoration: BoxDecoration(
+        color: const Color(0xFF66B2B2),
+        borderRadius: BorderRadius.circular(20),
+      ),
       padding: EdgeInsets.all(20.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -227,7 +242,7 @@ class _HealthOverviewCard extends StatelessWidget {
                           width: 36.w,
                           height: 36.w,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
+                            color: Colors.tealAccent.withValues(alpha: 0.5),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Center(
@@ -261,7 +276,7 @@ class _HealthOverviewCard extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(width: 16.w),
+              SizedBox(width: 15.w),
               // Right side - Circular progress
               _CircularProgressWidget(
                 percentage: adherencePercentage,
@@ -373,14 +388,17 @@ class _AlertsAndVitalsRow extends StatelessWidget {
         ? healthProvider.vitals.first
         : null;
 
-    return Row(
-      children: [
-        // Alerts Card
-        Expanded(child: _AlertsCard(alertCount: abnormalVitals.length)),
-        SizedBox(width: 12.w),
-        // Blood Pressure Card
-        Expanded(child: _BloodPressureCard(latestVital: latestVital)),
-      ],
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Alerts Card
+          Expanded(child: _AlertsCard(alertCount: abnormalVitals.length)),
+          SizedBox(width: 12.w),
+          // Blood Pressure Card
+          Expanded(child: _BloodPressureCard(latestVital: latestVital)),
+        ],
+      ),
     );
   }
 }
@@ -396,7 +414,6 @@ class _AlertsCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     return Container(
-      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         color: const Color(0xFFFFF5E6),
@@ -408,62 +425,70 @@ class _AlertsCard extends StatelessWidget {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 32.w,
-                height: 32.w,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFB84D).withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(10),
+          // Content
+          Padding(
+            padding: EdgeInsets.all(16.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 32.w,
+                      height: 32.w,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFB84D).withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.warning_amber_rounded,
+                        color: Color(0xFFFFB84D),
+                        size: 18,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    Text(
+                      'Alerts',
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1A1A1A),
+                      ),
+                    ),
+                  ],
                 ),
-                child: const Icon(
-                  Icons.warning_amber_rounded,
-                  color: Color(0xFFFFB84D),
-                  size: 18,
+                SizedBox(height: 12.h), // Increased slightly for better spacing
+                Text(
+                  alertCount > 0
+                      ? '$alertCount vitals need a quick check'
+                      : 'All vitals look good!',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: const Color(0xFF666666),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                'Alerts',
-                style: textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1A1A1A),
+                SizedBox(height: 4.h),
+                Text(
+                  alertCount > 0
+                      ? 'Tap to review your abnormal vitals safely.'
+                      : 'Keep up the great work!',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: const Color(0xFF999999),
+                    fontSize: 10.sp, // Made smaller
+                  ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 8.h),
-          Text(
-            alertCount > 0
-                ? '$alertCount vitals need a quick check'
-                : 'All vitals look good!',
-            style: textTheme.bodySmall?.copyWith(
-              color: const Color(0xFF666666),
-              fontWeight: FontWeight.w500,
+              ],
             ),
           ),
-          SizedBox(height: 4.h),
-          Text(
-            alertCount > 0
-                ? 'Tap to review your abnormal vitals safely.'
-                : 'Keep up the great work!',
-            style: textTheme.bodySmall?.copyWith(
-              color: const Color(0xFF999999),
-              fontSize: 11.sp,
-            ),
-          ),
-          SizedBox(height: 12.h),
-          // Illustration placeholder
-          Align(
-            alignment: Alignment.centerRight,
+          // Background Icon
+          Positioned(
+            right: 8.w,
+            bottom: 8.h,
             child: Icon(
               Icons.health_and_safety,
-              size: 40,
-              color: const Color(0xFFFFB84D).withValues(alpha: 0.3),
+              size: 32, // Adjusted size
+              color: const Color(0xFFFFB84D).withValues(alpha: 0.15),
             ),
           ),
         ],
@@ -637,32 +662,32 @@ class _CircularProgressWidget extends StatelessWidget {
                 '${percentage.toInt()}%',
                 style: textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
               ),
               Text(
                 'adherence—',
                 style: textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: Colors.black.withValues(alpha: 0.8),
                   fontSize: 10.sp,
                 ),
               ),
               Text(
                 'let\'s improve',
                 style: textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: Colors.black.withValues(alpha: 0.8),
                   fontSize: 10.sp,
                 ),
               ),
               Text(
                 'together',
                 style: textTheme.bodySmall?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: Colors.black.withValues(alpha: 0.8),
                   fontSize: 10.sp,
                 ),
               ),
               SizedBox(height: 4.h),
-              Icon(Icons.favorite, color: Colors.white, size: 14),
+              Icon(Icons.favorite, color: Colors.redAccent, size: 16),
             ],
           ),
         ],
