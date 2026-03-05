@@ -16,9 +16,11 @@ class ModernSurfaceTheme {
   static const Color accentBlue = Color(0xFF64C7FF);
   static const Color accentCoral = Color(0xFFFF8FA3);
 
-  static ColorScheme _scheme(BuildContext context) => Theme.of(context).colorScheme;
+  static ColorScheme _scheme(BuildContext context) =>
+      Theme.of(context).colorScheme;
 
-  static bool _isDark(BuildContext context) => Theme.of(context).brightness == Brightness.dark;
+  static bool _isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
 
   static Color _blendOnSurface({
     required Color base,
@@ -34,11 +36,23 @@ class ModernSurfaceTheme {
     final isDark = _isDark(context);
 
     final top = isDark
-        ? _blendOnSurface(base: midnight, overlay: primaryTeal, overlayOpacity: 0.28)
+        ? _blendOnSurface(
+            base: midnight,
+            overlay: primaryTeal,
+            overlayOpacity: 0.28,
+          )
         : const Color(0xFF0F5C52);
     final middle = isDark
-        ? _blendOnSurface(base: scheme.surfaceVariant, overlay: primaryTeal, overlayOpacity: 0.16)
-        : _blendOnSurface(base: scheme.surfaceVariant, overlay: primaryTeal, overlayOpacity: 0.05);
+        ? _blendOnSurface(
+            base: scheme.surfaceVariant,
+            overlay: primaryTeal,
+            overlayOpacity: 0.16,
+          )
+        : _blendOnSurface(
+            base: scheme.surfaceVariant,
+            overlay: primaryTeal,
+            overlayOpacity: 0.05,
+          );
     final bottom = scheme.background;
 
     return LinearGradient(
@@ -54,10 +68,18 @@ class ModernSurfaceTheme {
     final isDark = _isDark(context);
 
     final start = isDark
-        ? _blendOnSurface(base: primaryTeal, overlay: Colors.white, overlayOpacity: 0.08)
+        ? _blendOnSurface(
+            base: primaryTeal,
+            overlay: Colors.white,
+            overlayOpacity: 0.08,
+          )
         : primaryTeal;
     final end = isDark
-        ? _blendOnSurface(base: scheme.primary, overlay: Colors.black, overlayOpacity: 0.25)
+        ? _blendOnSurface(
+            base: scheme.primary,
+            overlay: Colors.black,
+            overlayOpacity: 0.25,
+          )
         : const Color(0xFF118074);
 
     return LinearGradient(
@@ -68,12 +90,7 @@ class ModernSurfaceTheme {
   }
 
   static EdgeInsets screenPadding() {
-    return EdgeInsets.only(
-      left: 20.w,
-      right: 20.w,
-      top: 24.h,
-      bottom: 40.h,
-    );
+    return EdgeInsets.only(left: 20.w, right: 20.w, top: 24.h, bottom: 40.h);
   }
 
   static EdgeInsets heroPadding() => EdgeInsets.all(20.w);
@@ -147,9 +164,7 @@ class ModernSurfaceTheme {
         end: Alignment.bottomRight,
         colors: [blendedTop, blendedBottom],
       ),
-      border: Border.all(
-        color: accent.withValues(alpha: isDark ? 0.35 : 0.14),
-      ),
+      border: Border.all(color: accent.withValues(alpha: isDark ? 0.35 : 0.14)),
     );
   }
 
@@ -185,14 +200,12 @@ class ModernSurfaceTheme {
     );
   }
 
-  static BoxDecoration frostedChip(
-    BuildContext context, {
-    Color? baseColor,
-  }) {
+  static BoxDecoration frostedChip(BuildContext context, {Color? baseColor}) {
     final scheme = _scheme(context);
     final isDark = _isDark(context);
     final Color resolvedBase =
-        baseColor ?? (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.white);
+        baseColor ??
+        (isDark ? Colors.white.withValues(alpha: 0.9) : Colors.white);
 
     final Color fill = _blendOnSurface(
       base: scheme.surface,
@@ -214,7 +227,9 @@ class ModernSurfaceTheme {
   /// of the provided [baseColor].
   static Color chipForegroundColor(Color baseColor) {
     final luminance = baseColor.computeLuminance();
-    return luminance > 0.38 ? deepTeal : Colors.white;
+    // primaryTeal has luminance around 0.4. We want black/deepTeal for it.
+    // Lowering the threshold to ensure teal backgrounds get dark text.
+    return luminance > 0.35 ? deepTeal : Colors.white;
   }
 
   /// Returns a foreground color that contrasts well against tinted cards
@@ -259,16 +274,16 @@ class ModernSurfaceTheme {
 
   static TextStyle sectionTitleStyle(BuildContext context) {
     return Theme.of(context).textTheme.titleMedium!.copyWith(
-          fontWeight: FontWeight.w700,
-          color: Theme.of(context).colorScheme.onSurface,
-          letterSpacing: 0.2,
-        );
+      fontWeight: FontWeight.w700,
+      color: Theme.of(context).colorScheme.onSurface,
+      letterSpacing: 0.2,
+    );
   }
 
   static TextStyle sectionSubtitleStyle(BuildContext context) {
     return Theme.of(context).textTheme.bodySmall!.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        );
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    );
   }
 
   static EdgeInsets cardPadding() => EdgeInsets.all(20.w);
@@ -337,4 +352,3 @@ class ModernSurfaceTheme {
     );
   }
 }
-

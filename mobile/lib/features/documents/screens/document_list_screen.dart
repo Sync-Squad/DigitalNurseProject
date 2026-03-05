@@ -493,7 +493,7 @@ class _DocumentsHero extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final halfWidth = constraints.maxWidth * 0.4;
+          final halfWidth = constraints.maxWidth * 0.25;
           return Container(
             width: double.infinity,
             decoration: ModernSurfaceTheme.heroDecoration(context),

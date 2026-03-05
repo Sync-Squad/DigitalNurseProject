@@ -189,7 +189,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     final isCaregiver = user?.role == UserRole.caregiver;
     final headerTitle = isCaregiver
         ? 'patient.caregiverDashboard'.tr()
-        : ''; // Removed greeting for patients to match new design
+        : 'app.name'.tr(); // Show app name as header for patients
 
     return ModernScaffold(
       safeAreaTop: false,

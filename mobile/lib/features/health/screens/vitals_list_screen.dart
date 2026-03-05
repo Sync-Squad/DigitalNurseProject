@@ -301,6 +301,33 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
             },
           ),
           SizedBox(height: 16.h),
+          if (!isCaregiver) ...[
+            Container(
+              width: double.infinity,
+              decoration: ModernSurfaceTheme.glassCard(context),
+              padding: EdgeInsets.all(16.w),
+              child: ElevatedButton.icon(
+                onPressed: () => context.push('/vitals/add'),
+                icon: Icon(Icons.add_circle_outline, color: Colors.white),
+                label: Text(
+                  'Log Vital',
+                  style: textTheme.titleSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 14.h),
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(28),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 16.h),
+          ],
           Container(
             width: double.infinity,
             decoration: ModernSurfaceTheme.glassCard(context),
@@ -688,7 +715,7 @@ class _VitalsHero extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final halfWidth = constraints.maxWidth * 0.4;
+          final halfWidth = constraints.maxWidth * 0.45;
           return Container(
             width: double.infinity,
             decoration: ModernSurfaceTheme.heroDecoration(context),
@@ -772,12 +799,6 @@ class _VitalsHero extends StatelessWidget {
                             icon: Icons.warning_amber_rounded,
                             label: '$warningCount needs attention',
                           ),
-                          if (!isCaregiver)
-                            _HeroChip(
-                              icon: Icons.add_circle_outline,
-                              label: 'Log Vital',
-                              onTap: () => context.push('/vitals/add'),
-                            ),
                         ],
                       ),
                     ],
@@ -795,13 +816,12 @@ class _VitalsHero extends StatelessWidget {
 class _HeroChip extends StatelessWidget {
   final IconData icon;
   final String label;
-  final VoidCallback? onTap;
 
-  const _HeroChip({required this.icon, required this.label, this.onTap});
+  const _HeroChip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    final widget = Container(
+    return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: AppTheme.appleGreen,
@@ -822,10 +842,5 @@ class _HeroChip extends StatelessWidget {
         ],
       ),
     );
-
-    if (onTap != null) {
-      return GestureDetector(onTap: onTap, child: widget);
-    }
-    return widget;
   }
 }
