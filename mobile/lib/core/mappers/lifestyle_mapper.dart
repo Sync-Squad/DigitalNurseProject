@@ -39,19 +39,13 @@ class LifestyleMapper {
     } else if (json['logDate'] != null) {
       try {
         // logDate might be a date string (YYYY-MM-DD) or ISO datetime
-        final dateStr = json['logDate'].toString();
-        if (dateStr.contains('T')) {
-          timestamp = DateTime.parse(dateStr);
-        } else {
-          // Parse date-only string (YYYY-MM-DD)
-          timestamp = DateTime.parse('${dateStr}T00:00:00');
-        }
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(json['logDate'].toString());
       } catch (e) {
         timestamp = DateTime.now();
       }
     } else if (json['loggedAt'] != null) {
       try {
-        timestamp = DateTime.parse(json['loggedAt'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(json['loggedAt'].toString());
       } catch (e) {
         timestamp = DateTime.now();
       }
@@ -150,19 +144,13 @@ class LifestyleMapper {
     } else if (json['logDate'] != null) {
       try {
         // logDate might be a date string (YYYY-MM-DD) or ISO datetime
-        final dateStr = json['logDate'].toString();
-        if (dateStr.contains('T')) {
-          timestamp = DateTime.parse(dateStr);
-        } else {
-          // Parse date-only string (YYYY-MM-DD)
-          timestamp = DateTime.parse('${dateStr}T00:00:00');
-        }
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(json['logDate'].toString());
       } catch (e) {
         timestamp = DateTime.now();
       }
     } else if (json['loggedAt'] != null) {
       try {
-        timestamp = DateTime.parse(json['loggedAt'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(json['loggedAt'].toString());
       } catch (e) {
         timestamp = DateTime.now();
       }
