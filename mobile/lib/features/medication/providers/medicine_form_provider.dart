@@ -17,8 +17,7 @@ class MedicineFormData {
     return name.trim().isNotEmpty &&
         medicineForm != null &&
         frequency != null &&
-        reminderTimes.isNotEmpty &&
-        doseAmount.trim().isNotEmpty;
+        reminderTimes.isNotEmpty;
   }
 }
 
@@ -76,11 +75,7 @@ class MedicineFormProvider extends ChangeNotifier {
         // Start date is already initialized, no validation needed
         break;
       case 5: // Dose and strength
-        if (_formData.doseAmount.trim().isEmpty) {
-          _errorMessage = 'Please enter dose amount';
-          return false;
-        }
-        // Strength is optional, no validation needed
+        // Section is now skippable as per requirements
         break;
       case 6: // Summary - final validation
         if (!_formData.isValid) {
