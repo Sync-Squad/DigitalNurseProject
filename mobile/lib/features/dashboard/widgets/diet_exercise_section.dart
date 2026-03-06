@@ -7,6 +7,7 @@ import '../../../core/extensions/meal_type_extensions.dart';
 import '../../../core/extensions/activity_type_extensions.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
+import '../../../core/utils/timezone_util.dart';
 import 'expandable_section_tile.dart';
 
 class DietExerciseSection extends StatelessWidget {
@@ -16,7 +17,7 @@ class DietExerciseSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<LifestyleProvider>(
       builder: (context, lifestyleProvider, child) {
-        final now = DateTime.now();
+        final now = TimezoneUtil.nowInPakistan();
         final todayStart = DateTime(now.year, now.month, now.day);
         final todayEnd = todayStart.add(const Duration(days: 1));
 

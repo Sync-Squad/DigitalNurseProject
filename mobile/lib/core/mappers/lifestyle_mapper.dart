@@ -32,7 +32,7 @@ class LifestyleMapper {
     DateTime timestamp = DateTime.now();
     if (json['timestamp'] != null) {
       try {
-        timestamp = DateTime.parse(json['timestamp'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(json['timestamp'].toString());
       } catch (e) {
         timestamp = DateTime.now();
       }
@@ -143,7 +143,7 @@ class LifestyleMapper {
     DateTime timestamp = DateTime.now();
     if (json['timestamp'] != null) {
       try {
-        timestamp = DateTime.parse(json['timestamp'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(json['timestamp'].toString());
       } catch (e) {
         timestamp = DateTime.now();
       }

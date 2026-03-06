@@ -19,6 +19,7 @@ import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
+import '../../../core/utils/timezone_util.dart';
 import 'package:dio/dio.dart';
 
 class DocumentViewerScreen extends StatefulWidget {
@@ -486,7 +487,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
                   _InfoRow(
                     label: 'Upload Date',
                     value: DateFormat('MMM d, yyyy - h:mm a')
-                        .format(document.uploadDate),
+                        .format(TimezoneUtil.toPakistanTime(document.uploadDate)),
                   ),
                   SizedBox(height: 8.h),
                   _InfoRow(

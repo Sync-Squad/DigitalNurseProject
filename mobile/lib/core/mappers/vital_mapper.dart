@@ -58,13 +58,13 @@ class VitalMapper {
     DateTime timestamp = DateTime.now();
     if (json['timestamp'] != null) {
       try {
-        timestamp = DateTime.parse(json['timestamp'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(json['timestamp'].toString());
       } catch (e) {
         timestamp = DateTime.now();
       }
     } else if (json['recordedAt'] != null) {
       try {
-        timestamp = DateTime.parse(json['recordedAt'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(json['recordedAt'].toString());
       } catch (e) {
         timestamp = DateTime.now();
       }

@@ -5,6 +5,7 @@ import '../../../core/providers/document_provider.dart';
 import '../../../core/models/document_model.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
+import '../../../core/utils/timezone_util.dart';
 import 'expandable_section_tile.dart';
 
 class DocumentsSection extends StatelessWidget {
@@ -91,9 +92,9 @@ class DocumentsSection extends StatelessWidget {
                                         ),
                                   ),
                                   Text(
-                                    DateFormat(
-                                      'MMM d, yyyy',
-                                    ).format(document.uploadDate),
+                                    DateFormat('MMM d, yyyy').format(
+                                      TimezoneUtil.toPakistanTime(document.uploadDate),
+                                    ),
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: ModernSurfaceTheme.deepTeal

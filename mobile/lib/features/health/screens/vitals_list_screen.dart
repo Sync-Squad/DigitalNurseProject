@@ -12,6 +12,7 @@ import '../../../core/extensions/vital_status_extensions.dart';
 import '../../../core/models/vital_measurement_model.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
+import '../../../core/utils/timezone_util.dart';
 import '../../../core/widgets/modern_scaffold.dart';
 import '../../../core/models/user_model.dart';
 import '../widgets/vitals_calendar_header.dart';
@@ -402,9 +403,9 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
                                         ),
                                         SizedBox(height: 4),
                                         Text(
-                                          DateFormat(
-                                            'MMM d, yyyy - h:mm a',
-                                          ).format(vital.timestamp),
+                                          DateFormat('MMM d, yyyy - h:mm a').format(
+                                            TimezoneUtil.toPakistanTime(vital.timestamp),
+                                          ),
                                           style: textTheme.bodySmall?.copyWith(
                                             color: muted,
                                           ),

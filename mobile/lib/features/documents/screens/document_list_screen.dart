@@ -12,6 +12,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
+import '../../../core/utils/timezone_util.dart';
 
 class DocumentListScreen extends StatefulWidget {
   const DocumentListScreen({super.key});
@@ -286,9 +287,9 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                             ),
                             const Spacer(),
                             Text(
-                              DateFormat(
-                                'MMM d, yyyy',
-                              ).format(document.uploadDate),
+                              DateFormat('MMM d, yyyy').format(
+                                TimezoneUtil.toPakistanTime(document.uploadDate),
+                              ),
                               style: textTheme.bodySmall?.copyWith(
                                 color: muted,
                               ),

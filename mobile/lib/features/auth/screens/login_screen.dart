@@ -406,7 +406,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Text(
                             'auth.login.forgotPassword'.tr(),
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.white.withOpacity(0.8),
+                              color: AppTheme.appleGreen,
                               decoration: TextDecoration.underline,
                             ),
                           ),

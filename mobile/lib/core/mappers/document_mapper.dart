@@ -60,13 +60,13 @@ class DocumentMapper {
     DateTime uploadDate = DateTime.now();
     if (json['uploadDate'] != null) {
       try {
-        uploadDate = DateTime.parse(json['uploadDate'].toString());
+        uploadDate = TimezoneUtil.fromPakistanTimeIso8601(json['uploadDate'].toString());
       } catch (e) {
         uploadDate = DateTime.now();
       }
     } else if (json['createdAt'] != null) {
       try {
-        uploadDate = DateTime.parse(json['createdAt'].toString());
+        uploadDate = TimezoneUtil.fromPakistanTimeIso8601(json['createdAt'].toString());
       } catch (e) {
         uploadDate = DateTime.now();
       }
