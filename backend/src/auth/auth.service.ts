@@ -14,6 +14,8 @@ import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { User } from '@prisma/client';
 
 @Injectable()
@@ -25,7 +27,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private emailService: EmailService,
-  ) {}
+  ) { }
 
   async register(registerDto: RegisterDto) {
     const {
@@ -81,129 +83,129 @@ export class AuthService {
     let registrationResult;
     try {
       registrationResult = await this.prisma.$transaction(async (tx) => {
-      // When registering as caregiver, load and validate invitation inside transaction
-      let invitation: {
-        invitationId: bigint;
-        elderUserId: bigint;
-        inviterUserId: bigint;
-        relationshipCode: string;
-        status: string;
-        expiresAt: Date;
-      } | null = null;
+        // When registering as caregiver, load and validate invitation inside transaction
+        let invitation: {
+          invitationId: bigint;
+          elderUserId: bigint;
+          inviterUserId: bigint;
+          relationshipCode: string;
+          status: string;
+          expiresAt: Date;
+        } | null = null;
 
-      if (normalizedRoleCode === 'caregiver') {
-        invitation = await tx.userInvitation.findUnique({
-          where: { inviteCode: inviteCode! },
-          select: {
-            invitationId: true,
-            elderUserId: true,
-            inviterUserId: true,
-            relationshipCode: true,
-            status: true,
-            expiresAt: true,
-          },
-        });
+        if (normalizedRoleCode === 'caregiver') {
+          invitation = await tx.userInvitation.findUnique({
+            where: { inviteCode: inviteCode! },
+            select: {
+              invitationId: true,
+              elderUserId: true,
+              inviterUserId: true,
+              relationshipCode: true,
+              status: true,
+              expiresAt: true,
+            },
+          });
 
-        if (!invitation) {
-          throw new BadRequestException('Invalid caregiver invitation code.');
-        }
-
-        if (invitation.status !== 'pending') {
-          throw new BadRequestException('Invitation has already been processed.');
-        }
-
-        if (invitation.expiresAt < new Date()) {
-          throw new BadRequestException('Invitation has expired.');
-        }
-      }
-
-      // Generate verification token
-      const verificationToken = this.generateVerificationToken();
-      const tokenExpiry = new Date();
-      const expiryHours =
-        parseInt(
-          this.configService.get<string>('VERIFICATION_TOKEN_EXPIRY_HOURS') ||
-            '24',
-        ) || 24;
-      tokenExpiry.setHours(tokenExpiry.getHours() + expiryHours);
-
-      // Create user (email is required, phone is optional)
-      const user = await tx.user.create({
-        data: {
-          email: email!,
-          phone: phone || null,
-          passwordHash: hashedPassword,
-          full_name: name || '',
-          emailVerified: false,
-          verificationToken,
-          verificationTokenExpiresAt: tokenExpiry,
-        },
-      });
-
-      // Provision default FREE subscription
-      await tx.subscription.create({
-        data: {
-          userId: user.userId,
-          planId: null,
-          status: 'active',
-        },
-      });
-
-      // Attach selected role
-      await tx.userRole.create({
-        data: {
-          userId: user.userId,
-          roleId: role.roleId,
-        },
-      });
-
-      if (normalizedRoleCode === 'caregiver' && invitation) {
-        const now = new Date();
-
-        // Check if assignment already exists (prevent duplicates)
-        const existingAssignment = await tx.elderAssignment.findFirst({
-          where: {
-            elderUserId: invitation.elderUserId,
-            caregiverUserId: user.userId,
-          },
-        });
-
-        if (existingAssignment) {
-          this.logger.warn(
-            `Elder assignment already exists for caregiver ${user.userId} and elder ${invitation.elderUserId}`,
-          );
-        } else {
-          // Validate relationshipCode is not empty
-          if (!invitation.relationshipCode || invitation.relationshipCode.trim() === '') {
-            throw new BadRequestException(
-              'Invalid invitation: relationship code is missing.',
-            );
+          if (!invitation) {
+            throw new BadRequestException('Invalid caregiver invitation code.');
           }
 
-          // Normalize relationshipCode to lowercase to match lookup table
-          // The lookup table stores codes in lowercase (e.g., "friend" not "Friend")
-          const normalizedRelationshipCode = invitation.relationshipCode.trim().toLowerCase();
+          if (invitation.status !== 'pending') {
+            throw new BadRequestException('Invitation has already been processed.');
+          }
 
-          await tx.elderAssignment.create({
-            data: {
+          if (invitation.expiresAt < new Date()) {
+            throw new BadRequestException('Invitation has expired.');
+          }
+        }
+
+        // Generate verification token
+        const verificationToken = this.generateVerificationToken();
+        const tokenExpiry = new Date();
+        const expiryHours =
+          parseInt(
+            this.configService.get<string>('VERIFICATION_TOKEN_EXPIRY_HOURS') ||
+            '24',
+          ) || 24;
+        tokenExpiry.setHours(tokenExpiry.getHours() + expiryHours);
+
+        // Create user (email is required, phone is optional)
+        const user = await tx.user.create({
+          data: {
+            email: email!,
+            phone: phone || null,
+            passwordHash: hashedPassword,
+            full_name: name || '',
+            emailVerified: false,
+            verificationToken,
+            verificationTokenExpiresAt: tokenExpiry,
+          },
+        });
+
+        // Provision default FREE subscription
+        await tx.subscription.create({
+          data: {
+            userId: user.userId,
+            planId: null,
+            status: 'active',
+          },
+        });
+
+        // Attach selected role
+        await tx.userRole.create({
+          data: {
+            userId: user.userId,
+            roleId: role.roleId,
+          },
+        });
+
+        if (normalizedRoleCode === 'caregiver' && invitation) {
+          const now = new Date();
+
+          // Check if assignment already exists (prevent duplicates)
+          const existingAssignment = await tx.elderAssignment.findFirst({
+            where: {
               elderUserId: invitation.elderUserId,
               caregiverUserId: user.userId,
-              relationshipCode: normalizedRelationshipCode,
-              relationshipDomain: 'relationships', // Explicitly set domain
-              isPrimary: false,
+            },
+          });
+
+          if (existingAssignment) {
+            this.logger.warn(
+              `Elder assignment already exists for caregiver ${user.userId} and elder ${invitation.elderUserId}`,
+            );
+          } else {
+            // Validate relationshipCode is not empty
+            if (!invitation.relationshipCode || invitation.relationshipCode.trim() === '') {
+              throw new BadRequestException(
+                'Invalid invitation: relationship code is missing.',
+              );
+            }
+
+            // Normalize relationshipCode to lowercase to match lookup table
+            // The lookup table stores codes in lowercase (e.g., "friend" not "Friend")
+            const normalizedRelationshipCode = invitation.relationshipCode.trim().toLowerCase();
+
+            await tx.elderAssignment.create({
+              data: {
+                elderUserId: invitation.elderUserId,
+                caregiverUserId: user.userId,
+                relationshipCode: normalizedRelationshipCode,
+                relationshipDomain: 'relationships', // Explicitly set domain
+                isPrimary: false,
+              },
+            });
+          }
+
+          await tx.userInvitation.update({
+            where: { invitationId: invitation.invitationId },
+            data: {
+              status: 'accepted',
+              acceptedUserId: user.userId,
+              acceptedAt: now,
             },
           });
         }
-
-        await tx.userInvitation.update({
-          where: { invitationId: invitation.invitationId },
-          data: {
-            status: 'accepted',
-            acceptedUserId: user.userId,
-            acceptedAt: now,
-          },
-        });
-      }
 
         return { user, verificationToken };
       });
@@ -212,7 +214,7 @@ export class AuthService {
         `Registration transaction failed for ${email}: ${error.message}`,
         error.stack,
       );
-      
+
       // Re-throw known exceptions
       if (
         error instanceof ConflictException ||
@@ -221,7 +223,7 @@ export class AuthService {
       ) {
         throw error;
       }
-      
+
       // Log detailed error information
       this.logger.error(
         `Registration error details: ${JSON.stringify({
@@ -230,7 +232,7 @@ export class AuthService {
           meta: error.meta,
         })}`,
       );
-      
+
       // Provide more helpful error message
       if (error.code === 'P2002') {
         // Unique constraint violation
@@ -239,7 +241,7 @@ export class AuthService {
           `A record with this ${target} already exists.`,
         );
       }
-      
+
       throw new BadRequestException(
         `Registration failed: ${error.message || 'Unknown database error'}`,
       );
@@ -436,7 +438,7 @@ export class AuthService {
     const expiryHours =
       parseInt(
         this.configService.get<string>('VERIFICATION_TOKEN_EXPIRY_HOURS') ||
-          '24',
+        '24',
       ) || 24;
     tokenExpiry.setHours(tokenExpiry.getHours() + expiryHours);
 
@@ -458,6 +460,81 @@ export class AuthService {
 
     return {
       message: 'Verification email sent successfully',
+    };
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    const { email } = forgotPasswordDto;
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      // Don't reveal if email exists or not for security
+      return {
+        message: 'If an account exists with this email, a password reset link has been sent.',
+      };
+    }
+
+    // Generate reset token
+    const resetPasswordToken = this.generateVerificationToken();
+    const tokenExpiry = new Date();
+    // Reset tokens expire in 1 hour
+    tokenExpiry.setHours(tokenExpiry.getHours() + 1);
+
+    await this.prisma.user.update({
+      where: { userId: user.userId },
+      data: {
+        resetPasswordToken,
+        resetPasswordTokenExpiresAt: tokenExpiry,
+      },
+    });
+
+    // Send reset email
+    await this.emailService.sendPasswordResetEmail(
+      user.email!,
+      resetPasswordToken,
+      user.full_name || undefined,
+    );
+
+    return {
+      message: 'If an account exists with this email, a password reset link has been sent.',
+    };
+  }
+
+  async resetPassword(resetPasswordDto: ResetPasswordDto) {
+    const { token, newPassword } = resetPasswordDto;
+
+    const user = await this.prisma.user.findUnique({
+      where: { resetPasswordToken: token },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    if (
+      user.resetPasswordTokenExpiresAt &&
+      user.resetPasswordTokenExpiresAt < new Date()
+    ) {
+      throw new BadRequestException('Reset token has expired');
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user password and clear reset token
+    await this.prisma.user.update({
+      where: { userId: user.userId },
+      data: {
+        passwordHash: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordTokenExpiresAt: null,
+      },
+    });
+
+    return {
+      message: 'Password reset successful. You can now login with your new password.',
     };
   }
 

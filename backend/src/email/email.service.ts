@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { verificationEmailTemplate } from './templates/verification-email.template';
 import { caregiverInvitationEmailTemplate } from './templates/caregiver-invitation-email.template';
+import { forgotPasswordEmailTemplate } from './templates/forgot-password-email.template';
 
 @Injectable()
 export class EmailService {
@@ -29,7 +30,7 @@ export class EmailService {
     } else {
       const port = Number(smtpPort);
       const secure = smtpSecure === 'true' || smtpSecure === '1';
-      
+
       this.logger.log(
         `Initializing SMTP transporter: ${smtpHost}:${port} (secure: ${secure}, user: ${smtpUser})`,
       );
@@ -169,6 +170,41 @@ export class EmailService {
     name?: string,
   ): Promise<boolean> {
     return this.sendVerificationEmail(email, token, name);
+  }
+
+  async sendPasswordResetEmail(
+    email: string,
+    token: string,
+    name?: string,
+  ): Promise<boolean> {
+    try {
+      if (!this.transporter) {
+        this.logger.error('Nodemailer transporter not initialized. Cannot send email.');
+        return false;
+      }
+
+      // Mobile app handles the deep link
+      const resetUrl = `${this.frontendUrl}/reset-password?token=${token}`;
+      const html = forgotPasswordEmailTemplate({
+        name: name || 'User',
+        resetUrl,
+        appName: this.appName,
+      });
+
+      await this.transporter.sendMail({
+        from: this.fromEmail,
+        to: email,
+        subject: `Reset your ${this.appName} password`,
+        html,
+      });
+
+      this.logger.log(`Password reset email sent to ${email}`);
+      return true;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error sending password reset email: ${errorMessage}`);
+      return false;
+    }
   }
 }
 

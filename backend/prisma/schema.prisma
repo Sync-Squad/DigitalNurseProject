@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,56 +7,37 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============================================
-// Core Models
-// ============================================
-
 model User {
-  userId            BigInt    @id @default(autoincrement()) @map("userId")
-  authProvider      String    @default("password") @map("authProvider")
-  email             String?   @unique @map("email")
-  phone             String?   @unique @map("phone")
-  passwordHash      String?   @map("passwordHash")
-  full_name         String    @map("full_name")
-  dob               DateTime? @map("dob") @db.Date
-  gender            String?   @map("gender")
-  address           String?   @map("address")
-  avatarUrl         String?   @map("avatarUrl")
-  localeCode        String    @default("en") @map("localeCode")
-  timezone          String    @default("Asia/Karachi") @map("timezone")
-  status            String    @default("active") @map("status")
-  username          String?   @map("username")
-  medicalConditions String?   @map("medicalConditions")
-  emergencyContact  String?   @map("emergencyContact")
-  emailVerified     Boolean   @default(false) @map("emailVerified")
-  verificationToken String?   @unique @map("verificationToken")
-  verificationTokenExpiresAt DateTime? @map("verificationTokenExpiresAt")
-  createdAt         DateTime  @default(now()) @map("createdAt")
-  updatedAt         DateTime  @default(now()) @updatedAt @map("updatedAt")
+  userId                     BigInt         @id @default(autoincrement()) @map("userId")
+  authProvider               String         @default("password") @map("authProvider")
+  email                      String?        @unique @map("email")
+  phone                      String?        @unique(map: "users_phone_unique") @map("phone")
+  passwordHash               String?        @map("passwordHash")
+  full_name                  String         @map("full_name")
+  dob                        DateTime?      @map("dob") @db.Date
+  gender                     String?        @map("gender")
+  address                    String?        @map("address")
+  avatarUrl                  String?        @map("avatarUrl")
+  localeCode                 String         @default("en") @map("localeCode")
+  timezone                   String         @default("Asia/Karachi") @map("timezone")
+  status                     String         @default("active") @map("status")
+  createdAt                  DateTime       @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt                  DateTime       @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
+  username                   String?        @map("username")
+  medicalConditions          String?        @map("medicalConditions")
+  emergencyContact           String?        @map("emergencyContact")
+  emailVerified              Boolean?       @default(false) @map("emailVerified")
+  verificationToken          String?        @unique @map("verificationToken")
+  googleId                   String?        @unique
+  profileCompleted           Boolean?       @default(false)
+  city                       String?
+  country                    String?
+  verificationTokenExpiresAt DateTime?      @map("verificationTokenExpiresAt") @db.Timestamptz(6)
+  resetPasswordToken         String?        @unique @map("resetPasswordToken")
+  resetPasswordTokenExpiresAt DateTime?      @map("resetPasswordTokenExpiresAt") @db.Timestamptz(6)
+  notifications              Notification[]
+  userDocuments              UserDocument[]
 
-  // Relations
-  elderAssignmentsAsElder     ElderAssignment[]  @relation("ElderUser")
-  elderAssignmentsAsCaregiver ElderAssignment[]  @relation("CaregiverUser")
-  userRoles                   UserRole[]
-  userDevices                 UserDevice[]
-  userDocuments               UserDocument[]
-  userInvitationsAsInviter    UserInvitation[]   @relation("InviterUser")
-  userInvitationsAsElder      UserInvitation[]   @relation("ElderUserInvitation")
-  userInvitationsAsAccepted   UserInvitation[]   @relation("AcceptedUser")
-  caregiverNotesAsElder       CaregiverNote[]    @relation("ElderUserNote")
-  caregiverNotesAsCaregiver   CaregiverNote[]    @relation("CaregiverUserNote")
-  medications                 Medication[]
-  vitalMeasurements           VitalMeasurement[]
-  dietLogs                    DietLog[]
-  exerciseLogs                ExerciseLog[]
-  dietPlans                   DietPlan[]
-  exercisePlans               ExercisePlan[]
-  notifications               Notification[]
-  subscriptions               Subscription[]
-  loginEvents                 UserLoginEvent[]
-
-  @@index([email])
-  @@index([phone])
   @@map("users")
 }
 
@@ -68,11 +46,8 @@ model Role {
   roleCode  String   @unique @map("roleCode")
   roleName  String   @map("roleName")
   isActive  Boolean  @default(true) @map("isActive")
-  createdAt DateTime @default(now()) @map("createdAt")
-  updatedAt DateTime @default(now()) @updatedAt @map("updatedAt")
-
-  // Relations
-  userRoles UserRole[]
+  createdAt DateTime @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
 
   @@map("roles")
 }
@@ -81,39 +56,28 @@ model UserRole {
   userRoleId BigInt   @id @default(autoincrement()) @map("userRoleId")
   userId     BigInt   @map("userId")
   roleId     BigInt   @map("roleId")
-  createdAt  DateTime @default(now()) @map("createdAt")
+  createdAt  DateTime @default(now()) @map("createdAt") @db.Timestamptz(6)
 
-  // Relations
-  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  role Role @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([roleId])
+  @@unique([userId, roleId], map: "ux_user_roles")
   @@map("user_roles")
 }
 
-// ============================================
-// Medication Models
-// ============================================
-
 model Medication {
-  medicationId    BigInt   @id @default(autoincrement()) @map("medicationId")
-  elderUserId     BigInt   @map("elderUserId")
-  medicationName  String   @map("medicationName")
-  doseValue       Decimal? @map("doseValue") @db.Decimal
-  doseUnitCode    String?  @map("doseUnitCode")
-  formCode        String?  @map("formCode")
-  instructions    String?  @map("instructions")
-  notes           String?  @map("notes")
-  createdByUserId BigInt?  @map("createdByUserId")
-  createdAt       DateTime @default(now()) @map("createdAt")
-  updatedAt       DateTime @default(now()) @updatedAt @map("updatedAt")
+  medicationId    BigInt                 @id @default(autoincrement()) @map("medicationId")
+  elderUserId     BigInt                 @map("elderUserId")
+  medicationName  String                 @map("medicationName")
+  doseValue       Decimal?               @map("doseValue") @db.Decimal(10, 2)
+  doseUnitCode    String?                @map("doseUnitCode")
+  formCode        String?                @map("formCode")
+  instructions    String?                @map("instructions")
+  notes           String?                @map("notes")
+  createdByUserId BigInt?                @map("createdByUserId")
+  createdAt       DateTime               @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt       DateTime               @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
+  notes_embedding Unsupported("vector")?
 
-  // Relations
-  elderUser User          @relation(fields: [elderUserId], references: [userId], onDelete: Cascade)
-  schedules MedSchedule[]
-
-  @@index([elderUserId])
+  @@index([elderUserId], map: "ix_medications_elder")
+  @@index([notes_embedding])
   @@map("medications")
 }
 
@@ -127,69 +91,56 @@ model MedSchedule {
   timesLocal           Json      @map("timesLocal")
   isPrn                Boolean   @default(false) @map("isPrn")
   snoozeMinutesDefault Int?      @map("snoozeMinutesDefault")
-  createdAt            DateTime  @default(now()) @map("createdAt")
-  updatedAt            DateTime  @default(now()) @updatedAt @map("updatedAt")
+  createdAt            DateTime  @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt            DateTime  @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
 
-  // Relations
-  medication Medication  @relation(fields: [medicationId], references: [medicationId], onDelete: Cascade)
-  intakes    MedIntake[]
-
-  @@index([medicationId])
+  @@index([medicationId], map: "ix_med_schedules_medication")
   @@map("med_schedules")
 }
 
 model MedIntake {
-  intakeId         BigInt    @id @default(autoincrement()) @map("intakeId")
-  medScheduleId    BigInt    @map("medScheduleId")
-  dueAt            DateTime  @map("dueAt")
-  status           String    @default("due") @map("status")
-  takenAt          DateTime? @map("takenAt")
-  snoozedUntilAt   DateTime? @map("snoozedUntilAt")
-  skipReasonCode   String?   @map("skipReasonCode")
-  recordedByUserId BigInt?   @map("recordedByUserId")
-  notes            String?   @map("notes")
-  createdAt        DateTime  @default(now()) @map("createdAt")
-  updatedAt        DateTime  @default(now()) @updatedAt @map("updatedAt")
+  intakeId         BigInt                 @id @default(autoincrement()) @map("intakeId")
+  medScheduleId    BigInt                 @map("medScheduleId")
+  dueAt            DateTime               @map("dueAt") @db.Timestamptz(6)
+  status           String                 @default("due") @map("status")
+  takenAt          DateTime?              @map("takenAt") @db.Timestamptz(6)
+  snoozedUntilAt   DateTime?              @map("snoozedUntilAt") @db.Timestamptz(6)
+  skipReasonCode   String?                @map("skipReasonCode")
+  recordedByUserId BigInt?                @map("recordedByUserId")
+  notes            String?                @map("notes")
+  createdAt        DateTime               @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt        DateTime               @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
+  notes_embedding  Unsupported("vector")?
 
-  // Relations
-  schedule MedSchedule @relation(fields: [medScheduleId], references: [medScheduleId], onDelete: Cascade)
-
-  @@index([medScheduleId])
+  @@unique([medScheduleId, dueAt], map: "ux_med_intakes_schedule_due")
+  @@index([dueAt], map: "ix_med_intakes_due")
+  @@index([status], map: "ix_med_intakes_status")
+  @@index([notes_embedding])
   @@map("med_intakes")
 }
 
-// ============================================
-// Health/Vitals Models
-// ============================================
-
 model VitalMeasurement {
-  vitalMeasurementId BigInt   @id @default(autoincrement()) @map("vitalMeasurementId")
-  elderUserId        BigInt   @map("elderUserId")
-  kindCode           String   @map("kindCode")
-  unitCode           String?  @map("unitCode")
-  value1             Decimal? @map("value1") @db.Decimal
-  value2             Decimal? @map("value2") @db.Decimal
-  valueText          String?  @map("valueText")
-  recordedAt         DateTime @map("recordedAt")
-  source             String   @default("manual") @map("source")
-  deviceInfo         Json?    @map("deviceInfo")
-  recordedByUserId   BigInt?  @map("recordedByUserId")
-  notes              String?  @map("notes")
-  createdAt          DateTime @default(now()) @map("createdAt")
-  updatedAt          DateTime @default(now()) @updatedAt @map("updatedAt")
+  vitalMeasurementId BigInt                 @id @default(autoincrement()) @map("vitalMeasurementId")
+  elderUserId        BigInt                 @map("elderUserId")
+  kindCode           String                 @map("kindCode")
+  unitCode           String?                @map("unitCode")
+  value1             Decimal?               @map("value1") @db.Decimal(10, 2)
+  value2             Decimal?               @map("value2") @db.Decimal(10, 2)
+  valueText          String?                @map("valueText")
+  recordedAt         DateTime               @map("recordedAt") @db.Timestamptz(6)
+  source             String                 @default("manual") @map("source")
+  deviceInfo         Json?                  @map("deviceInfo")
+  recordedByUserId   BigInt?                @map("recordedByUserId")
+  notes              String?                @map("notes")
+  createdAt          DateTime               @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt          DateTime               @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
+  notes_embedding    Unsupported("vector")?
 
-  // Relations
-  elderUser User @relation(fields: [elderUserId], references: [userId], onDelete: Cascade)
-
-  @@index([elderUserId])
-  @@index([kindCode])
-  @@index([recordedAt])
+  @@index([elderUserId, kindCode, recordedAt(sort: Desc)], map: "ix_vitals_elder_kind_time")
+  @@index([elderUserId, recordedAt(sort: Desc)], map: "ix_vitals_elder_time")
+  @@index([notes_embedding])
   @@map("vital_measurements")
 }
-
-// ============================================
-// Caregiver Models
-// ============================================
 
 model ElderAssignment {
   elderAssignmentId  BigInt   @id @default(autoincrement()) @map("elderAssignmentId")
@@ -199,15 +150,12 @@ model ElderAssignment {
   relationshipCode   String   @map("relationshipCode")
   isPrimary          Boolean  @default(false) @map("isPrimary")
   notifyPrefs        Json?    @map("notifyPrefs")
-  createdAt          DateTime @default(now()) @map("createdAt")
-  updatedAt          DateTime @default(now()) @updatedAt @map("updatedAt")
+  createdAt          DateTime @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
 
-  // Relations
-  elderUser     User @relation("ElderUser", fields: [elderUserId], references: [userId], onDelete: Cascade)
-  caregiverUser User @relation("CaregiverUser", fields: [caregiverUserId], references: [userId], onDelete: Cascade)
-
-  @@index([elderUserId])
-  @@index([caregiverUserId])
+  @@unique([elderUserId, caregiverUserId], map: "ux_elder_caregiver_pair")
+  @@index([caregiverUserId], map: "ix_elder_assignments_caregiver")
+  @@index([elderUserId], map: "ix_elder_assignments_elder")
   @@map("elder_assignments")
 }
 
@@ -219,108 +167,88 @@ model UserInvitation {
   relationshipDomain String    @default("relationships") @map("relationshipDomain")
   relationshipCode   String    @map("relationshipCode")
   invitePhone        String    @map("invitePhone")
-  inviteEmail        String?   @map("inviteemail")
   inviteCode         String    @unique @map("inviteCode")
   status             String    @default("pending") @map("status")
-  expiresAt          DateTime  @map("expiresAt")
+  expiresAt          DateTime  @default(dbgenerated("(now() + '7 days'::interval)")) @map("expiresAt") @db.Timestamptz(6)
   acceptedUserId     BigInt?   @map("acceptedUserId")
-  acceptedAt         DateTime? @map("acceptedAt")
-  createdAt          DateTime  @default(now()) @map("createdAt")
+  acceptedAt         DateTime? @map("acceptedAt") @db.Timestamptz(6)
+  createdAt          DateTime  @default(now()) @map("createdAt") @db.Timestamptz(6)
+  inviteEmail        String?   @map("inviteemail")
 
-  // Relations
-  inviterUser  User  @relation("InviterUser", fields: [inviterUserId], references: [userId], onDelete: Cascade)
-  elderUser    User  @relation("ElderUserInvitation", fields: [elderUserId], references: [userId], onDelete: Cascade)
-  acceptedUser User? @relation("AcceptedUser", fields: [acceptedUserId], references: [userId], onDelete: SetNull)
-
-  @@index([inviterUserId])
-  @@index([elderUserId])
-  @@index([inviteCode])
+  @@index([elderUserId], map: "ix_user_invitations_elder")
+  @@index([invitePhone], map: "ix_user_invitations_phone")
   @@map("user_invitations")
 }
 
 model CaregiverNote {
-  noteId           BigInt   @id @default(autoincrement()) @map("note_id")
-  elderUserId      BigInt   @map("elder_user_id")
-  caregiverUserId BigInt   @map("caregiver_user_id")
-  noteText         String   @map("note_text")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @default(now()) @updatedAt @map("updated_at")
+  noteId          BigInt                 @id @default(autoincrement()) @map("note_id")
+  elderUserId     BigInt                 @map("elder_user_id")
+  caregiverUserId BigInt                 @map("caregiver_user_id")
+  noteText        String                 @map("note_text")
+  createdAt       DateTime?              @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime?              @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
+  embedding       Unsupported("vector")?
 
-  // Relations
-  elderUser     User @relation("ElderUserNote", fields: [elderUserId], references: [userId], onDelete: Cascade)
-  caregiverUser User @relation("CaregiverUserNote", fields: [caregiverUserId], references: [userId], onDelete: Cascade)
-
-  @@index([elderUserId])
-  @@index([caregiverUserId])
-  @@index([createdAt])
+  @@index([caregiverUserId], map: "idx_caregiver_notes_caregiver")
+  @@index([elderUserId], map: "idx_caregiver_notes_elder")
   @@map("caregiver_notes")
 }
 
-// ============================================
-// Lifestyle Models
-// ============================================
-
 model DietLog {
-  dietId       BigInt     @id @default(autoincrement()) @map("diet_id")
-  userId       BigInt     @map("user_id")
-  logDate      DateTime   @default(dbgenerated("CURRENT_DATE")) @map("log_date") @db.Date
-  mealType     String     @map("meal_type")
-  foodItems    String?    @map("food_items")
-  calories     Int?       @map("calories")
-  notes        String?    @map("notes")
-  sourcePlanId BigInt?    @map("source_plan_id")
-  createdAt    DateTime?  @default(dbgenerated("CURRENT_TIMESTAMP")) @map("created_at")
-  updatedAt    DateTime?  @map("updated_at")
+  dietId               BigInt                 @id @default(autoincrement()) @map("diet_id")
+  userId               BigInt                 @map("user_id")
+  logDate              DateTime               @default(dbgenerated("CURRENT_DATE")) @map("log_date") @db.Date
+  mealType             String                 @map("meal_type") @db.VarChar(50)
+  foodItems            String?                @map("food_items")
+  calories             Int?                   @map("calories")
+  notes                String?                @map("notes")
+  createdAt            DateTime?              @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt            DateTime?              @map("updated_at") @db.Timestamp(6)
+  food_items_embedding Unsupported("vector")?
+  notes_embedding      Unsupported("vector")?
+  sourcePlanId         BigInt?                @map("source_plan_id")
 
-  // Relations
-  user       User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  sourcePlan DietPlan? @relation("DietLogSourcePlan", fields: [sourcePlanId], references: [planId], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([logDate])
-  @@index([sourcePlanId])
+  @@index([sourcePlanId], map: "idx_diet_logs_source_plan_id")
+  @@index([logDate], map: "idx_dietlogs_logdate")
+  @@index([userId], map: "idx_dietlogs_userid")
   @@map("diet_logs")
 }
 
 model ExerciseLog {
-  exerciseId      BigInt        @id @default(autoincrement()) @map("exercise_id")
-  userId          BigInt        @map("user_id")
-  logDate         DateTime      @default(dbgenerated("CURRENT_DATE")) @map("log_date") @db.Date
-  exerciseType    String        @map("exercise_type")
-  durationMinutes Int?          @map("duration_minutes")
-  caloriesBurned  Int?          @map("calories_burned")
-  intensity       String?       @map("intensity")
-  description     String?       @map("description")
-  notes           String?       @map("notes")
-  sourcePlanId    BigInt?       @map("source_plan_id")
-  createdAt       DateTime?     @default(dbgenerated("CURRENT_TIMESTAMP")) @map("created_at")
-  updatedAt       DateTime?     @map("updated_at")
+  exerciseId            BigInt                 @id @default(autoincrement()) @map("exercise_id")
+  userId                BigInt                 @map("user_id")
+  logDate               DateTime               @default(dbgenerated("CURRENT_DATE")) @map("log_date") @db.Date
+  exerciseType          String                 @map("exercise_type") @db.VarChar(100)
+  durationMinutes       Int?                   @map("duration_minutes")
+  caloriesBurned        Int?                   @map("calories_burned")
+  intensity             String?                @map("intensity") @db.VarChar(50)
+  notes                 String?                @map("notes")
+  createdAt             DateTime?              @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt             DateTime?              @map("updated_at") @db.Timestamp(6)
+  description           String?                @map("description")
+  description_embedding Unsupported("vector")?
+  notes_embedding       Unsupported("vector")?
+  sourcePlanId          BigInt?                @map("source_plan_id")
 
-  // Relations
-  user       User          @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  sourcePlan ExercisePlan? @relation("ExerciseLogSourcePlan", fields: [sourcePlanId], references: [planId], onDelete: SetNull)
-
-  @@index([userId])
-  @@index([logDate])
-  @@index([sourcePlanId])
+  @@index([description_embedding])
+  @@index([notes_embedding])
+  @@index([sourcePlanId], map: "idx_exercise_logs_source_plan_id")
+  @@index([logDate], map: "idx_exerciselogs_logdate")
+  @@index([userId, logDate], map: "idx_exerciselogs_user_logdate")
+  @@index([userId], map: "idx_exerciselogs_userid")
   @@map("exercise_logs")
 }
 
 model DietPlan {
-  planId      BigInt         @id @default(autoincrement()) @map("plan_id")
-  userId      BigInt         @map("user_id")
-  planName    String         @map("plan_name")
-  description String?        @map("description")
-  isActive    Boolean        @default(true) @map("is_active")
-  createdAt   DateTime       @default(now()) @map("created_at")
-  updatedAt   DateTime       @default(now()) @updatedAt @map("updated_at")
+  planId      BigInt    @id @default(autoincrement()) @map("plan_id")
+  userId      BigInt    @map("user_id")
+  planName    String    @map("plan_name") @db.VarChar
+  description String?   @map("description") @db.VarChar
+  isActive    Boolean?  @default(true) @map("is_active")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
-  // Relations
-  user        User           @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  items       DietPlanItem[]
-  sourceLogs  DietLog[]      @relation("DietLogSourcePlan")
-
-  @@index([userId])
+  @@index([userId], map: "idx_diet_plans_user_id")
   @@map("diet_plans")
 }
 
@@ -328,35 +256,27 @@ model DietPlanItem {
   itemId      BigInt    @id @default(autoincrement()) @map("item_id")
   planId      BigInt    @map("plan_id")
   dayOfWeek   Int       @map("day_of_week")
-  mealType    String    @map("meal_type")
-  description String    @map("description")
+  mealType    String    @map("meal_type") @db.VarChar
+  description String    @map("description") @db.VarChar
   calories    Int?      @map("calories")
-  notes       String?   @map("notes")
-  createdAt   DateTime  @default(now()) @map("created_at")
+  notes       String?   @map("notes") @db.VarChar
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
 
-  // Relations
-  plan DietPlan @relation(fields: [planId], references: [planId], onDelete: Cascade)
-
-  @@index([planId])
-  @@index([dayOfWeek])
+  @@index([dayOfWeek], map: "idx_diet_plan_items_day_of_week")
+  @@index([planId], map: "idx_diet_plan_items_plan_id")
   @@map("diet_plan_items")
 }
 
 model ExercisePlan {
-  planId      BigInt            @id @default(autoincrement()) @map("plan_id")
-  userId      BigInt            @map("user_id")
-  planName    String            @map("plan_name")
-  description String?           @map("description")
-  isActive    Boolean           @default(true) @map("is_active")
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @default(now()) @updatedAt @map("updated_at")
+  planId      BigInt    @id @default(autoincrement()) @map("plan_id")
+  userId      BigInt    @map("user_id")
+  planName    String    @map("plan_name") @db.VarChar
+  description String?   @map("description") @db.VarChar
+  isActive    Boolean?  @default(true) @map("is_active")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamp(6)
 
-  // Relations
-  user        User              @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  items       ExercisePlanItem[]
-  sourceLogs  ExerciseLog[]     @relation("ExerciseLogSourcePlan")
-
-  @@index([userId])
+  @@index([userId], map: "idx_exercise_plans_user_id")
   @@map("exercise_plans")
 }
 
@@ -364,116 +284,94 @@ model ExercisePlanItem {
   itemId          BigInt    @id @default(autoincrement()) @map("item_id")
   planId          BigInt    @map("plan_id")
   dayOfWeek       Int       @map("day_of_week")
-  activityType    String    @map("activity_type")
-  description     String    @map("description")
+  activityType    String    @map("activity_type") @db.VarChar
+  description     String    @map("description") @db.VarChar
   durationMinutes Int?      @map("duration_minutes")
   caloriesBurned  Int?      @map("calories_burned")
-  intensity       String?   @map("intensity")
-  notes           String?   @map("notes")
-  createdAt       DateTime  @default(now()) @map("created_at")
+  intensity       String?   @map("intensity") @db.VarChar
+  notes           String?   @map("notes") @db.VarChar
+  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamp(6)
 
-  // Relations
-  plan ExercisePlan @relation(fields: [planId], references: [planId], onDelete: Cascade)
-
-  @@index([planId])
-  @@index([dayOfWeek])
+  @@index([dayOfWeek], map: "idx_exercise_plan_items_day_of_week")
+  @@index([planId], map: "idx_exercise_plan_items_plan_id")
   @@map("exercise_plan_items")
 }
 
-// ============================================
-// Document Models
-// ============================================
-
 model UserDocument {
-  documentId   BigInt   @id @default(autoincrement()) @map("documentId")
-  userId       BigInt   @map("userId")
-  documentType String   @map("documentType")
-  title        String   @map("title")
-  description  String?  @map("description")
-  filePath     String   @map("filePath")
-  fileType     String?  @map("fileType")
-  uploadedAt   DateTime @default(now()) @map("uploadedAt")
-  uploadedBy   BigInt?  @map("uploadedBy")
-  visibility   String   @default("private") @map("visibility")
-  isActive     Boolean  @default(true) @map("isActive")
-  createdAt    DateTime @default(now()) @map("createdAt")
-  updatedAt    DateTime @default(now()) @updatedAt @map("updatedAt")
+  documentId         BigInt                 @id @default(autoincrement()) @map("documentId")
+  userId             BigInt                 @map("userId")
+  documentType       String                 @map("documentType") @db.VarChar(50)
+  title              String                 @map("title")
+  description        String?                @map("description")
+  filePath           String                 @map("filePath")
+  fileType           String?                @map("fileType") @db.VarChar(50)
+  uploadedAt         DateTime?              @default(now()) @map("uploadedAt") @db.Timestamptz(6)
+  uploadedBy         BigInt?                @map("uploadedBy")
+  visibility         String?                @default("private") @map("visibility") @db.VarChar(100)
+  isActive           Boolean?               @default(true) @map("isActive")
+  createdAt          DateTime?              @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt          DateTime?              @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
+  metadata_embedding Unsupported("vector")?
+  user               User                   @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "fk_userdocuments_user")
 
-  // Relations
-  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([documentType])
+  @@index([documentType], map: "idx_userdocuments_documenttype")
+  @@index([uploadedBy], map: "idx_userdocuments_uploadedby")
+  @@index([userId], map: "idx_userdocuments_userid")
+  @@index([visibility], map: "idx_userdocuments_visibility")
+  @@index([metadata_embedding])
   @@map("user_documents")
 }
-
-// ============================================
-// Notification Models
-// ============================================
 
 model Notification {
   notificationId   BigInt    @id @default(autoincrement()) @map("notificationId")
   userId           BigInt    @map("userId")
   title            String    @map("title")
   message          String    @map("message")
-  notificationType String    @map("notificationType")
-  scheduledTime    DateTime? @map("scheduledTime")
-  sentTime         DateTime? @map("sentTime")
-  isRead           Boolean   @default(false) @map("isRead")
-  isSent           Boolean   @default(false) @map("isSent")
-  status           String    @default("pending") @map("status")
+  notificationType String    @map("notificationType") @db.VarChar(50)
+  scheduledTime    DateTime? @map("scheduledTime") @db.Timestamptz(6)
+  sentTime         DateTime? @map("sentTime") @db.Timestamptz(6)
+  isRead           Boolean?  @default(false) @map("isRead")
+  isSent           Boolean?  @default(false) @map("isSent")
+  status           String?   @default("pending") @map("status") @db.VarChar(20)
+  createdAt        DateTime? @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt        DateTime? @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
   actionData       Json?     @map("actionData")
-  createdAt        DateTime? @default(now()) @map("createdAt")
-  updatedAt        DateTime? @default(now()) @updatedAt @map("updatedAt")
+  user             User      @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "fk_notifications_user")
 
-  // Relations
-  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([isRead])
-  @@index([status])
+  @@index([scheduledTime], map: "idx_notifications_scheduledtime")
+  @@index([status], map: "idx_notifications_status")
+  @@index([userId], map: "idx_notifications_userid")
   @@map("notifications")
 }
-
-// ============================================
-// Subscription Models
-// ============================================
 
 model SubscriptionPlan {
   planId       BigInt   @id @default(autoincrement()) @map("planId")
   planCode     String   @unique @map("planCode")
   planName     String   @map("planName")
   currency     String   @default("PKR") @map("currency")
-  monthlyPrice Decimal? @map("monthlyPrice") @db.Decimal
-  annualPrice  Decimal? @map("annualPrice") @db.Decimal
+  monthlyPrice Decimal? @map("monthlyPrice") @db.Decimal(10, 2)
+  annualPrice  Decimal? @map("annualPrice") @db.Decimal(10, 2)
   limits       Json     @map("limits")
   isActive     Boolean  @default(true) @map("isActive")
-  createdAt    DateTime @default(now()) @map("createdAt")
-  updatedAt    DateTime @default(now()) @updatedAt @map("updatedAt")
+  createdAt    DateTime @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
 
   @@map("subscription_plans")
 }
 
 model Subscription {
-  subscriptionId BigInt    @id @default(autoincrement()) @map("subscriptionId")
-  userId         BigInt    @map("userId")
-  planId         BigInt?   @map("planId")
-  status         String    @default("active") @map("status")
-  startDate      DateTime  @default(now()) @map("startDate")
-  endDate        DateTime? @map("endDate")
-  createdAt      DateTime  @default(now()) @map("createdAt")
-  updatedAt      DateTime  @default(now()) @updatedAt @map("updatedAt")
+  subscriptionId    BigInt    @id @default(autoincrement()) @map("subscriptionId")
+  userId            BigInt    @map("userId")
+  planId            BigInt?   @map("planId")
+  status            String    @default("active") @map("status")
+  startDate         DateTime  @default(now()) @map("startDate") @db.Timestamptz(6)
+  endDate           DateTime? @map("endDate") @db.Timestamptz(6)
+  cancelAtPeriodEnd Boolean   @default(false)
+  createdAt         DateTime  @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt         DateTime  @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
 
-  // Relations
-  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
-
-  @@index([userId])
   @@map("subscriptions")
 }
-
-// ============================================
-// Supporting Models
-// ============================================
 
 model UserDevice {
   deviceId    BigInt    @id @default(autoincrement()) @map("deviceId")
@@ -484,33 +382,27 @@ model UserDevice {
   osVersion   String?   @map("osVersion")
   appVersion  String?   @map("appVersion")
   pushToken   String?   @map("pushToken")
-  lastLoginAt DateTime? @map("lastLoginAt")
-  lastSeenAt  DateTime? @map("lastSeenAt")
+  lastLoginAt DateTime? @map("lastLoginAt") @db.Timestamptz(6)
+  lastSeenAt  DateTime? @map("lastSeenAt") @db.Timestamptz(6)
   ipAddress   String?   @map("ipAddress")
   userAgent   String?   @map("userAgent")
-  createdAt   DateTime  @default(now()) @map("createdAt")
+  createdAt   DateTime  @default(now()) @map("createdAt") @db.Timestamptz(6)
 
-  // Relations
-  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([pushToken])
+  @@index([userId], map: "ix_user_devices_user")
   @@map("user_devices")
 }
 
 model UserLoginEvent {
   loginEventId BigInt   @id @default(autoincrement()) @map("loginEventId")
   userId       BigInt   @map("userId")
+  deviceId     BigInt?  @map("deviceId")
+  loginAt      DateTime @default(now()) @map("loginAt") @db.Timestamptz(6)
   ipAddress    String?  @map("ipAddress")
   userAgent    String?  @map("userAgent")
-  deviceId     BigInt?  @map("deviceId")
-  loginAt      DateTime @default(now()) @map("loginAt")
+  success      Boolean  @default(true)
+  meta         Json?
 
-  // Relations
-  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([loginAt])
+  @@index([userId, loginAt(sort: Desc)], map: "ix_user_login_events_user_time")
   @@map("user_login_events")
 }
 
@@ -521,39 +413,136 @@ model Lookup {
   lookupLabel  String   @map("lookupLabel")
   sortOrder    Int      @default(0) @map("sortOrder")
   isActive     Boolean  @default(true) @map("isActive")
-  createdAt    DateTime @default(now()) @map("createdAt")
-  updatedAt    DateTime @default(now()) @updatedAt @map("updatedAt")
+  createdAt    DateTime @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
 
-  @@index([lookupDomain, lookupCode])
+  @@unique([lookupDomain, lookupCode], map: "ux_lookups_domain_code")
   @@map("lookups")
 }
 
 model Translation {
   translationId  BigInt    @id @default(autoincrement()) @map("translationId")
-  entityType     String    @map("entityType")
+  entityType     String    @map("entityType") @db.VarChar(50)
   entityId       BigInt    @map("entityId")
-  languageCode   String    @map("languageCode")
+  languageCode   String    @map("languageCode") @db.VarChar(10)
   translatedText String    @map("translatedText")
-  createdAt      DateTime? @default(now()) @map("createdAt")
-  updatedAt      DateTime? @default(now()) @updatedAt @map("updatedAt")
+  createdAt      DateTime? @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt      DateTime? @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
 
-  @@index([entityType, entityId])
-  @@index([languageCode])
+  @@unique([entityType, entityId, languageCode], map: "uq_translation")
   @@map("translations")
 }
 
-// ============================================
-// Application Configuration
-// ============================================
-
 model AppConfig {
-  id          BigInt   @id @default(autoincrement()) @map("id")
-  configKey   String   @unique @map("config_key")
-  configValue String   @map("config_value")
-  description String?  @map("description")
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  id          Int       @id @default(autoincrement()) @map("id")
+  configKey   String    @unique @map("config_key") @db.VarChar(100)
+  configValue String    @map("config_value")
+  description String?   @map("description")
+  isActive    Boolean?  @default(true) @map("is_active")
+  createdAt   DateTime? @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime? @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@map("app_config")
+}
+
+model ai_analysis_cache {
+  cache_id         BigInt                 @id @default(autoincrement())
+  user_id          BigInt
+  elder_user_id    BigInt?
+  analysis_type    String                 @db.VarChar(100)
+  date_range_start DateTime               @db.Date
+  date_range_end   DateTime               @db.Date
+  analysis_result  Json
+  embedding        Unsupported("vector")?
+  created_at       DateTime?              @default(now()) @db.Timestamptz(6)
+  expires_at       DateTime               @db.Timestamptz(6)
+
+  @@index([elder_user_id])
+  @@index([expires_at])
+  @@index([analysis_type], map: "ai_analysis_cache_type_idx")
+  @@index([user_id])
+}
+
+model ai_conversation_messages {
+  message_id      BigInt    @id @default(autoincrement())
+  conversation_id BigInt
+  role            String    @db.VarChar(20)
+  content         String
+  metadata        Json?
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([conversation_id])
+  @@index([created_at])
+}
+
+model ai_conversations {
+  conversation_id BigInt    @id @default(autoincrement())
+  user_id         BigInt
+  elder_user_id   BigInt?
+  title           String?   @db.VarChar(255)
+  context_summary String?
+  created_at      DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([elder_user_id])
+  @@index([user_id])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model ai_insights {
+  insight_id      BigInt                 @id @default(autoincrement())
+  user_id         BigInt
+  elder_user_id   BigInt?
+  insight_type    String                 @db.VarChar(100)
+  title           String                 @db.VarChar(500)
+  content         String
+  confidence      Decimal?               @db.Decimal(5, 2)
+  priority        String?                @default("medium") @db.VarChar(20)
+  category        String?                @db.VarChar(100)
+  metadata        Json?
+  recommendations Json?
+  embedding       Unsupported("vector")?
+  is_read         Boolean?               @default(false)
+  is_archived     Boolean?               @default(false)
+  generated_at    DateTime?              @default(now()) @db.Timestamptz(6)
+  expires_at      DateTime?              @db.Timestamptz(6)
+  created_at      DateTime?              @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime?              @default(now()) @db.Timestamptz(6)
+
+  @@index([category])
+  @@index([elder_user_id])
+  @@index([embedding])
+  @@index([generated_at])
+  @@index([is_read])
+  @@index([priority])
+  @@index([insight_type], map: "ai_insights_type_idx")
+  @@index([user_id])
+}
+
+model document_chunks {
+  chunk_id        BigInt                 @id @default(autoincrement())
+  document_id     BigInt
+  user_id         BigInt
+  chunk_index     Int
+  chunk_text      String
+  chunk_embedding Unsupported("vector")?
+  token_count     Int?
+  metadata        Json?
+  created_at      DateTime?              @default(now()) @db.Timestamptz(6)
+
+  @@index([chunk_embedding])
+  @@index([document_id])
+  @@index([user_id])
+}
+
+model notification_logs {
+  logId           BigInt    @id @default(autoincrement())
+  notificationId  BigInt
+  sentAt          DateTime? @default(now()) @db.Timestamptz(6)
+  deliveryStatus  String?   @default("success") @db.VarChar(20)
+  responseMessage String?
+  createdAt       DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([notificationId], map: "idx_notificationlogs_notificationid")
+  @@index([sentAt], map: "idx_notificationlogs_sentat")
 }
