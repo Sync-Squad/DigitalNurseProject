@@ -17,6 +17,10 @@
       "loginButton": "لاگ ان",
       "noAccount": "اکاؤنٹ نہیں ہے؟ ",
       "registerLink": "رجسٹر کریں",
+      "emailRequired": "ای میل کی ضرورت ہے",
+      "passwordRequired": "پاس ورڈ کی ضرورت ہے",
+      "forgotPassword": "پاس ورڈ بھول گئے؟",
+      "emailSent": "تصدیقی ای میل بھیج دی گئی ہے",
       "failed": "لاگ ان ناکام",
       "ok": "ٹھیک ہے"
     },
@@ -244,4 +248,3 @@
     }
   }
 }
-

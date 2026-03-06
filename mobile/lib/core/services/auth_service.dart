@@ -258,6 +258,56 @@ class AuthService {
     }
   }
 
+  // Forgot password - send reset link
+  Future<bool> forgotPassword(String email) async {
+    _log('🔑 [AUTH] Requesting password reset for: $email');
+    try {
+      final response = await _apiService.post(
+        '/auth/forgot-password',
+        data: {'email': email},
+      );
+
+      if (response.statusCode == 200) {
+        _log('✅ [AUTH] Password reset link sent successfully');
+        return true;
+      } else {
+        _log('❌ [AUTH] Failed to send password reset link: ${response.statusMessage}');
+        throw Exception('Failed to send password reset link');
+      }
+    } catch (e) {
+      _log('❌ [AUTH] Error requesting password reset: $e');
+      throw Exception(e.toString());
+    }
+  }
+
+  // Reset password
+  Future<bool> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    _log('🔑 [AUTH] Attempting password reset with token');
+    try {
+      final response = await _apiService.post(
+        '/auth/reset-password',
+        data: {
+          'token': token,
+          'newPassword': newPassword,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        _log('✅ [AUTH] Password reset successful');
+        return true;
+      } else {
+        _log('❌ [AUTH] Password reset failed: ${response.statusMessage}');
+        throw Exception('Password reset failed');
+      }
+    } catch (e) {
+      _log('❌ [AUTH] Error resetting password: $e');
+      throw Exception(e.toString());
+    }
+  }
+
   // Refresh access token
   Future<void> refreshToken() async {
     try {

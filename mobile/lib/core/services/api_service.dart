@@ -47,10 +47,10 @@ class ApiService {
       _dio = Dio(
         BaseOptions(
           baseUrl: baseUrl,
-          // Increased timeouts to handle operations that include email sending
-          // (e.g., registration) which may take longer than standard API calls
-          connectTimeout: const Duration(seconds: 60),
-          receiveTimeout: const Duration(seconds: 90),
+          // Improved timeouts: 30s is enough for most connections
+          // even with slow email sending on registration.
+          connectTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 45),
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -204,10 +204,17 @@ class ApiService {
   ) async {
     // Prevent multiple simultaneous refresh attempts
     if (_isRefreshing) {
+      _log('⏳ [API] Already refreshing, queuing request: ${error.requestOptions.path}');
       // Queue this request to retry after refresh
       final completer = Completer<Response>();
       _pendingRequests.add((options: error.requestOptions, completer: completer));
-      return completer.future.then((response) => handler.resolve(response));
+      
+      try {
+        final response = await completer.future;
+        return handler.resolve(response);
+      } catch (e) {
+        return handler.reject(e is DioException ? e : error);
+      }
     }
 
     _isRefreshing = true;
@@ -215,8 +222,10 @@ class ApiService {
     try {
       final refreshToken = await _tokenService.getRefreshToken();
       if (refreshToken == null) {
-        _log('❌ [API] No refresh token available, clearing tokens');
+        _log('❌ [API] No refresh token available, clearing tokens and aborting');
         await _tokenService.clearTokens();
+        _isRefreshing = false;
+        _resolvePendingRequests(error, isError: true);
         return handler.reject(error);
       }
 
@@ -229,38 +238,62 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = response.data;
+        final newAccessToken = data['accessToken'];
+        final newRefreshToken = data['refreshToken'];
+        
         await _tokenService.saveTokens(
-          accessToken: data['accessToken'],
-          refreshToken: data['refreshToken'],
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
         );
         _log('✅ [API] Token refresh successful');
 
         // Retry original request with new token
         final opts = error.requestOptions;
-        opts.headers['Authorization'] = 'Bearer ${data['accessToken']}';
+        opts.headers['Authorization'] = 'Bearer $newAccessToken';
         _log('🔄 [API] Retrying original request: ${opts.method} ${opts.path}');
-        final retryResponse = await dio.fetch(opts);
-
-        // Resolve all pending requests
-        _log('🔄 [API] Resolving ${_pendingRequests.length} pending requests');
-        for (final pending in _pendingRequests) {
-          pending.options.headers['Authorization'] = 'Bearer ${data['accessToken']}';
-          dio.fetch(pending.options).then(pending.completer.complete);
-        }
-        _pendingRequests.clear();
-
+        
         _isRefreshing = false;
+        // Resolve all pending requests FIRST before retrying original to avoid blocking
+        _resolvePendingRequests(null, accessToken: newAccessToken);
+        
+        final retryResponse = await dio.fetch(opts);
         return handler.resolve(retryResponse);
+      } else {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
       }
     } catch (e) {
       // Refresh failed - clear tokens
       _log('❌ [API] Token refresh failed: $e');
       await _tokenService.clearTokens();
+      _isRefreshing = false;
+      _resolvePendingRequests(error, isError: true);
+      return handler.reject(error);
+    } finally {
+      _isRefreshing = false;
     }
+  }
 
-    _isRefreshing = false;
+  void _resolvePendingRequests(DioException? error, {String? accessToken, bool isError = false}) {
+    if (_pendingRequests.isEmpty) return;
+    
+    _log('🔄 [API] Resolving ${_pendingRequests.length} pending requests (Error: $isError)');
+    
+    for (final pending in _pendingRequests) {
+      if (isError) {
+        pending.completer.completeError(error ?? Exception('Token refresh failed'));
+      } else if (accessToken != null) {
+        pending.options.headers['Authorization'] = 'Bearer $accessToken';
+        dio.fetch(pending.options).then(
+          (resp) => pending.completer.complete(resp),
+          onError: (err) => pending.completer.completeError(err),
+        );
+      }
+    }
     _pendingRequests.clear();
-    return handler.reject(error);
   }
 
   // GET request

@@ -52,15 +52,27 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    // Manual validation as FTextField might not trigger FormState validation correctly
+    if (email.isEmpty) {
+      _showErrorSnackBar('auth.login.emailRequired'.tr());
+      return;
+    }
+
+    if (password.isEmpty) {
+      _showErrorSnackBar('auth.login.passwordRequired'.tr());
+      return;
+    }
+
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = context.read<AuthProvider>();
     
-    final email = _emailController.text.trim();
-    
     final success = await authProvider.login(
       email,
-      _passwordController.text,
+      password,
     );
 
     if (mounted) {
@@ -371,7 +383,36 @@ class _LoginScreenState extends State<LoginScreen> {
                         hint: 'auth.login.passwordHint'.tr(),
                         obscureText: _obscurePassword,
                       ),
-                      SizedBox(height: 28.h),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () async {
+                            final email = _emailController.text.trim();
+                            if (email.isEmpty) {
+                              _showErrorSnackBar('auth.login.emailRequired'.tr());
+                              return;
+                            }
+                            
+                            final success = await context.read<AuthProvider>().forgotPassword(email);
+                            if (mounted && success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('auth.login.emailSent'.tr()),
+                                  backgroundColor: AppTheme.getSuccessColor(context),
+                                ),
+                              );
+                            }
+                          },
+                          child: Text(
+                            'auth.login.forgotPassword'.tr(),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Colors.white.withOpacity(0.8),
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
 
                       // Login button with modern pill style
                       Container(

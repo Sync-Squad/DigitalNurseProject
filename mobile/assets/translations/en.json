@@ -17,6 +17,10 @@
       "loginButton": "Login",
       "noAccount": "Don't have an account? ",
       "registerLink": "Register",
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "forgotPassword": "Forgot Password?",
+      "emailSent": "Verification email sent",
       "failed": "Login Failed",
       "ok": "OK"
     },
@@ -244,4 +248,3 @@
     }
   }
 }
-
