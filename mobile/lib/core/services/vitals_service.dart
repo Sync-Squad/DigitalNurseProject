@@ -1,5 +1,6 @@
 import '../models/vital_measurement_model.dart';
 import '../mappers/vital_mapper.dart';
+import '../utils/timezone_util.dart';
 import 'api_service.dart';
 
 class VitalsService {

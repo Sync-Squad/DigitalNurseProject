@@ -110,6 +110,8 @@ class AuthProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
   // Resend verification email
   Future<bool> resendVerificationEmail(String email) async {
     _isLoading = true;

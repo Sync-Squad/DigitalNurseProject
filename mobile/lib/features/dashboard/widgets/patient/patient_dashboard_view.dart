@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/providers/health_provider.dart';
@@ -221,7 +222,6 @@ class _HealthOverviewCard extends StatelessWidget {
         onTap: () => context.push('/medications'),
         borderRadius: BorderRadius.circular(20),
         child: Ink(
-          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: const Color(0xFF66B2B2),
             borderRadius: BorderRadius.circular(20),
@@ -531,12 +531,13 @@ class _BloodPressureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    final hasData = latestVital != null;
-    final systolicStr = hasData ? (latestVital.value as String).split('/')[0] : '--';
-    final diastolicStr = hasData ? (latestVital.value as String).split('/')[1] : '--';
-    final status = hasData ? latestVital.getStatusLabel(context) : 'No records yet';
+    final vital = latestVital;
+    final hasData = vital != null;
+    final systolicStr = hasData ? (vital.value as String).split('/')[0] : '--';
+    final diastolicStr = hasData ? (vital.value as String).split('/')[1] : '--';
+    final status = hasData ? vital.getStatusLabel(context) : 'No records yet';
     final statusColor = hasData 
-        ? latestVital.getHealthStatus().getStatusColor(context) 
+        ? vital.getHealthStatus().getStatusColor(context) 
         : const Color(0xFF999999);
     final statusBadgeColor = hasData
         ? statusColor.withValues(alpha: 0.1)
