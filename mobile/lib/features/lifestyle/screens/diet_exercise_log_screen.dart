@@ -399,7 +399,7 @@ class _MealsTabState extends State<_MealsTab> {
                                   ),
                                   SizedBox(height: 4.h),
                                   Text(
-                                    DateFormat('h:mm a').format(
+                                    DateFormat('MMM d, yyyy').format(
                                       TimezoneUtil.toPakistanTime(meal.timestamp),
                                     ),
                                     style: textTheme.bodySmall?.copyWith(
@@ -735,7 +735,7 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
                                   ),
                                   SizedBox(height: 4.h),
                                   Text(
-                                    '${workout.durationMinutes} min • ${DateFormat('h:mm a').format(TimezoneUtil.toPakistanTime(workout.timestamp))}',
+                                    '${workout.durationMinutes} min • ${DateFormat('MMM d, yyyy').format(TimezoneUtil.toPakistanTime(workout.timestamp))}',
                                     style: textTheme.bodySmall?.copyWith(
                                           color: colorScheme.onSurfaceVariant,
                                         ),
