@@ -129,19 +129,21 @@ class _WelcomeHeroCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'patient.welcomeBack'.tr(
-                                    namedArgs: {'name': ''},
-                                  ),
-                                  style: textTheme.titleMedium?.copyWith(
+                                  'patient.welcomeBackOnly'.tr(),
+                                  style: textTheme.bodyMedium?.copyWith(
                                     color: onPrimary.withValues(alpha: 0.85),
                                     fontWeight: FontWeight.w600,
+                                    fontSize: 14.sp,
                                   ),
                                 ),
                                 Text(
                                   userName,
-                                  style: textTheme.headlineSmall?.copyWith(
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: textTheme.titleLarge?.copyWith(
                                     color: onPrimary,
                                     fontWeight: FontWeight.w700,
+                                    fontSize: 18.sp,
                                   ),
                                 ),
                               ],
@@ -271,8 +273,8 @@ class _HealthOverviewCard extends StatelessWidget {
                         color: Colors.white.withValues(alpha: 0.8),
                       ),
                     ),
-                    SizedBox(height: 12.h),
-                    _SetReminderButton(),
+                    // SizedBox(height: 12.h),
+                    // _SetReminderButton(),
                   ],
                 ),
               ),
