@@ -92,7 +92,10 @@ class TimezoneUtil {
       final parsed = DateTime.parse(iso8601String);
       
       // If the string doesn't have timezone info, interpret as Pakistan time
-      if (!iso8601String.contains('+') && !iso8601String.contains('-', 10)) {
+      final hasTimezoneInfo = iso8601String.contains('+') ||
+          iso8601String.contains('-', 10) ||
+          iso8601String.toUpperCase().endsWith('Z');
+      if (!hasTimezoneInfo) {
         // No timezone offset in string, interpret as Pakistan local time
         final pakistanLocation = tz.getLocation(pakistanTimeZone);
         final pakistanTime = tz.TZDateTime(
@@ -110,8 +113,9 @@ class TimezoneUtil {
         return pakistanTime.toUtc();
       }
       
-      // If it has timezone info, DateTime.parse handles it correctly
-      return parsed;
+      // If it has timezone info, DateTime.parse converts to UTC equivalent
+      // Ensure isUtc flag is set so toPakistanTime() converts correctly
+      return parsed.toUtc();
     } catch (e) {
       // Fallback: try to parse as date-only and interpret as Pakistan time
       try {
