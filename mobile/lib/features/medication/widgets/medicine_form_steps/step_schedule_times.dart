@@ -3,6 +3,8 @@ import 'package:forui/forui.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/models/medicine_model.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/theme/modern_surface_theme.dart';
 import '../../providers/medicine_form_provider.dart';
 import '../medicine_form_shared/frequency_time_selector.dart' as custom;
 
@@ -149,12 +151,17 @@ class StepScheduleTimes extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(FIcons.plus, size: 20),
+            const Icon(
+              FIcons.plus,
+              size: 20,
+              color: AppTheme.appleGreen,
+            ),
             const SizedBox(width: 8),
             Text(
               'Add Another Time',
               style: TextStyle(
-                color: context.theme.colors.foreground,
+                color: ModernSurfaceTheme.deepTeal,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ],
