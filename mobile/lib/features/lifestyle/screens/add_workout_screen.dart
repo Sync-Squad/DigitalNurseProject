@@ -11,6 +11,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
 import '../../../core/services/openai_service.dart';
+import '../../../core/utils/timezone_util.dart';
 
 class AddWorkoutScreen extends StatefulWidget {
   final DateTime? selectedDate;
@@ -39,7 +40,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
   void initState() {
     super.initState();
     // Initialize date and time from selectedDate or use current date/time
-    final now = DateTime.now();
+    final now = TimezoneUtil.nowInPakistan();
     _selectedDate = widget.selectedDate ?? now;
     _selectedTime = TimeOfDay.fromDateTime(now);
     

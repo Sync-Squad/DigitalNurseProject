@@ -30,7 +30,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
   DocumentType _documentType = DocumentType.prescription;
   DocumentVisibility _visibility = DocumentVisibility.private;
   DocumentPickerResult? _selectedFile;
-  DateTime _uploadDate = DateTime.now();
+  DateTime _uploadDate = TimezoneUtil.nowInPakistan();
 
   @override
   void initState() {

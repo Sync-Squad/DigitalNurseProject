@@ -13,6 +13,7 @@ import '../../../core/extensions/activity_type_extensions.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
+import '../../../core/utils/timezone_util.dart';
 
 class DietExerciseLogScreen extends StatefulWidget {
   const DietExerciseLogScreen({super.key});
@@ -24,7 +25,7 @@ class DietExerciseLogScreen extends StatefulWidget {
 class _DietExerciseLogScreenState extends State<DietExerciseLogScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  DateTime _selectedDate = DateTime.now();
+  DateTime _selectedDate = TimezoneUtil.nowInPakistan();
 
   @override
   void initState() {

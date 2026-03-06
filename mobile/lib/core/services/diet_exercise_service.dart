@@ -3,6 +3,7 @@ import '../models/exercise_log_model.dart';
 import '../models/diet_plan_model.dart';
 import '../models/exercise_plan_model.dart';
 import '../mappers/lifestyle_mapper.dart';
+import '../utils/timezone_util.dart';
 import 'api_service.dart';
 
 class DietExerciseService {
@@ -22,7 +23,7 @@ class DietExerciseService {
     try {
       final queryParams = <String, dynamic>{};
       if (date != null) {
-        queryParams['date'] = date.toIso8601String().split('T')[0];
+        queryParams['date'] = TimezoneUtil.toPakistanTimeIso8601(date).split('T')[0];
       }
       if (elderUserId != null) {
         queryParams['elderUserId'] = elderUserId;
@@ -68,7 +69,7 @@ class DietExerciseService {
       // Ensure logDate is present
       if (!requestData.containsKey('logDate')) {
         _log('⚠️ WARNING: logDate field missing, adding it');
-        final logDate = '${dietLog.timestamp.year}-${dietLog.timestamp.month.toString().padLeft(2, '0')}-${dietLog.timestamp.day.toString().padLeft(2, '0')}';
+        final logDate = TimezoneUtil.toPakistanTimeIso8601(dietLog.timestamp).split('T')[0];
         requestData['logDate'] = logDate;
       }
       final response = await _apiService.post(
@@ -121,7 +122,7 @@ class DietExerciseService {
     try {
       final queryParams = <String, dynamic>{};
       if (date != null) {
-        queryParams['date'] = date.toIso8601String().split('T')[0];
+        queryParams['date'] = TimezoneUtil.toPakistanTimeIso8601(date).split('T')[0];
       }
       if (elderUserId != null) {
         queryParams['elderUserId'] = elderUserId;
@@ -207,7 +208,7 @@ class DietExerciseService {
     _log('📊 Fetching daily summary for user: $userId on ${date.toString().split(' ')[0]}');
     try {
       final queryParameters = {
-        'date': date.toIso8601String().split('T')[0],
+        'date': TimezoneUtil.toPakistanTimeIso8601(date).split('T')[0],
       };
       if (elderUserId != null) {
         queryParameters['elderUserId'] = elderUserId;
@@ -453,7 +454,7 @@ class DietExerciseService {
     _log('📅 Applying diet plan: $planId');
     try {
       final requestData = {
-        'startDate': startDate.toIso8601String().split('T')[0],
+        'startDate': TimezoneUtil.toPakistanTimeIso8601(startDate).split('T')[0],
         'overwriteExisting': overwriteExisting,
         if (elderUserId != null) 'elderUserId': elderUserId,
       };
@@ -655,7 +656,7 @@ class DietExerciseService {
     _log('📅 Applying exercise plan: $planId');
     try {
       final requestData = {
-        'startDate': startDate.toIso8601String().split('T')[0],
+        'startDate': TimezoneUtil.toPakistanTimeIso8601(startDate).split('T')[0],
         'overwriteExisting': overwriteExisting,
         if (elderUserId != null) 'elderUserId': elderUserId,
       };
@@ -687,8 +688,8 @@ class DietExerciseService {
     _log('📊 Getting diet plan compliance: $planId');
     try {
       final queryParams = <String, dynamic>{
-        'startDate': startDate.toIso8601String().split('T')[0],
-        'endDate': endDate.toIso8601String().split('T')[0],
+        'startDate': TimezoneUtil.toPakistanTimeIso8601(startDate).split('T')[0],
+        'endDate': TimezoneUtil.toPakistanTimeIso8601(endDate).split('T')[0],
         if (elderUserId != null) 'elderUserId': elderUserId,
       };
 
@@ -719,8 +720,8 @@ class DietExerciseService {
     _log('📊 Getting exercise plan compliance: $planId');
     try {
       final queryParams = <String, dynamic>{
-        'startDate': startDate.toIso8601String().split('T')[0],
-        'endDate': endDate.toIso8601String().split('T')[0],
+        'startDate': TimezoneUtil.toPakistanTimeIso8601(startDate).split('T')[0],
+        'endDate': TimezoneUtil.toPakistanTimeIso8601(endDate).split('T')[0],
         if (elderUserId != null) 'elderUserId': elderUserId,
       };
 

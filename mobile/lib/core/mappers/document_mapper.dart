@@ -1,4 +1,5 @@
 import '../models/document_model.dart';
+import '../utils/timezone_util.dart';
 
 /// Maps backend document response to Flutter DocumentModel
 class DocumentMapper {
@@ -143,6 +144,7 @@ class DocumentMapper {
       'type': type,
       'visibility': visibility,
       if (document.description != null) 'description': document.description,
+      'uploadDate': TimezoneUtil.toPakistanTimeIso8601(document.uploadDate),
       if (document.userId.isNotEmpty) 'elderUserId': document.userId,
     };
   }

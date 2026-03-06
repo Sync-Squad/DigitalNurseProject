@@ -186,11 +186,11 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
   }) async {
     _log('📋 Fetching recent vitals (last 7 days) for user: $userId');
     try {
-      final cutoffDate = DateTime.now().subtract(const Duration(days: 7));
+      final cutoffDate = TimezoneUtil.nowInPakistan().subtract(const Duration(days: 7));
       final response = await _apiService.get(
         '/vitals',
         queryParameters: {
-          'startDate': cutoffDate.toIso8601String(),
+          'startDate': TimezoneUtil.toPakistanTimeIso8601(cutoffDate),
           if (elderUserId != null) 'elderUserId': elderUserId,
         },
       );
@@ -322,7 +322,7 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
       final allVitals = await getVitals(userId, elderUserId: elderUserId);
       
       // Filter by type and date range
-      final cutoffDate = DateTime.now().subtract(Duration(days: days));
+      final cutoffDate = TimezoneUtil.nowInPakistan().subtract(Duration(days: days));
       final filteredVitals = allVitals.where((vital) {
         return vital.type == type && vital.timestamp.isAfter(cutoffDate);
       }).toList();

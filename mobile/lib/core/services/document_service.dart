@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import '../models/document_model.dart';
 import '../mappers/document_mapper.dart';
 import '../config/app_config.dart';
+import '../utils/timezone_util.dart';
 import 'api_service.dart';
 import 'token_service.dart';
 
@@ -137,7 +138,7 @@ Future<List<DocumentModel>> getDocumentsByType(
         'visibility': _documentVisibilityToString(visibility),
         if (description != null) 'description': description,
         if (elderUserId != null) 'elderUserId': elderUserId,
-        if (uploadDate != null) 'uploadDate': uploadDate.toIso8601String(),
+        'uploadDate': TimezoneUtil.toPakistanTimeIso8601(uploadDate ?? DateTime.now()),
       });
 
       // Use Dio directly for multipart upload
