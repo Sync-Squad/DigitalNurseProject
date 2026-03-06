@@ -15,6 +15,8 @@ import 'patient_documents_card.dart';
 import 'patient_lifestyle_card.dart';
 import 'patient_upcoming_medications_card.dart';
 import 'patient_vitals_card.dart';
+import '../../../../core/models/vital_measurement_model.dart';
+import '../../../../core/extensions/vital_status_extensions.dart';
 import '../../../../features/ai/widgets/ai_insights_dashboard_widget.dart';
 
 class PatientDashboardView extends StatelessWidget {
@@ -213,80 +215,85 @@ class _HealthOverviewCard extends StatelessWidget {
         .toDouble();
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: const Color(0xFF66B2B2),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => context.push('/medications'),
         borderRadius: BorderRadius.circular(20),
-      ),
-      padding: EdgeInsets.all(20.w),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Health Overview',
-            style: textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
+        child: Ink(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: const Color(0xFF66B2B2),
+            borderRadius: BorderRadius.circular(20),
           ),
-          SizedBox(height: 16.h),
-          Row(
+          padding: EdgeInsets.all(20.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Left side - Adherence info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              Text(
+                'Health Overview',
+                style: textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Row(
+                children: [
+                  // Left side - Adherence info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 36.w,
-                          height: 36.w,
-                          decoration: BoxDecoration(
-                            color: Colors.tealAccent.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Center(
-                            child: Text(
-                              '😊',
-                              style: TextStyle(fontSize: 20.sp),
+                        Row(
+                          children: [
+                            Container(
+                              width: 36.w,
+                              height: 36.w,
+                              decoration: BoxDecoration(
+                                color: Colors.tealAccent.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '😊',
+                                  style: TextStyle(fontSize: 20.sp),
+                                ),
+                              ),
                             ),
-                          ),
+                            SizedBox(width: 10.w),
+                            Text(
+                              '${adherencePercentage.toInt()}% Adherence',
+                              style: textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(width: 10.w),
+                        SizedBox(height: 8.h),
                         Text(
-                          '${adherencePercentage.toInt()}% Adherence',
-                          style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
+                          adherencePercentage >= 80
+                              ? 'Great job this week!'
+                              : 'You missed some doses this week.',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 8.h),
-                    Text(
-                      adherencePercentage >= 80
-                          ? 'Great job this week!'
-                          : 'You missed some doses this week.',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.8),
-                      ),
-                    ),
-                    // SizedBox(height: 12.h),
-                    // _SetReminderButton(),
-                  ],
-                ),
-              ),
-              SizedBox(width: 15.w),
-              // Right side - Circular progress
-              _CircularProgressWidget(
-                percentage: adherencePercentage,
-                size: 100.w,
+                  ),
+                  SizedBox(width: 15.w),
+                  // Right side - Circular progress
+                  _CircularProgressWidget(
+                    percentage: adherencePercentage,
+                    size: 100.w,
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -386,9 +393,17 @@ class _AlertsAndVitalsRow extends StatelessWidget {
     final abnormalVitals = healthProvider.vitals
         .where((vital) => vital.isAbnormal())
         .toList();
-    final latestVital = healthProvider.vitals.isNotEmpty
-        ? healthProvider.vitals.first
-        : null;
+    
+    // Specifically find the latest blood pressure measurement
+    final latestBP = healthProvider.vitals.isEmpty 
+        ? null 
+        : healthProvider.vitals.firstWhere(
+            (v) => v.type == VitalType.bloodPressure,
+            orElse: () => healthProvider.vitals.first, // Fallback if no BP (though we'll handle null in card)
+          );
+    
+    // If the firstWhere fallback is used, we only want it if it's actually BP
+    final actualLatestBP = latestBP?.type == VitalType.bloodPressure ? latestBP : null;
 
     return IntrinsicHeight(
       child: Row(
@@ -398,7 +413,7 @@ class _AlertsAndVitalsRow extends StatelessWidget {
           Expanded(child: _AlertsCard(alertCount: abnormalVitals.length)),
           SizedBox(width: 12.w),
           // Blood Pressure Card
-          Expanded(child: _BloodPressureCard(latestVital: latestVital)),
+          Expanded(child: _BloodPressureCard(latestVital: actualLatestBP)),
         ],
       ),
     );
@@ -415,85 +430,92 @@ class _AlertsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Container(
-      decoration: BoxDecoration(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => context.push('/health/abnormal'),
         borderRadius: BorderRadius.circular(20),
-        color: const Color(0xFFFFF5E6),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+        child: Ink(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: const Color(0xFFFFF5E6),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Content
-          Padding(
-            padding: EdgeInsets.all(16.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+          child: Stack(
+            children: [
+              // Content
+              Padding(
+                padding: EdgeInsets.all(16.w),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 32.w,
-                      height: 32.w,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFB84D).withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.warning_amber_rounded,
-                        color: Color(0xFFFFB84D),
-                        size: 18,
+                    Row(
+                      children: [
+                        Container(
+                          width: 32.w,
+                          height: 32.w,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFFFB84D).withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.warning_amber_rounded,
+                            color: Color(0xFFFFB84D),
+                            size: 18,
+                          ),
+                        ),
+                        SizedBox(width: 8.w),
+                        Text(
+                          'Alerts',
+                          style: textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF1A1A1A),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 12.h),
+                    Text(
+                      alertCount > 0
+                          ? '$alertCount vitals need a quick check'
+                          : 'All vitals look good!',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF666666),
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(width: 8.w),
+                    SizedBox(height: 4.h),
                     Text(
-                      'Alerts',
-                      style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1A1A1A),
+                      alertCount > 0
+                          ? 'Tap to review your abnormal vitals safely.'
+                          : 'Keep up the great work!',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF999999),
+                        fontSize: 10.sp,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 12.h), // Increased slightly for better spacing
-                Text(
-                  alertCount > 0
-                      ? '$alertCount vitals need a quick check'
-                      : 'All vitals look good!',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: const Color(0xFF666666),
-                    fontWeight: FontWeight.w600,
-                  ),
+              ),
+              // Background Icon
+              Positioned(
+                right: 8.w,
+                bottom: 8.h,
+                child: Icon(
+                  Icons.health_and_safety,
+                  size: 32,
+                  color: const Color(0xFFFFB84D).withValues(alpha: 0.15),
                 ),
-                SizedBox(height: 4.h),
-                Text(
-                  alertCount > 0
-                      ? 'Tap to review your abnormal vitals safely.'
-                      : 'Keep up the great work!',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: const Color(0xFF999999),
-                    fontSize: 10.sp, // Made smaller
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          // Background Icon
-          Positioned(
-            right: 8.w,
-            bottom: 8.h,
-            child: Icon(
-              Icons.health_and_safety,
-              size: 32, // Adjusted size
-              color: const Color(0xFFFFB84D).withValues(alpha: 0.15),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -501,7 +523,7 @@ class _AlertsCard extends StatelessWidget {
 
 /// Blood Pressure Card
 class _BloodPressureCard extends StatelessWidget {
-  final dynamic latestVital;
+  final VitalMeasurementModel? latestVital;
 
   const _BloodPressureCard({this.latestVital});
 
@@ -509,108 +531,126 @@ class _BloodPressureCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    // Default values if no vital data
-    final systolic = 130;
-    final diastolic = 95;
-    final status = 'High (Stage 1)';
+    final hasData = latestVital != null;
+    final systolicStr = hasData ? (latestVital.value as String).split('/')[0] : '--';
+    final diastolicStr = hasData ? (latestVital.value as String).split('/')[1] : '--';
+    final status = hasData ? latestVital.getStatusLabel(context) : 'No records yet';
+    final statusColor = hasData 
+        ? latestVital.getHealthStatus().getStatusColor(context) 
+        : const Color(0xFF999999);
+    final statusBadgeColor = hasData
+        ? statusColor.withValues(alpha: 0.1)
+        : const Color(0xFFF5F5F5);
 
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => context.push(hasData ? '/health' : '/health/add'),
         borderRadius: BorderRadius.circular(20),
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+        child: Ink(
+          padding: EdgeInsets.all(16.w),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 32.w,
-                height: 32.w,
-                decoration: BoxDecoration(
-                  color: CaregiverDashboardTheme.accentCoral.withValues(
-                    alpha: 0.2,
+              Row(
+                children: [
+                  Container(
+                    width: 32.w,
+                    height: 32.w,
+                    decoration: BoxDecoration(
+                      color: CaregiverDashboardTheme.accentCoral.withValues(
+                        alpha: 0.2,
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.favorite,
+                      color: CaregiverDashboardTheme.accentCoral,
+                      size: 18,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(
-                  Icons.favorite,
-                  color: CaregiverDashboardTheme.accentCoral,
-                  size: 18,
+                  SizedBox(width: 8.w),
+                  Text(
+                    'Blood Pressure',
+                    style: textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1A1A1A),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+              RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '$systolicStr / $diastolicStr ',
+                      style: textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: hasData ? const Color(0xFF1A1A1A) : const Color(0xFFCCCCCC),
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'mmHg',
+                      style: textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF666666),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(width: 8.w),
-              Text(
-                'Blood Pressure',
-                style: textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1A1A1A),
+              SizedBox(height: 8.h),
+              // Gradient indicator
+              Container(
+                height: 8.h,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  gradient: LinearGradient(
+                    colors: hasData 
+                      ? [
+                          const Color(0xFF4CAF50),
+                          const Color(0xFFFFEB3B),
+                          const Color(0xFFFF9800),
+                          const Color(0xFFF44336),
+                        ]
+                      : [
+                          const Color(0xFFEEEEEE),
+                          const Color(0xFFEEEEEE),
+                        ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 8.h),
+              Center(
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: statusBadgeColor,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    status,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: statusColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 8.h),
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: '$systolic / $diastolic ',
-                  style: textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF1A1A1A),
-                  ),
-                ),
-                TextSpan(
-                  text: 'mmHg',
-                  style: textTheme.bodySmall?.copyWith(
-                    color: const Color(0xFF666666),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 8.h),
-          // Gradient indicator
-          Container(
-            height: 8.h,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF4CAF50),
-                  Color(0xFFFFEB3B),
-                  Color(0xFFFF9800),
-                  Color(0xFFF44336),
-                ],
-              ),
-            ),
-          ),
-          SizedBox(height: 8.h),
-          Center(
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF0F0),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                status,
-                style: textTheme.bodySmall?.copyWith(
-                  color: const Color(0xFFE53935),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -11,6 +11,7 @@ class HealthProvider with ChangeNotifier {
   List<VitalMeasurementModel> get vitals => _vitals;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  int get abnormalVitalsCount => _vitals.where((v) => v.isAbnormal()).length;
 
   // Load vitals
   Future<void> loadVitals(String userId, {String? elderUserId}) async {
