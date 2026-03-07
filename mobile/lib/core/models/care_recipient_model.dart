@@ -1,7 +1,4 @@
-enum PatientStatus {
-  stable,
-  needsAttention,
-}
+enum PatientStatus { stable, needsAttention }
 
 class CareRecipientModel {
   final String assignmentId;
@@ -60,8 +57,12 @@ class CareRecipientModel {
 
   factory CareRecipientModel.fromJson(Map<String, dynamic> json) {
     return CareRecipientModel(
-      assignmentId: json['id']?.toString() ?? json['assignmentId']?.toString() ?? '',
-      elderId: json['elderId']?.toString() ?? json['linkedPatientId']?.toString() ?? '',
+      assignmentId:
+          json['id']?.toString() ?? json['assignmentId']?.toString() ?? '',
+      elderId:
+          json['elderId']?.toString() ??
+          json['linkedPatientId']?.toString() ??
+          '',
       name: json['elderName']?.toString() ?? json['name']?.toString() ?? '',
       phone: json['elderPhone']?.toString() ?? json['phone']?.toString(),
       email: json['elderEmail']?.toString() ?? json['email']?.toString(),
@@ -76,10 +77,9 @@ class CareRecipientModel {
           : null,
       status: json['status'] != null
           ? (json['status'] == 'needsAttention'
-              ? PatientStatus.needsAttention
-              : PatientStatus.stable)
+                ? PatientStatus.needsAttention
+                : PatientStatus.stable)
           : null,
     );
   }
 }
-

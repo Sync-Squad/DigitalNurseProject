@@ -250,7 +250,8 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                         child: DropdownButton<DocumentType>(
                           value: _documentType,
                           isExpanded: true,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurface,
                               ),
                           items: DocumentType.values
@@ -259,8 +260,13 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                                   value: type,
                                   child: Text(
                                     type.displayName,
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurface,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onSurface,
                                         ),
                                   ),
                                 ),
@@ -288,7 +294,10 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                                 Expanded(
                                   child: Text(
                                     _getFormattedDateTime(),
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyMedium
+                                        ?.copyWith(
                                           color: AppTheme.appleGreen,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -302,10 +311,15 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: isUploading ? null : _selectDate,
-                                    icon: const Icon(Icons.calendar_today, size: 18),
+                                    icon: const Icon(
+                                      Icons.calendar_today,
+                                      size: 18,
+                                    ),
                                     label: const Text('Change Date'),
                                     style: ElevatedButton.styleFrom(
-                                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 12.h,
+                                      ),
                                       backgroundColor: AppTheme.appleGreen,
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
@@ -318,10 +332,15 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                                 Expanded(
                                   child: ElevatedButton.icon(
                                     onPressed: isUploading ? null : _selectTime,
-                                    icon: const Icon(Icons.access_time, size: 18),
+                                    icon: const Icon(
+                                      Icons.access_time,
+                                      size: 18,
+                                    ),
                                     label: const Text('Change Time'),
                                     style: ElevatedButton.styleFrom(
-                                      padding: EdgeInsets.symmetric(vertical: 12.h),
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: 12.h,
+                                      ),
                                       backgroundColor: AppTheme.appleGreen,
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(
@@ -348,27 +367,33 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                         child: Column(
                           children: DocumentVisibility.values
                               .map(
-                                (visibility) => RadioListTile<DocumentVisibility>(
-                                  title: Text(
-                                    _visibilityLabel(visibility),
-                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          color: Theme.of(context).colorScheme.onSurface,
-                                        ),
-                                  ),
-                                  value: visibility,
-                                  groupValue: _visibility,
-                                  onChanged: isUploading
-                                      ? null
-                                      : (value) {
-                                          if (value != null) {
-                                            setState(() {
-                                              _visibility = value;
-                                            });
-                                          }
-                                        },
-                                  dense: true,
-                                  contentPadding: EdgeInsets.zero,
-                                ),
+                                (visibility) =>
+                                    RadioListTile<DocumentVisibility>(
+                                      title: Text(
+                                        _visibilityLabel(visibility),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.onSurface,
+                                            ),
+                                      ),
+                                      value: visibility,
+                                      groupValue: _visibility,
+                                      onChanged: isUploading
+                                          ? null
+                                          : (value) {
+                                              if (value != null) {
+                                                setState(() {
+                                                  _visibility = value;
+                                                });
+                                              }
+                                            },
+                                      dense: true,
+                                      contentPadding: EdgeInsets.zero,
+                                    ),
                               )
                               .toList(),
                         ),
@@ -421,17 +446,17 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: ModernSurfaceTheme.deepTeal,
-                ),
+              fontWeight: FontWeight.bold,
+              color: ModernSurfaceTheme.deepTeal,
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 8.h),
           Text(
             message,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
-                ),
+              color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
+            ),
             textAlign: TextAlign.center,
           ),
           if (onRetry != null) ...[
@@ -524,7 +549,7 @@ class _FileSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     if (selectedFile == null) {
       return Container(
         decoration: ModernSurfaceTheme.glassCard(context),
@@ -556,10 +581,7 @@ class _FileSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Container(
-          decoration: ModernSurfaceTheme.glassCard(
-            context,
-            accent: accent,
-          ),
+          decoration: ModernSurfaceTheme.glassCard(context, accent: accent),
           padding: EdgeInsets.all(16.w),
           child: Row(
             children: [
@@ -584,9 +606,9 @@ class _FileSelector extends StatelessWidget {
                     Text(
                       selectedFile!.fileName,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -595,8 +617,8 @@ class _FileSelector extends StatelessWidget {
                         selectedFile!.fileSize,
                       ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -605,8 +627,9 @@ class _FileSelector extends StatelessWidget {
                 onPressed: isUploading ? null : onClear,
                 icon: const Icon(FIcons.x, size: 16),
                 style: IconButton.styleFrom(
-                  backgroundColor:
-                      AppTheme.getErrorColor(context).withOpacity(0.12),
+                  backgroundColor: AppTheme.getErrorColor(
+                    context,
+                  ).withOpacity(0.12),
                   foregroundColor: AppTheme.getErrorColor(context),
                 ),
               ),
@@ -656,9 +679,9 @@ class _GlassFormSection extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           child,
@@ -685,7 +708,7 @@ class _CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -700,9 +723,7 @@ class _CustomTextField extends StatelessWidget {
         TextField(
           controller: controller,
           maxLines: maxLines ?? 1,
-          style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurface,
-          ),
+          style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: textTheme.bodyMedium?.copyWith(
@@ -724,10 +745,7 @@ class _CustomTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: AppTheme.appleGreen,
-                width: 2,
-              ),
+              borderSide: BorderSide(color: AppTheme.appleGreen, width: 2),
             ),
             contentPadding: EdgeInsets.symmetric(
               horizontal: 16.w,

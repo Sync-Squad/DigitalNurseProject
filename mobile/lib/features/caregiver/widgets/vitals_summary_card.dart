@@ -11,10 +11,7 @@ import '../../../core/theme/modern_surface_theme.dart';
 class VitalsSummaryCard extends StatelessWidget {
   final String elderId;
 
-  const VitalsSummaryCard({
-    super.key,
-    required this.elderId,
-  });
+  const VitalsSummaryCard({super.key, required this.elderId});
 
   @override
   Widget build(BuildContext context) {
@@ -69,8 +66,8 @@ class VitalsSummaryCard extends StatelessWidget {
                 child: Text(
                   'No vitals recorded yet',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             )
@@ -91,7 +88,7 @@ class _VitalItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = vital.getHealthStatus();
     final isAbnormal = vital.isAbnormal();
-    
+
     final statusColor = status.getStatusColor(context);
     final statusIcon = status.getStatusIcon();
     final statusText = vital.getStatusMessage(context);
@@ -105,9 +102,7 @@ class _VitalItem extends StatelessWidget {
             : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isAbnormal
-              ? statusColor.withOpacity(0.3)
-              : Colors.transparent,
+          color: isAbnormal ? statusColor.withOpacity(0.3) : Colors.transparent,
           width: 1,
         ),
       ),
@@ -119,11 +114,7 @@ class _VitalItem extends StatelessWidget {
               color: statusColor.withOpacity(0.15),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              statusIcon,
-              size: 20,
-              color: statusColor,
-            ),
+            child: Icon(statusIcon, size: 20, color: statusColor),
           ),
           SizedBox(width: 12.w),
           Expanded(
@@ -132,16 +123,16 @@ class _VitalItem extends StatelessWidget {
               children: [
                 Text(
                   vital.type.displayName,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 SizedBox(height: 4.h),
                 Text(
                   '${vital.value} ${vital.type.unit}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -155,9 +146,9 @@ class _VitalItem extends StatelessWidget {
             child: Text(
               statusText,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: statusColor,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: statusColor,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
@@ -165,4 +156,3 @@ class _VitalItem extends StatelessWidget {
     );
   }
 }
-

@@ -24,17 +24,24 @@ class DocumentService {
     try {
       final response = await _apiService.get(
         '/documents',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
-        final documents = data
-            .map((json) => DocumentMapper.fromApiResponse(
-                json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json)))
-            .toList()
-          ..sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
+        final documents =
+            data
+                .map(
+                  (json) => DocumentMapper.fromApiResponse(
+                    json is Map<String, dynamic>
+                        ? json
+                        : Map<String, dynamic>.from(json),
+                  ),
+                )
+                .toList()
+              ..sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
         _log('✅ Fetched ${documents.length} documents');
         return documents;
       } else {
@@ -48,11 +55,11 @@ class DocumentService {
   }
 
   // Get documents by type
-Future<List<DocumentModel>> getDocumentsByType(
-  String userId,
-  DocumentType type, {
-  String? elderUserId,
-}) async {
+  Future<List<DocumentModel>> getDocumentsByType(
+    String userId,
+    DocumentType type, {
+    String? elderUserId,
+  }) async {
     _log('📋 Fetching documents by type: $type for user: $userId');
     try {
       // Convert type enum to string
@@ -93,16 +100,24 @@ Future<List<DocumentModel>> getDocumentsByType(
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
-        final documents = data
-            .map((json) => DocumentMapper.fromApiResponse(
-                json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json)))
-            .toList()
-          ..sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
+        final documents =
+            data
+                .map(
+                  (json) => DocumentMapper.fromApiResponse(
+                    json is Map<String, dynamic>
+                        ? json
+                        : Map<String, dynamic>.from(json),
+                  ),
+                )
+                .toList()
+              ..sort((a, b) => b.uploadDate.compareTo(a.uploadDate));
         _log('✅ Fetched ${documents.length} documents of type $type');
         return documents;
       } else {
         _log('❌ Failed to fetch documents by type: ${response.statusMessage}');
-        throw Exception('Failed to fetch documents by type: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch documents by type: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error fetching documents by type: $e');
@@ -138,30 +153,30 @@ Future<List<DocumentModel>> getDocumentsByType(
         'visibility': _documentVisibilityToString(visibility),
         if (description != null) 'description': description,
         if (elderUserId != null) 'elderUserId': elderUserId,
-        'uploadDate': TimezoneUtil.toPakistanTimeIso8601(uploadDate ?? DateTime.now()),
+        'uploadDate': TimezoneUtil.toPakistanTimeIso8601(
+          uploadDate ?? DateTime.now(),
+        ),
       });
 
       // Use Dio directly for multipart upload
       // For multipart, we need to use Dio directly
       final baseUrl = await AppConfig.getBaseUrl();
       final token = await _getAuthToken();
-      
-      final dio = Dio(BaseOptions(
-        baseUrl: baseUrl,
-        headers: {
-          if (token != null) 'Authorization': 'Bearer $token',
-          'Content-Type': 'multipart/form-data',
-        },
-      ));
+
+      final dio = Dio(
+        BaseOptions(
+          baseUrl: baseUrl,
+          headers: {
+            if (token != null) 'Authorization': 'Bearer $token',
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
 
       final response = await dio.post(
         '/documents',
         data: formData,
-        options: Options(
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        ),
+        options: Options(headers: {'Content-Type': 'multipart/form-data'}),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
@@ -208,8 +223,9 @@ Future<List<DocumentModel>> getDocumentsByType(
     try {
       final response = await _apiService.delete(
         '/documents/$documentId',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
@@ -235,8 +251,9 @@ Future<List<DocumentModel>> getDocumentsByType(
       final response = await _apiService.patch(
         '/documents/$documentId/visibility',
         data: {'visibility': _documentVisibilityToString(visibility)},
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
@@ -244,8 +261,12 @@ Future<List<DocumentModel>> getDocumentsByType(
         _log('✅ Document visibility updated successfully');
         return updatedDocument;
       } else {
-        _log('❌ Failed to update document visibility: ${response.statusMessage}');
-        throw Exception('Failed to update document visibility: ${response.statusMessage}');
+        _log(
+          '❌ Failed to update document visibility: ${response.statusMessage}',
+        );
+        throw Exception(
+          'Failed to update document visibility: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error updating document visibility: $e');
@@ -261,9 +282,11 @@ Future<List<DocumentModel>> getDocumentsByType(
     try {
       final allDocuments = await getDocuments(patientId);
       final sharedDocuments = allDocuments
-          .where((d) =>
-              d.visibility == DocumentVisibility.sharedWithCaregiver ||
-              d.visibility == DocumentVisibility.public)
+          .where(
+            (d) =>
+                d.visibility == DocumentVisibility.sharedWithCaregiver ||
+                d.visibility == DocumentVisibility.public,
+          )
           .toList();
       _log('✅ Fetched ${sharedDocuments.length} shared documents');
       return sharedDocuments;
@@ -279,19 +302,17 @@ Future<List<DocumentModel>> getDocumentsByType(
     try {
       final baseUrl = await AppConfig.getBaseUrl();
       final token = await _getAuthToken();
-      
-      final dio = Dio(BaseOptions(
-        baseUrl: baseUrl,
-        headers: {
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      ));
+
+      final dio = Dio(
+        BaseOptions(
+          baseUrl: baseUrl,
+          headers: {if (token != null) 'Authorization': 'Bearer $token'},
+        ),
+      );
 
       final response = await dio.get(
         '/documents/$documentId/file',
-        options: Options(
-          responseType: ResponseType.bytes,
-        ),
+        options: Options(responseType: ResponseType.bytes),
       );
 
       if (response.statusCode == 200) {
@@ -301,7 +322,9 @@ Future<List<DocumentModel>> getDocumentsByType(
         return savePath;
       } else {
         _log('❌ Failed to download document: ${response.statusMessage}');
-        throw Exception('Failed to download document: ${response.statusMessage}');
+        throw Exception(
+          'Failed to download document: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error downloading document: $e');

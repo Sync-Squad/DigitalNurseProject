@@ -116,11 +116,7 @@ class _AIFeatureCard extends StatelessWidget {
                 color: Colors.white.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: AppTheme.buttonTextColor,
-                size: 24,
-              ),
+              child: Icon(icon, color: AppTheme.buttonTextColor, size: 24),
             ),
             const SizedBox(height: 12),
             Text(
@@ -147,4 +143,3 @@ class _AIFeatureCard extends StatelessWidget {
     );
   }
 }
-

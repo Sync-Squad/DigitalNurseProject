@@ -43,7 +43,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
     final now = TimezoneUtil.nowInPakistan();
     _selectedDate = widget.selectedDate ?? now;
     _selectedTime = TimeOfDay.fromDateTime(now);
-    
+
     // Clear error when user types in description or duration
     _descriptionController.addListener(() {
       if (_analysisError != null && mounted) {
@@ -101,7 +101,10 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
     });
 
     try {
-      final calories = await _openAIService.analyzeExerciseCalories(description, duration);
+      final calories = await _openAIService.analyzeExerciseCalories(
+        description,
+        duration,
+      );
 
       if (mounted) {
         if (calories != null && calories > 0) {
@@ -119,14 +122,16 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
           );
         } else {
           setState(() {
-            _analysisError = 'Unable to calculate calories burned. Please enter manually.';
+            _analysisError =
+                'Unable to calculate calories burned. Please enter manually.';
           });
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _analysisError = 'Analysis failed: ${e.toString().replaceAll('Exception: ', '')}';
+          _analysisError =
+              'Analysis failed: ${e.toString().replaceAll('Exception: ', '')}';
         });
       }
     } finally {
@@ -214,7 +219,9 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
         userId: userId,
       );
 
-      final success = await context.read<LifestyleProvider>().addExerciseLog(workout);
+      final success = await context.read<LifestyleProvider>().addExerciseLog(
+        workout,
+      );
 
       if (mounted) {
         if (success) {
@@ -257,9 +264,9 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
           title: Text(
             'Add Workout',
             style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onPrimary,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onPrimary,
+            ),
           ),
         ),
         body: SingleChildScrollView(
@@ -306,8 +313,8 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                                 child: Text(
                                   type.displayName,
                                   style: textTheme.bodyMedium?.copyWith(
-                                        color: colorScheme.onSurface,
-                                      ),
+                                    color: colorScheme.onSurface,
+                                  ),
                                 ),
                               ),
                             )
@@ -367,13 +374,16 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      DateFormat('MMM d, yyyy').format(_selectedDate),
+                                      DateFormat(
+                                        'MMM d, yyyy',
+                                      ).format(_selectedDate),
                                       style: textTheme.bodyMedium?.copyWith(
-                                            color: colorScheme.onSurface,
-                                          ),
+                                        color: colorScheme.onSurface,
+                                      ),
                                     ),
                                     Icon(
                                       FIcons.calendar,
@@ -409,13 +419,14 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       _selectedTime.format(context),
                                       style: textTheme.bodyMedium?.copyWith(
-                                            color: colorScheme.onSurface,
-                                          ),
+                                        color: colorScheme.onSurface,
+                                      ),
                                     ),
                                     Icon(
                                       FIcons.clock,
@@ -438,7 +449,8 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                 FTextField(
                   controller: _descriptionController,
                   label: const Text('Description'),
-                  hint: 'What exercise did you do? (e.g., "Brisk walking in the park", "Cycling on flat terrain")',
+                  hint:
+                      'What exercise did you do? (e.g., "Brisk walking in the park", "Cycling on flat terrain")',
                   maxLines: 3,
                 ),
                 SizedBox(height: 20.h),
@@ -513,8 +525,8 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                           child: Text(
                             _analysisError!,
                             style: textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.getErrorColor(context),
-                                ),
+                              color: AppTheme.getErrorColor(context),
+                            ),
                           ),
                         ),
                       ],
@@ -558,9 +570,9 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                         : Text(
                             'Save Workout',
                             style: textTheme.labelLarge?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                   ),
                 ),

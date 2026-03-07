@@ -34,11 +34,15 @@ class _DocumentQAScreenState extends State<DocumentQAScreen> {
       await documentProvider.loadDocuments(userId);
       if (mounted) {
         setState(() {
-          _documents = documentProvider.documents.map((doc) => {
-            'id': doc.id,
-            'title': doc.title,
-            'documentType': doc.type.toString(),
-          }).toList();
+          _documents = documentProvider.documents
+              .map(
+                (doc) => {
+                  'id': doc.id,
+                  'title': doc.title,
+                  'documentType': doc.type.toString(),
+                },
+              )
+              .toList();
         });
       }
     } catch (e) {
@@ -47,7 +51,8 @@ class _DocumentQAScreenState extends State<DocumentQAScreen> {
   }
 
   Future<void> _askQuestion() async {
-    if (_selectedDocumentId == null || _questionController.text.trim().isEmpty) {
+    if (_selectedDocumentId == null ||
+        _questionController.text.trim().isEmpty) {
       return;
     }
 
@@ -66,9 +71,9 @@ class _DocumentQAScreenState extends State<DocumentQAScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to get answer: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to get answer: $e')));
       }
     }
   }
@@ -76,9 +81,7 @@ class _DocumentQAScreenState extends State<DocumentQAScreen> {
   @override
   Widget build(BuildContext context) {
     return ModernScaffold(
-      appBar: AppBar(
-        title: const Text('Document Q&A'),
-      ),
+      appBar: AppBar(title: const Text('Document Q&A')),
       body: Column(
         children: [
           // Document selector
@@ -153,9 +156,8 @@ class _DocumentQAScreenState extends State<DocumentQAScreen> {
                       children: [
                         Text(
                           'Answer:',
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -167,25 +169,26 @@ class _DocumentQAScreenState extends State<DocumentQAScreen> {
                           const SizedBox(height: 24),
                           Text(
                             'Sources:',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
-                          ...(_answer!['sources'] as List).map((source) => Card(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                child: ListTile(
-                                  leading: const Icon(Icons.description),
-                                  title: Text(
-                                    source['text'] ?? '',
-                                    maxLines: 3,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  subtitle: Text(
-                                    'Similarity: ${(source['similarity'] * 100).toStringAsFixed(0)}%',
-                                  ),
+                          ...(_answer!['sources'] as List).map(
+                            (source) => Card(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: ListTile(
+                                leading: const Icon(Icons.description),
+                                title: Text(
+                                  source['text'] ?? '',
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              )),
+                                subtitle: Text(
+                                  'Similarity: ${(source['similarity'] * 100).toStringAsFixed(0)}%',
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ],
                     ),
@@ -196,4 +199,3 @@ class _DocumentQAScreenState extends State<DocumentQAScreen> {
     );
   }
 }
-

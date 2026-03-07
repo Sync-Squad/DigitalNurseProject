@@ -63,10 +63,14 @@ class _CreateWeeklyPlanScreenState extends State<CreateWeeklyPlanScreen> {
 
       if (widget.isDietPlan) {
         await lifestyleProvider.loadDietPlans();
-        plan = lifestyleProvider.dietPlans.firstWhere((p) => p.id == widget.planId);
+        plan = lifestyleProvider.dietPlans.firstWhere(
+          (p) => p.id == widget.planId,
+        );
       } else {
         await lifestyleProvider.loadExercisePlans();
-        plan = lifestyleProvider.exercisePlans.firstWhere((p) => p.id == widget.planId);
+        plan = lifestyleProvider.exercisePlans.firstWhere(
+          (p) => p.id == widget.planId,
+        );
       }
 
       _planNameController.text = plan.planName;
@@ -219,7 +223,11 @@ class _CreateWeeklyPlanScreenState extends State<CreateWeeklyPlanScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.planId != null ? 'Plan updated successfully' : 'Plan created successfully'),
+            content: Text(
+              widget.planId != null
+                  ? 'Plan updated successfully'
+                  : 'Plan created successfully',
+            ),
             backgroundColor: AppTheme.getSuccessColor(context),
           ),
         );
@@ -258,9 +266,9 @@ class _CreateWeeklyPlanScreenState extends State<CreateWeeklyPlanScreen> {
           title: Text(
             widget.planId != null ? 'Edit Plan' : 'Create Plan',
             style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onPrimary,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onPrimary,
+            ),
           ),
         ),
         body: const Center(child: CircularProgressIndicator()),
@@ -277,9 +285,9 @@ class _CreateWeeklyPlanScreenState extends State<CreateWeeklyPlanScreen> {
               ? 'Edit ${widget.isDietPlan ? 'Diet' : 'Workout'} Plan'
               : 'Create ${widget.isDietPlan ? 'Diet' : 'Workout'} Plan',
           style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: onPrimary,
-              ),
+            fontWeight: FontWeight.bold,
+            color: onPrimary,
+          ),
         ),
       ),
       body: Form(
@@ -309,9 +317,13 @@ class _CreateWeeklyPlanScreenState extends State<CreateWeeklyPlanScreen> {
                               ),
                               decoration: InputDecoration(
                                 labelText: 'Plan Name',
-                                labelStyle: const TextStyle(color: Colors.black54),
+                                labelStyle: const TextStyle(
+                                  color: Colors.black54,
+                                ),
                                 hintText: 'e.g., Weekly Weight Loss Plan',
-                                hintStyle: const TextStyle(color: Colors.black38),
+                                hintStyle: const TextStyle(
+                                  color: Colors.black38,
+                                ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -332,9 +344,13 @@ class _CreateWeeklyPlanScreenState extends State<CreateWeeklyPlanScreen> {
                               ),
                               decoration: InputDecoration(
                                 labelText: 'Description (Optional)',
-                                labelStyle: const TextStyle(color: Colors.black54),
+                                labelStyle: const TextStyle(
+                                  color: Colors.black54,
+                                ),
                                 hintText: 'Describe your plan',
-                                hintStyle: const TextStyle(color: Colors.black38),
+                                hintStyle: const TextStyle(
+                                  color: Colors.black38,
+                                ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -350,8 +366,8 @@ class _CreateWeeklyPlanScreenState extends State<CreateWeeklyPlanScreen> {
                       Text(
                         'Weekly Schedule',
                         style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       SizedBox(height: 16.h),
                       ...List.generate(7, (index) {
@@ -360,8 +376,10 @@ class _CreateWeeklyPlanScreenState extends State<CreateWeeklyPlanScreen> {
                           items: _itemsByDay[index]!,
                           isDietPlan: widget.isDietPlan,
                           onAddItem: () => _addItem(index),
-                          onRemoveItem: (itemIndex) => _removeItem(index, itemIndex),
-                          onEditItem: (itemIndex) => _editItem(index, itemIndex),
+                          onRemoveItem: (itemIndex) =>
+                              _removeItem(index, itemIndex),
+                          onEditItem: (itemIndex) =>
+                              _editItem(index, itemIndex),
                         );
                       }),
                     ],
@@ -388,9 +406,16 @@ class _CreateWeeklyPlanScreenState extends State<CreateWeeklyPlanScreen> {
                         ? const SizedBox(
                             width: 20,
                             height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
-                        : Text(widget.planId != null ? 'Update Plan' : 'Create Plan'),
+                        : Text(
+                            widget.planId != null
+                                ? 'Update Plan'
+                                : 'Create Plan',
+                          ),
                   ),
                 ),
               ),
@@ -447,8 +472,8 @@ class _DaySection extends StatelessWidget {
               Text(
                 dayNames[dayOfWeek],
                 style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               TextButton.icon(
                 onPressed: onAddItem,
@@ -463,8 +488,8 @@ class _DaySection extends StatelessWidget {
               child: Text(
                 'No ${isDietPlan ? 'meals' : 'workouts'} scheduled',
                 style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             )
           else
@@ -518,29 +543,28 @@ class _ItemCard extends StatelessWidget {
                 Text(
                   isDietPlan
                       ? (item as DietPlanItemModel).mealType.displayName
-                      : (item as ExercisePlanItemModel).activityType.displayName,
+                      : (item as ExercisePlanItemModel)
+                            .activityType
+                            .displayName,
                   style: textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 SizedBox(height: 4.h),
-                Text(
-                  item.description,
-                  style: textTheme.bodySmall,
-                ),
+                Text(item.description, style: textTheme.bodySmall),
                 if (isDietPlan)
                   Text(
                     '${item.calories} calories',
                     style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   )
                 else
                   Text(
                     '${item.durationMinutes} min • ${item.caloriesBurned} cal',
                     style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
               ],
             ),
@@ -639,8 +663,8 @@ class _AddItemDialogState extends State<_AddItemDialog> {
     // Preserve the existing ID when editing, or generate a new one when adding
     final String itemId = widget.existingItem != null
         ? (widget.isDietPlan
-            ? (widget.existingItem as DietPlanItemModel).id
-            : (widget.existingItem as ExercisePlanItemModel).id)
+              ? (widget.existingItem as DietPlanItemModel).id
+              : (widget.existingItem as ExercisePlanItemModel).id)
         : DateTime.now().millisecondsSinceEpoch.toString();
 
     if (widget.isDietPlan) {
@@ -674,14 +698,21 @@ class _AddItemDialogState extends State<_AddItemDialog> {
     final textTheme = Theme.of(context).textTheme;
 
     return AlertDialog(
-      title: Text('${widget.existingItem != null ? 'Edit' : 'Add'} ${widget.isDietPlan ? 'Meal' : 'Workout'}'),
+      title: Text(
+        '${widget.existingItem != null ? 'Edit' : 'Add'} ${widget.isDietPlan ? 'Meal' : 'Workout'}',
+      ),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (widget.isDietPlan) ...[
-              Text('Meal Type', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                'Meal Type',
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               DropdownButtonFormField<MealType>(
                 value: _mealType,
                 items: MealType.values.map((type) {
@@ -699,7 +730,12 @@ class _AddItemDialogState extends State<_AddItemDialog> {
                 },
               ),
             ] else ...[
-              Text('Activity Type', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                'Activity Type',
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               DropdownButtonFormField<ActivityType>(
                 value: _activityType,
                 items: ActivityType.values.map((type) {
@@ -720,57 +756,60 @@ class _AddItemDialogState extends State<_AddItemDialog> {
             SizedBox(height: 16.h),
             TextField(
               controller: _descriptionController,
-              style: const TextStyle(
-                color: Colors.black87,
-                fontSize: 16,
-              ),
+              style: const TextStyle(color: Colors.black87, fontSize: 16),
               decoration: InputDecoration(
-                labelText: widget.isDietPlan ? 'Food Description' : 'Exercise Description',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                labelText: widget.isDietPlan
+                    ? 'Food Description'
+                    : 'Exercise Description',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
             SizedBox(height: 16.h),
             if (widget.isDietPlan) ...[
               TextField(
                 controller: _caloriesController,
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 16,
-                ),
+                style: const TextStyle(color: Colors.black87, fontSize: 16),
                 decoration: InputDecoration(
                   labelText: 'Calories',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 keyboardType: TextInputType.number,
               ),
             ] else ...[
               TextField(
                 controller: _durationController,
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 16,
-                ),
+                style: const TextStyle(color: Colors.black87, fontSize: 16),
                 decoration: InputDecoration(
                   labelText: 'Duration (minutes)',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 keyboardType: TextInputType.number,
               ),
               SizedBox(height: 16.h),
               TextField(
                 controller: _caloriesBurnedController,
-                style: const TextStyle(
-                  color: Colors.black87,
-                  fontSize: 16,
-                ),
+                style: const TextStyle(color: Colors.black87, fontSize: 16),
                 decoration: InputDecoration(
                   labelText: 'Calories Burned',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 keyboardType: TextInputType.number,
               ),
               SizedBox(height: 16.h),
-              Text('Intensity', style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                'Intensity',
+                style: textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               DropdownButtonFormField<String>(
                 value: _intensity,
                 items: ['low', 'moderate', 'high'].map((intensity) {
@@ -791,13 +830,12 @@ class _AddItemDialogState extends State<_AddItemDialog> {
             SizedBox(height: 16.h),
             TextField(
               controller: _notesController,
-              style: const TextStyle(
-                color: Colors.black87,
-                fontSize: 16,
-              ),
+              style: const TextStyle(color: Colors.black87, fontSize: 16),
               decoration: InputDecoration(
                 labelText: 'Notes (Optional)',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               maxLines: 2,
             ),
@@ -817,4 +855,3 @@ class _AddItemDialogState extends State<_AddItemDialog> {
     );
   }
 }
-

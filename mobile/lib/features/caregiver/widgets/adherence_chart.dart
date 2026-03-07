@@ -63,7 +63,15 @@ class AdherenceChart extends StatelessWidget {
                       reservedSize: 30,
                       getTitlesWidget: (value, meta) {
                         if (period == 'weekly') {
-                          final days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                          final days = [
+                            'Mon',
+                            'Tue',
+                            'Wed',
+                            'Thu',
+                            'Fri',
+                            'Sat',
+                            'Sun',
+                          ];
                           final index = value.toInt();
                           if (index >= 0 && index < days.length) {
                             return Text(
@@ -109,9 +117,9 @@ class AdherenceChart extends StatelessWidget {
           Center(
             child: Text(
               'Current Adherence: ${adherence.toStringAsFixed(1)}%',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -119,4 +127,3 @@ class AdherenceChart extends StatelessWidget {
     );
   }
 }
-

@@ -3,7 +3,8 @@
 // `dart run flutterfire configure` to regenerate with your web appId if needed.
 
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
 /// Default [FirebaseOptions] for the current platform.
 /// Web requires explicit options; mobile can use native config or these.

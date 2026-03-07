@@ -66,9 +66,9 @@ class _WeeklyPlansScreenState extends State<WeeklyPlansScreen>
         title: Text(
           'Weekly Plans',
           style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: onPrimary,
-              ),
+            fontWeight: FontWeight.bold,
+            color: onPrimary,
+          ),
         ),
       ),
       body: Padding(
@@ -83,7 +83,9 @@ class _WeeklyPlansScreenState extends State<WeeklyPlansScreen>
                 controller: _tabController,
                 indicatorColor: ModernSurfaceTheme.primaryTeal,
                 labelColor: ModernSurfaceTheme.primaryTeal,
-                unselectedLabelColor: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.5),
+                unselectedLabelColor: ModernSurfaceTheme.deepTeal.withValues(
+                  alpha: 0.5,
+                ),
                 dividerColor: Colors.transparent,
                 tabs: const [
                   Tab(text: 'Diet Plans'),
@@ -146,33 +148,40 @@ class _DietPlansTab extends StatelessWidget {
           child: lifestyleProvider.isLoading && plans.isEmpty
               ? Center(child: CircularProgressIndicator())
               : plans.isEmpty
-                  ? _buildEmptyState(
-                      context,
-                      icon: FIcons.utensils,
-                      title: 'No diet plans yet',
-                      message: 'Create your first weekly diet plan to get started',
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () async => onRefresh(),
-                      child: ListView.builder(
-                        itemCount: plans.length,
-                        itemBuilder: (context, index) {
-                          final plan = plans[index];
-                          return _PlanCard(
-                            plan: plan,
-                            isDietPlan: true,
-                            onApply: () => _showApplyDialog(context, plan.id, true),
-                            onEdit: () => context.push('/lifestyle/plans/diet/edit/${plan.id}'),
-                            onDelete: () => _showDeleteDialog(context, plan.id, plan.planName, true),
-                            onViewCompliance: () => context.push(
-                              '/lifestyle/plans/compliance?isDietPlan=true&planId=${plan.id}&planName=${Uri.encodeComponent(plan.planName)}',
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+              ? _buildEmptyState(
+                  context,
+                  icon: FIcons.utensils,
+                  title: 'No diet plans yet',
+                  message: 'Create your first weekly diet plan to get started',
+                  colorScheme: colorScheme,
+                  textTheme: textTheme,
+                )
+              : RefreshIndicator(
+                  onRefresh: () async => onRefresh(),
+                  child: ListView.builder(
+                    itemCount: plans.length,
+                    itemBuilder: (context, index) {
+                      final plan = plans[index];
+                      return _PlanCard(
+                        plan: plan,
+                        isDietPlan: true,
+                        onApply: () => _showApplyDialog(context, plan.id, true),
+                        onEdit: () => context.push(
+                          '/lifestyle/plans/diet/edit/${plan.id}',
+                        ),
+                        onDelete: () => _showDeleteDialog(
+                          context,
+                          plan.id,
+                          plan.planName,
+                          true,
+                        ),
+                        onViewCompliance: () => context.push(
+                          '/lifestyle/plans/compliance?isDietPlan=true&planId=${plan.id}&planName=${Uri.encodeComponent(plan.planName)}',
+                        ),
+                      );
+                    },
+                  ),
+                ),
         ),
       ],
     );
@@ -181,14 +190,17 @@ class _DietPlansTab extends StatelessWidget {
   void _showApplyDialog(BuildContext context, String planId, bool isDietPlan) {
     showDialog(
       context: context,
-      builder: (context) => ApplyPlanDialog(
-        planId: planId,
-        isDietPlan: isDietPlan,
-      ),
+      builder: (context) =>
+          ApplyPlanDialog(planId: planId, isDietPlan: isDietPlan),
     );
   }
 
-  void _showDeleteDialog(BuildContext context, String planId, String planName, bool isDietPlan) {
+  void _showDeleteDialog(
+    BuildContext context,
+    String planId,
+    String planName,
+    bool isDietPlan,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -204,7 +216,7 @@ class _DietPlansTab extends StatelessWidget {
               Navigator.pop(context);
               final authProvider = context.read<AuthProvider>();
               final user = authProvider.currentUser;
-              
+
               if (user == null) {
                 return;
               }
@@ -233,14 +245,19 @@ class _DietPlansTab extends StatelessWidget {
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Failed to delete plan: ${lifestyleProvider.error ?? 'Unknown error'}'),
+                      content: Text(
+                        'Failed to delete plan: ${lifestyleProvider.error ?? 'Unknown error'}',
+                      ),
                       backgroundColor: AppTheme.getErrorColor(context),
                     ),
                   );
                 }
               }
             },
-            child: Text('Delete', style: TextStyle(color: AppTheme.getErrorColor(context))),
+            child: Text(
+              'Delete',
+              style: TextStyle(color: AppTheme.getErrorColor(context)),
+            ),
           ),
         ],
       ),
@@ -261,26 +278,22 @@ class _DietPlansTab extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 48,
-            color: colorScheme.primary,
-          ),
+          Icon(icon, size: 48, color: colorScheme.primary),
           SizedBox(height: 12.h),
           Text(
             title,
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
             message,
             textAlign: TextAlign.center,
             style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -325,33 +338,42 @@ class _ExercisePlansTab extends StatelessWidget {
           child: lifestyleProvider.isLoading && plans.isEmpty
               ? Center(child: CircularProgressIndicator())
               : plans.isEmpty
-                  ? _buildEmptyState(
-                      context,
-                      icon: FIcons.activity,
-                      title: 'No workout plans yet',
-                      message: 'Create your first weekly workout plan to get started',
-                      colorScheme: colorScheme,
-                      textTheme: textTheme,
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () async => onRefresh(),
-                      child: ListView.builder(
-                        itemCount: plans.length,
-                        itemBuilder: (context, index) {
-                          final plan = plans[index];
-                          return _PlanCard(
-                            plan: plan,
-                            isDietPlan: false,
-                            onApply: () => _showApplyDialog(context, plan.id, false),
-                            onEdit: () => context.push('/lifestyle/plans/exercise/edit/${plan.id}'),
-                            onDelete: () => _showDeleteDialog(context, plan.id, plan.planName, false),
-                            onViewCompliance: () => context.push(
-                              '/lifestyle/plans/compliance?isDietPlan=false&planId=${plan.id}&planName=${Uri.encodeComponent(plan.planName)}',
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+              ? _buildEmptyState(
+                  context,
+                  icon: FIcons.activity,
+                  title: 'No workout plans yet',
+                  message:
+                      'Create your first weekly workout plan to get started',
+                  colorScheme: colorScheme,
+                  textTheme: textTheme,
+                )
+              : RefreshIndicator(
+                  onRefresh: () async => onRefresh(),
+                  child: ListView.builder(
+                    itemCount: plans.length,
+                    itemBuilder: (context, index) {
+                      final plan = plans[index];
+                      return _PlanCard(
+                        plan: plan,
+                        isDietPlan: false,
+                        onApply: () =>
+                            _showApplyDialog(context, plan.id, false),
+                        onEdit: () => context.push(
+                          '/lifestyle/plans/exercise/edit/${plan.id}',
+                        ),
+                        onDelete: () => _showDeleteDialog(
+                          context,
+                          plan.id,
+                          plan.planName,
+                          false,
+                        ),
+                        onViewCompliance: () => context.push(
+                          '/lifestyle/plans/compliance?isDietPlan=false&planId=${plan.id}&planName=${Uri.encodeComponent(plan.planName)}',
+                        ),
+                      );
+                    },
+                  ),
+                ),
         ),
       ],
     );
@@ -360,14 +382,17 @@ class _ExercisePlansTab extends StatelessWidget {
   void _showApplyDialog(BuildContext context, String planId, bool isDietPlan) {
     showDialog(
       context: context,
-      builder: (context) => ApplyPlanDialog(
-        planId: planId,
-        isDietPlan: isDietPlan,
-      ),
+      builder: (context) =>
+          ApplyPlanDialog(planId: planId, isDietPlan: isDietPlan),
     );
   }
 
-  void _showDeleteDialog(BuildContext context, String planId, String planName, bool isDietPlan) {
+  void _showDeleteDialog(
+    BuildContext context,
+    String planId,
+    String planName,
+    bool isDietPlan,
+  ) {
     showDialog(
       context: context,
       builder: (context) => _DeletePlanDialog(
@@ -392,26 +417,22 @@ class _ExercisePlansTab extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 48,
-            color: colorScheme.primary,
-          ),
+          Icon(icon, size: 48, color: colorScheme.primary),
           SizedBox(height: 12.h),
           Text(
             title,
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
             message,
             textAlign: TextAlign.center,
             style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -449,7 +470,9 @@ class _PlanCard extends StatelessWidget {
       child: Container(
         decoration: ModernSurfaceTheme.glassCard(
           context,
-          accent: isDietPlan ? ModernSurfaceTheme.primaryTeal : ModernSurfaceTheme.accentBlue,
+          accent: isDietPlan
+              ? ModernSurfaceTheme.primaryTeal
+              : ModernSurfaceTheme.accentBlue,
         ),
         padding: ModernSurfaceTheme.cardPadding(),
         child: Column(
@@ -461,7 +484,9 @@ class _PlanCard extends StatelessWidget {
                   padding: EdgeInsets.all(12.w),
                   decoration: ModernSurfaceTheme.iconBadge(
                     context,
-                    isDietPlan ? ModernSurfaceTheme.primaryTeal : ModernSurfaceTheme.accentBlue,
+                    isDietPlan
+                        ? ModernSurfaceTheme.primaryTeal
+                        : ModernSurfaceTheme.accentBlue,
                   ),
                   child: Icon(
                     isDietPlan ? FIcons.utensils : FIcons.activity,
@@ -476,17 +501,17 @@ class _PlanCard extends StatelessWidget {
                       Text(
                         plan.planName,
                         style: textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
-                            ),
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
                       ),
                       if (plan.description.isNotEmpty) ...[
                         SizedBox(height: 4.h),
                         Text(
                           plan.description,
                           style: textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -495,8 +520,8 @@ class _PlanCard extends StatelessWidget {
                       Text(
                         '$itemCount ${isDietPlan ? 'meals' : 'workouts'}',
                         style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
@@ -528,7 +553,9 @@ class _PlanCard extends StatelessWidget {
                   onPressed: onDelete,
                   icon: const Icon(FIcons.trash, size: 16),
                   label: const Text('Delete'),
-                  style: TextButton.styleFrom(foregroundColor: AppTheme.getErrorColor(context)),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTheme.getErrorColor(context),
+                  ),
                 ),
               ],
             ),
@@ -568,7 +595,7 @@ class _DeletePlanDialogState extends State<_DeletePlanDialog> {
       Navigator.pop(context);
       final authProvider = context.read<AuthProvider>();
       final user = authProvider.currentUser;
-      
+
       if (user == null) {
         return;
       }
@@ -603,7 +630,9 @@ class _DeletePlanDialogState extends State<_DeletePlanDialog> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to delete plan: ${lifestyleProvider.error ?? 'Unknown error'}'),
+              content: Text(
+                'Failed to delete plan: ${lifestyleProvider.error ?? 'Unknown error'}',
+              ),
               backgroundColor: AppTheme.getErrorColor(context),
             ),
           );
@@ -637,14 +666,14 @@ class _DeletePlanDialogState extends State<_DeletePlanDialog> {
               ? const SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                  ),
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text('Delete', style: TextStyle(color: AppTheme.getErrorColor(context))),
+              : Text(
+                  'Delete',
+                  style: TextStyle(color: AppTheme.getErrorColor(context)),
+                ),
         ),
       ],
     );
   }
 }
-

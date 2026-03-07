@@ -8,20 +8,16 @@ class VitalStatusBadge extends StatelessWidget {
   final VitalHealthStatus status;
   final VitalMeasurementModel? vital;
 
-  const VitalStatusBadge({
-    super.key,
-    required this.status,
-    this.vital,
-  });
+  const VitalStatusBadge({super.key, required this.status, this.vital});
 
   @override
   Widget build(BuildContext context) {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final statusColor = status.getStatusColor(context);
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(

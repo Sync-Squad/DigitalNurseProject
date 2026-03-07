@@ -174,16 +174,19 @@ class _AddVitalScreenState extends State<AddVitalScreen> {
                     value: _selectedType,
                     isExpanded: true,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                     items: VitalType.values
                         .map(
                           (type) => DropdownMenuItem(
                             value: type,
                             child: Text(
                               type.displayName,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurface,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
                                   ),
                             ),
                           ),
@@ -212,7 +215,8 @@ class _AddVitalScreenState extends State<AddVitalScreen> {
                           Expanded(
                             child: Text(
                               _getFormattedDateTime(),
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
                                     color: AppTheme.appleGreen,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -327,9 +331,9 @@ class _GlassFormSection extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           child,
@@ -358,7 +362,7 @@ class _CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -374,9 +378,7 @@ class _CustomTextField extends StatelessWidget {
           controller: controller,
           maxLines: maxLines ?? 1,
           validator: validator,
-          style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurface,
-          ),
+          style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: textTheme.bodyMedium?.copyWith(
@@ -398,24 +400,15 @@ class _CustomTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: AppTheme.appleGreen,
-                width: 2,
-              ),
+              borderSide: BorderSide(color: AppTheme.appleGreen, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: colorScheme.error,
-                width: 1,
-              ),
+              borderSide: BorderSide(color: colorScheme.error, width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: colorScheme.error,
-                width: 2,
-              ),
+              borderSide: BorderSide(color: colorScheme.error, width: 2),
             ),
             contentPadding: EdgeInsets.symmetric(
               horizontal: 16.w,

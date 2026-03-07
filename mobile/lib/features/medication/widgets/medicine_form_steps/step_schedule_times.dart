@@ -151,11 +151,7 @@ class StepScheduleTimes extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              FIcons.plus,
-              size: 20,
-              color: AppTheme.appleGreen,
-            ),
+            const Icon(FIcons.plus, size: 20, color: AppTheme.appleGreen),
             const SizedBox(width: 8),
             Text(
               'Add Another Time',

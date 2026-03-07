@@ -100,9 +100,11 @@ extension DocumentModelExtension on DocumentModel {
   /// Check if the document is an image
   bool get isImage {
     final type = fileType?.toLowerCase() ?? '';
-    return type.contains('image') || 
-           type == 'jpg' || type == 'jpeg' || 
-           type == 'png' || type == 'gif';
+    return type.contains('image') ||
+        type == 'jpg' ||
+        type == 'jpeg' ||
+        type == 'png' ||
+        type == 'gif';
   }
 
   /// Check if the document is a PDF

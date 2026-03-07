@@ -58,18 +58,24 @@ class AlertHistoryTimeline extends StatelessWidget {
         'id': 'vital_${vital.id}',
         'type': AlertType.abnormalVital,
         'severity': _getSeverityFromVital(vital),
-        'message': '${vital.type.displayName}: ${vital.value} ${vital.type.unit}',
+        'message':
+            '${vital.type.displayName}: ${vital.value} ${vital.type.unit}',
         'timestamp': vital.timestamp,
       });
     }
 
     // Sort by timestamp (most recent first)
-    alerts.sort((a, b) => (b['timestamp'] as DateTime).compareTo(a['timestamp'] as DateTime));
+    alerts.sort(
+      (a, b) =>
+          (b['timestamp'] as DateTime).compareTo(a['timestamp'] as DateTime),
+    );
 
     // Group by date
     final groupedAlerts = <String, List<Map<String, dynamic>>>{};
     for (final alert in alerts) {
-      final date = DateFormat('MMM d, y').format(alert['timestamp'] as DateTime);
+      final date = DateFormat(
+        'MMM d, y',
+      ).format(alert['timestamp'] as DateTime);
       groupedAlerts.putIfAbsent(date, () => []).add(alert);
     }
 
@@ -94,8 +100,8 @@ class AlertHistoryTimeline extends StatelessWidget {
                     Text(
                       'No alerts in this period',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -111,21 +117,23 @@ class AlertHistoryTimeline extends StatelessWidget {
                     child: Text(
                       entry.key,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
-                  ...entry.value.map((alert) => Padding(
-                        padding: EdgeInsets.only(bottom: 12.h),
-                        child: AlertCard(
-                          id: alert['id'] as String,
-                          patientName: 'Patient',
-                          type: alert['type'] as AlertType,
-                          severity: alert['severity'] as AlertSeverity,
-                          message: alert['message'] as String,
-                          timestamp: alert['timestamp'] as DateTime,
-                        ),
-                      )),
+                  ...entry.value.map(
+                    (alert) => Padding(
+                      padding: EdgeInsets.only(bottom: 12.h),
+                      child: AlertCard(
+                        id: alert['id'] as String,
+                        patientName: 'Patient',
+                        type: alert['type'] as AlertType,
+                        severity: alert['severity'] as AlertSeverity,
+                        message: alert['message'] as String,
+                        timestamp: alert['timestamp'] as DateTime,
+                      ),
+                    ),
+                  ),
                   SizedBox(height: 16.h),
                 ],
               );
@@ -171,4 +179,3 @@ class AlertHistoryTimeline extends StatelessWidget {
     }
   }
 }
-

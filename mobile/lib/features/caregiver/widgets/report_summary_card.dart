@@ -24,7 +24,9 @@ class ReportSummaryCard extends StatelessWidget {
     final lifestyleProvider = context.watch<LifestyleProvider>();
 
     final adherence = medicationProvider.adherencePercentage;
-    final abnormalVitals = healthProvider.vitals.where((v) => v.isAbnormal()).length;
+    final abnormalVitals = healthProvider.vitals
+        .where((v) => v.isAbnormal())
+        .length;
     final dailySummary = lifestyleProvider.dailySummary ?? {};
     final totalCalories = dailySummary['totalCaloriesIn'] ?? 0;
     final totalExercise = dailySummary['totalExerciseMinutes'] ?? 0;
@@ -49,8 +51,8 @@ class ReportSummaryCard extends StatelessWidget {
                   color: adherence >= 90
                       ? AppTheme.getSuccessColor(context)
                       : adherence >= 75
-                          ? AppTheme.getWarningColor(context)
-                          : AppTheme.getErrorColor(context),
+                      ? AppTheme.getWarningColor(context)
+                      : AppTheme.getErrorColor(context),
                   icon: Icons.medication,
                 ),
               ),
@@ -115,10 +117,7 @@ class _MetricCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Column(
         children: [
@@ -127,21 +126,20 @@ class _MetricCard extends StatelessWidget {
           Text(
             value,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           SizedBox(height: 4.h),
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
   }
 }
-

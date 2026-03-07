@@ -22,10 +22,10 @@ class AvatarUtil {
   ];
 
   /// Generates a consistent avatar color based on a seed (user ID or name)
-  /// 
+  ///
   /// Uses a hash of the seed to deterministically select a color from the
   /// professional color palette. The same seed will always return the same color.
-  /// 
+  ///
   /// [seed] - A unique identifier (e.g., user ID, name, email)
   /// Returns a Color from the professional palette
   static Color getAvatarColor(String seed) {
@@ -34,7 +34,7 @@ class AvatarUtil {
     for (int i = 0; i < seed.length; i++) {
       hash = seed.codeUnitAt(i) + ((hash << 5) - hash);
     }
-    
+
     // Use absolute value and modulo to select a color
     final index = hash.abs() % _professionalColors.length;
     return _professionalColors[index];
@@ -50,4 +50,3 @@ class AvatarUtil {
     return 'https://api.dicebear.com/7.x/avataaars/png?seed=$encodedSeed';
   }
 }
-

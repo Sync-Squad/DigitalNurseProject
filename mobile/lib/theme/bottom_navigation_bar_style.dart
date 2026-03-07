@@ -77,10 +77,7 @@ FBottomNavigationBarItemStyle _bottomNavigationBarItemStyle({
 }) => FBottomNavigationBarItemStyle(
   iconStyle: FWidgetStateMap({
     WidgetState.selected: IconThemeData(color: AppTheme.appleGreen, size: 26),
-    WidgetState.any: IconThemeData(
-      color: colors.mutedForeground,
-      size: 24,
-    ),
+    WidgetState.any: IconThemeData(color: colors.mutedForeground, size: 24),
   }),
   textStyle: FWidgetStateMap({
     WidgetState.selected: typography.base.copyWith(

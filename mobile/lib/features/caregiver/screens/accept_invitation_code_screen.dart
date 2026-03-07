@@ -69,8 +69,10 @@ class _AcceptInvitationCodeScreenState
 
       // Mark notification as read if notificationId is provided
       if (widget.notificationId != null) {
-        final notificationProvider =
-            Provider.of<NotificationProvider>(context, listen: false);
+        final notificationProvider = Provider.of<NotificationProvider>(
+          context,
+          listen: false,
+        );
         await notificationProvider.markAsRead(widget.notificationId!);
       }
 
@@ -117,7 +119,8 @@ class _AcceptInvitationCodeScreenState
 
   @override
   Widget build(BuildContext context) {
-    final patientName = widget.invitation?['patientName'] as String? ?? 'Patient';
+    final patientName =
+        widget.invitation?['patientName'] as String? ?? 'Patient';
     final relationship = widget.invitation?['relationship'] as String? ?? '';
 
     return FScaffold(
@@ -215,8 +218,9 @@ class _AcceptInvitationCodeScreenState
                             height: 20,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Colors.white,
+                              ),
                             ),
                           )
                         : const Text('Accept Invitation'),
@@ -241,4 +245,3 @@ class _AcceptInvitationCodeScreenState
     );
   }
 }
-

@@ -72,22 +72,26 @@ class ProfileViewScreen extends StatelessWidget {
                   Text(
                     user.name,
                     style: textTheme.headlineSmall?.copyWith(
-                          color: onPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: onPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 4.h),
                   Text(
                     user.email,
                     style: textTheme.bodySmall?.copyWith(
-                          color: onPrimary.withValues(alpha: 0.85),
-                        ),
+                      color: onPrimary.withValues(alpha: 0.85),
+                    ),
                   ),
                   SizedBox(height: 16.h),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                    decoration: user.subscriptionTier == SubscriptionTier.premium
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 8.h,
+                    ),
+                    decoration:
+                        user.subscriptionTier == SubscriptionTier.premium
                         ? ModernSurfaceTheme.frostedChip(context)
                         : BoxDecoration(
                             color: AppTheme.appleGreen,
@@ -99,7 +103,9 @@ class ProfileViewScreen extends StatelessWidget {
                           : 'Free Plan',
                       style: TextStyle(
                         color: user.subscriptionTier == SubscriptionTier.premium
-                            ? ModernSurfaceTheme.chipForegroundColor(Colors.white)
+                            ? ModernSurfaceTheme.chipForegroundColor(
+                                Colors.white,
+                              )
                             : Colors.white,
                         fontWeight: FontWeight.w600,
                       ),
@@ -147,9 +153,7 @@ class ProfileViewScreen extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             'Tap "Edit Profile" to add your details',
-                            style: textTheme.bodySmall?.copyWith(
-                              color: muted,
-                            ),
+                            style: textTheme.bodySmall?.copyWith(color: muted),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -228,7 +232,8 @@ class ProfileViewScreen extends StatelessWidget {
                       _ModernListTile(
                         icon: FIcons.creditCard,
                         title: 'Subscription',
-                        subtitle: user.subscriptionTier == SubscriptionTier.premium
+                        subtitle:
+                            user.subscriptionTier == SubscriptionTier.premium
                             ? 'Manage your premium subscription'
                             : 'Upgrade to Premium',
                         onTap: () => context.push('/subscription-plans'),
@@ -240,7 +245,7 @@ class ProfileViewScreen extends StatelessWidget {
                         onTap: () => context.push('/caregivers'),
                       ),
                       const Divider(height: 1),
-                  ],
+                    ],
                     _ThemeSelectorTile(),
                     const Divider(height: 1),
                     _ModernListTile(
@@ -300,7 +305,7 @@ class ProfileViewScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 14.h),
                 backgroundColor: AppTheme.appleGreen,
-              foregroundColor: onPrimary,
+                foregroundColor: onPrimary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(28),
                 ),
@@ -346,12 +351,7 @@ class _ProfileInfoRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
-              ),
+              Text(label, style: textTheme.bodySmall?.copyWith(color: muted)),
               SizedBox(height: 2),
               Text(
                 value,
@@ -454,17 +454,17 @@ class _ModernListTile extends StatelessWidget {
       title: Text(
         title,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: onSurface,
-              fontWeight: FontWeight.w600,
-            ),
+          color: onSurface,
+          fontWeight: FontWeight.w600,
+        ),
       ),
       subtitle: subtitle == null
           ? null
           : Text(
               subtitle!,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: onSurface.withValues(alpha: 0.65),
-                  ),
+                color: onSurface.withValues(alpha: 0.65),
+              ),
             ),
       trailing: Icon(
         FIcons.chevronsRight,

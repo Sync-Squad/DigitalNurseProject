@@ -19,11 +19,15 @@ class DietExerciseService {
     DateTime? date,
     String? elderUserId,
   }) async {
-    _log('📋 Fetching diet logs for user: $userId${date != null ? ' on ${date.toString().split(' ')[0]}' : ''}');
+    _log(
+      '📋 Fetching diet logs for user: $userId${date != null ? ' on ${date.toString().split(' ')[0]}' : ''}',
+    );
     try {
       final queryParams = <String, dynamic>{};
       if (date != null) {
-        queryParams['date'] = TimezoneUtil.toPakistanTimeIso8601(date).split('T')[0];
+        queryParams['date'] = TimezoneUtil.toPakistanTimeIso8601(
+          date,
+        ).split('T')[0];
       }
       if (elderUserId != null) {
         queryParams['elderUserId'] = elderUserId;
@@ -36,11 +40,17 @@ class DietExerciseService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
-        final dietLogs = data
-            .map((json) => LifestyleMapper.dietFromApiResponse(
-                json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json)))
-            .toList()
-          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        final dietLogs =
+            data
+                .map(
+                  (json) => LifestyleMapper.dietFromApiResponse(
+                    json is Map<String, dynamic>
+                        ? json
+                        : Map<String, dynamic>.from(json),
+                  ),
+                )
+                .toList()
+              ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
         _log('✅ Fetched ${dietLogs.length} diet logs');
         return dietLogs;
       } else {
@@ -69,7 +79,9 @@ class DietExerciseService {
       // Ensure logDate is present
       if (!requestData.containsKey('logDate')) {
         _log('⚠️ WARNING: logDate field missing, adding it');
-        final logDate = TimezoneUtil.toPakistanTimeIso8601(dietLog.timestamp).split('T')[0];
+        final logDate = TimezoneUtil.toPakistanTimeIso8601(
+          dietLog.timestamp,
+        ).split('T')[0];
         requestData['logDate'] = logDate;
       }
       final response = await _apiService.post(
@@ -96,8 +108,9 @@ class DietExerciseService {
     try {
       final response = await _apiService.delete(
         '/lifestyle/diet/$logId',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
@@ -118,11 +131,15 @@ class DietExerciseService {
     DateTime? date,
     String? elderUserId,
   }) async {
-    _log('📋 Fetching exercise logs for user: $userId${date != null ? ' on ${date.toString().split(' ')[0]}' : ''}');
+    _log(
+      '📋 Fetching exercise logs for user: $userId${date != null ? ' on ${date.toString().split(' ')[0]}' : ''}',
+    );
     try {
       final queryParams = <String, dynamic>{};
       if (date != null) {
-        queryParams['date'] = TimezoneUtil.toPakistanTimeIso8601(date).split('T')[0];
+        queryParams['date'] = TimezoneUtil.toPakistanTimeIso8601(
+          date,
+        ).split('T')[0];
       }
       if (elderUserId != null) {
         queryParams['elderUserId'] = elderUserId;
@@ -135,16 +152,24 @@ class DietExerciseService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
-        final exerciseLogs = data
-            .map((json) => LifestyleMapper.exerciseFromApiResponse(
-                json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json)))
-            .toList()
-          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        final exerciseLogs =
+            data
+                .map(
+                  (json) => LifestyleMapper.exerciseFromApiResponse(
+                    json is Map<String, dynamic>
+                        ? json
+                        : Map<String, dynamic>.from(json),
+                  ),
+                )
+                .toList()
+              ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
         _log('✅ Fetched ${exerciseLogs.length} exercise logs');
         return exerciseLogs;
       } else {
         _log('❌ Failed to fetch exercise logs: ${response.statusMessage}');
-        throw Exception('Failed to fetch exercise logs: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch exercise logs: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error fetching exercise logs: $e');
@@ -170,7 +195,9 @@ class DietExerciseService {
         return addedLog;
       } else {
         _log('❌ Failed to add exercise log: ${response.statusMessage}');
-        throw Exception('Failed to add exercise log: ${response.statusMessage}');
+        throw Exception(
+          'Failed to add exercise log: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error adding exercise log: $e');
@@ -183,15 +210,18 @@ class DietExerciseService {
     try {
       final response = await _apiService.delete(
         '/lifestyle/exercise/$logId',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
         _log('✅ Exercise log deleted successfully');
       } else {
         _log('❌ Failed to delete exercise log: ${response.statusMessage}');
-        throw Exception('Failed to delete exercise log: ${response.statusMessage}');
+        throw Exception(
+          'Failed to delete exercise log: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error deleting exercise log: $e');
@@ -205,7 +235,9 @@ class DietExerciseService {
     DateTime date, {
     String? elderUserId,
   }) async {
-    _log('📊 Fetching daily summary for user: $userId on ${date.toString().split(' ')[0]}');
+    _log(
+      '📊 Fetching daily summary for user: $userId on ${date.toString().split(' ')[0]}',
+    );
     try {
       final queryParameters = {
         'date': TimezoneUtil.toPakistanTimeIso8601(date).split('T')[0],
@@ -233,7 +265,9 @@ class DietExerciseService {
         };
       } else {
         _log('❌ Failed to fetch daily summary: ${response.statusMessage}');
-        throw Exception('Failed to fetch daily summary: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch daily summary: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error fetching daily summary: $e');
@@ -250,8 +284,9 @@ class DietExerciseService {
     try {
       final response = await _apiService.get(
         '/lifestyle/summary/weekly',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
@@ -272,7 +307,9 @@ class DietExerciseService {
         };
       } else {
         _log('❌ Failed to fetch weekly summary: ${response.statusMessage}');
-        throw Exception('Failed to fetch weekly summary: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch weekly summary: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error fetching weekly summary: $e');
@@ -284,9 +321,7 @@ class DietExerciseService {
   // Diet Plan Methods
   // ============================================
 
-  Future<List<DietPlanModel>> getDietPlans({
-    String? elderUserId,
-  }) async {
+  Future<List<DietPlanModel>> getDietPlans({String? elderUserId}) async {
     _log('📋 Fetching diet plans');
     try {
       final queryParams = <String, dynamic>{};
@@ -302,14 +337,21 @@ class DietExerciseService {
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
         final plans = data
-            .map((json) => DietPlanModel.fromJson(
-                json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json)))
+            .map(
+              (json) => DietPlanModel.fromJson(
+                json is Map<String, dynamic>
+                    ? json
+                    : Map<String, dynamic>.from(json),
+              ),
+            )
             .toList();
         _log('✅ Fetched ${plans.length} diet plans');
         return plans;
       } else {
         _log('❌ Failed to fetch diet plans: ${response.statusMessage}');
-        throw Exception('Failed to fetch diet plans: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch diet plans: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error fetching diet plans: $e');
@@ -317,7 +359,10 @@ class DietExerciseService {
     }
   }
 
-  Future<DietPlanModel> getDietPlanById(String planId, {String? elderUserId}) async {
+  Future<DietPlanModel> getDietPlanById(
+    String planId, {
+    String? elderUserId,
+  }) async {
     _log('📋 Fetching diet plan: $planId');
     try {
       final queryParams = <String, dynamic>{};
@@ -344,19 +389,26 @@ class DietExerciseService {
     }
   }
 
-  Future<DietPlanModel> createDietPlan(DietPlanModel plan, {String? elderUserId}) async {
+  Future<DietPlanModel> createDietPlan(
+    DietPlanModel plan, {
+    String? elderUserId,
+  }) async {
     _log('➕ Creating diet plan: ${plan.planName}');
     try {
       final requestData = <String, dynamic>{
         'planName': plan.planName,
         'description': plan.description,
-        'items': plan.items.map((item) => <String, dynamic>{
-          'dayOfWeek': item.dayOfWeek,
-          'mealType': item.mealType.name,
-          'description': item.description,
-          'calories': item.calories,
-          'notes': item.notes,
-        }).toList(),
+        'items': plan.items
+            .map(
+              (item) => <String, dynamic>{
+                'dayOfWeek': item.dayOfWeek,
+                'mealType': item.mealType.name,
+                'description': item.description,
+                'calories': item.calories,
+                'notes': item.notes,
+              },
+            )
+            .toList(),
         if (elderUserId != null) 'elderUserId': elderUserId,
       };
 
@@ -371,7 +423,9 @@ class DietExerciseService {
         return createdPlan;
       } else {
         _log('❌ Failed to create diet plan: ${response.statusMessage}');
-        throw Exception('Failed to create diet plan: ${response.statusMessage}');
+        throw Exception(
+          'Failed to create diet plan: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error creating diet plan: $e');
@@ -379,19 +433,27 @@ class DietExerciseService {
     }
   }
 
-  Future<DietPlanModel> updateDietPlan(String planId, DietPlanModel plan, {String? elderUserId}) async {
+  Future<DietPlanModel> updateDietPlan(
+    String planId,
+    DietPlanModel plan, {
+    String? elderUserId,
+  }) async {
     _log('✏️ Updating diet plan: $planId');
     try {
       final requestData = <String, dynamic>{
         'planName': plan.planName,
         'description': plan.description,
-        'items': plan.items.map((item) => <String, dynamic>{
-          'dayOfWeek': item.dayOfWeek,
-          'mealType': item.mealType.name,
-          'description': item.description,
-          'calories': item.calories,
-          'notes': item.notes,
-        }).toList(),
+        'items': plan.items
+            .map(
+              (item) => <String, dynamic>{
+                'dayOfWeek': item.dayOfWeek,
+                'mealType': item.mealType.name,
+                'description': item.description,
+                'calories': item.calories,
+                'notes': item.notes,
+              },
+            )
+            .toList(),
         if (elderUserId != null) 'elderUserId': elderUserId,
       };
 
@@ -412,7 +474,9 @@ class DietExerciseService {
         return updatedPlan;
       } else {
         _log('❌ Failed to update diet plan: ${response.statusMessage}');
-        throw Exception('Failed to update diet plan: ${response.statusMessage}');
+        throw Exception(
+          'Failed to update diet plan: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error updating diet plan: $e');
@@ -437,7 +501,9 @@ class DietExerciseService {
         _log('✅ Diet plan deleted successfully');
       } else {
         _log('❌ Failed to delete diet plan: ${response.statusMessage}');
-        throw Exception('Failed to delete diet plan: ${response.statusMessage}');
+        throw Exception(
+          'Failed to delete diet plan: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error deleting diet plan: $e');
@@ -454,7 +520,9 @@ class DietExerciseService {
     _log('📅 Applying diet plan: $planId');
     try {
       final requestData = {
-        'startDate': TimezoneUtil.toPakistanTimeIso8601(startDate).split('T')[0],
+        'startDate': TimezoneUtil.toPakistanTimeIso8601(
+          startDate,
+        ).split('T')[0],
         'overwriteExisting': overwriteExisting,
         if (elderUserId != null) 'elderUserId': elderUserId,
       };
@@ -499,14 +567,21 @@ class DietExerciseService {
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
         final plans = data
-            .map((json) => ExercisePlanModel.fromJson(
-                json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json)))
+            .map(
+              (json) => ExercisePlanModel.fromJson(
+                json is Map<String, dynamic>
+                    ? json
+                    : Map<String, dynamic>.from(json),
+              ),
+            )
             .toList();
         _log('✅ Fetched ${plans.length} exercise plans');
         return plans;
       } else {
         _log('❌ Failed to fetch exercise plans: ${response.statusMessage}');
-        throw Exception('Failed to fetch exercise plans: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch exercise plans: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error fetching exercise plans: $e');
@@ -514,7 +589,10 @@ class DietExerciseService {
     }
   }
 
-  Future<ExercisePlanModel> getExercisePlanById(String planId, {String? elderUserId}) async {
+  Future<ExercisePlanModel> getExercisePlanById(
+    String planId, {
+    String? elderUserId,
+  }) async {
     _log('📋 Fetching exercise plan: $planId');
     try {
       final queryParams = <String, dynamic>{};
@@ -533,7 +611,9 @@ class DietExerciseService {
         return plan;
       } else {
         _log('❌ Failed to fetch exercise plan: ${response.statusMessage}');
-        throw Exception('Failed to fetch exercise plan: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch exercise plan: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error fetching exercise plan: $e');
@@ -541,21 +621,28 @@ class DietExerciseService {
     }
   }
 
-  Future<ExercisePlanModel> createExercisePlan(ExercisePlanModel plan, {String? elderUserId}) async {
+  Future<ExercisePlanModel> createExercisePlan(
+    ExercisePlanModel plan, {
+    String? elderUserId,
+  }) async {
     _log('➕ Creating exercise plan: ${plan.planName}');
     try {
       final requestData = <String, dynamic>{
         'planName': plan.planName,
         'description': plan.description,
-        'items': plan.items.map((item) => <String, dynamic>{
-          'dayOfWeek': item.dayOfWeek,
-          'activityType': item.activityType.name,
-          'description': item.description,
-          'durationMinutes': item.durationMinutes,
-          'caloriesBurned': item.caloriesBurned,
-          'intensity': item.intensity,
-          'notes': item.notes,
-        }).toList(),
+        'items': plan.items
+            .map(
+              (item) => <String, dynamic>{
+                'dayOfWeek': item.dayOfWeek,
+                'activityType': item.activityType.name,
+                'description': item.description,
+                'durationMinutes': item.durationMinutes,
+                'caloriesBurned': item.caloriesBurned,
+                'intensity': item.intensity,
+                'notes': item.notes,
+              },
+            )
+            .toList(),
         if (elderUserId != null) 'elderUserId': elderUserId,
       };
 
@@ -570,7 +657,9 @@ class DietExerciseService {
         return createdPlan;
       } else {
         _log('❌ Failed to create exercise plan: ${response.statusMessage}');
-        throw Exception('Failed to create exercise plan: ${response.statusMessage}');
+        throw Exception(
+          'Failed to create exercise plan: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error creating exercise plan: $e');
@@ -579,21 +668,28 @@ class DietExerciseService {
   }
 
   Future<ExercisePlanModel> updateExercisePlan(
-      String planId, ExercisePlanModel plan, {String? elderUserId}) async {
+    String planId,
+    ExercisePlanModel plan, {
+    String? elderUserId,
+  }) async {
     _log('✏️ Updating exercise plan: $planId');
     try {
       final requestData = <String, dynamic>{
         'planName': plan.planName,
         'description': plan.description,
-        'items': plan.items.map((item) => <String, dynamic>{
-          'dayOfWeek': item.dayOfWeek,
-          'activityType': item.activityType.name,
-          'description': item.description,
-          'durationMinutes': item.durationMinutes,
-          'caloriesBurned': item.caloriesBurned,
-          'intensity': item.intensity,
-          'notes': item.notes,
-        }).toList(),
+        'items': plan.items
+            .map(
+              (item) => <String, dynamic>{
+                'dayOfWeek': item.dayOfWeek,
+                'activityType': item.activityType.name,
+                'description': item.description,
+                'durationMinutes': item.durationMinutes,
+                'caloriesBurned': item.caloriesBurned,
+                'intensity': item.intensity,
+                'notes': item.notes,
+              },
+            )
+            .toList(),
         if (elderUserId != null) 'elderUserId': elderUserId,
       };
 
@@ -614,7 +710,9 @@ class DietExerciseService {
         return updatedPlan;
       } else {
         _log('❌ Failed to update exercise plan: ${response.statusMessage}');
-        throw Exception('Failed to update exercise plan: ${response.statusMessage}');
+        throw Exception(
+          'Failed to update exercise plan: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error updating exercise plan: $e');
@@ -639,7 +737,9 @@ class DietExerciseService {
         _log('✅ Exercise plan deleted successfully');
       } else {
         _log('❌ Failed to delete exercise plan: ${response.statusMessage}');
-        throw Exception('Failed to delete exercise plan: ${response.statusMessage}');
+        throw Exception(
+          'Failed to delete exercise plan: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error deleting exercise plan: $e');
@@ -656,7 +756,9 @@ class DietExerciseService {
     _log('📅 Applying exercise plan: $planId');
     try {
       final requestData = {
-        'startDate': TimezoneUtil.toPakistanTimeIso8601(startDate).split('T')[0],
+        'startDate': TimezoneUtil.toPakistanTimeIso8601(
+          startDate,
+        ).split('T')[0],
         'overwriteExisting': overwriteExisting,
         if (elderUserId != null) 'elderUserId': elderUserId,
       };
@@ -671,7 +773,9 @@ class DietExerciseService {
         return response.data;
       } else {
         _log('❌ Failed to apply exercise plan: ${response.statusMessage}');
-        throw Exception('Failed to apply exercise plan: ${response.statusMessage}');
+        throw Exception(
+          'Failed to apply exercise plan: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error applying exercise plan: $e');
@@ -688,7 +792,9 @@ class DietExerciseService {
     _log('📊 Getting diet plan compliance: $planId');
     try {
       final queryParams = <String, dynamic>{
-        'startDate': TimezoneUtil.toPakistanTimeIso8601(startDate).split('T')[0],
+        'startDate': TimezoneUtil.toPakistanTimeIso8601(
+          startDate,
+        ).split('T')[0],
         'endDate': TimezoneUtil.toPakistanTimeIso8601(endDate).split('T')[0],
         if (elderUserId != null) 'elderUserId': elderUserId,
       };
@@ -703,7 +809,9 @@ class DietExerciseService {
         return response.data;
       } else {
         _log('❌ Failed to get diet plan compliance: ${response.statusMessage}');
-        throw Exception('Failed to get diet plan compliance: ${response.statusMessage}');
+        throw Exception(
+          'Failed to get diet plan compliance: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error getting diet plan compliance: $e');
@@ -720,7 +828,9 @@ class DietExerciseService {
     _log('📊 Getting exercise plan compliance: $planId');
     try {
       final queryParams = <String, dynamic>{
-        'startDate': TimezoneUtil.toPakistanTimeIso8601(startDate).split('T')[0],
+        'startDate': TimezoneUtil.toPakistanTimeIso8601(
+          startDate,
+        ).split('T')[0],
         'endDate': TimezoneUtil.toPakistanTimeIso8601(endDate).split('T')[0],
         if (elderUserId != null) 'elderUserId': elderUserId,
       };
@@ -734,8 +844,12 @@ class DietExerciseService {
         _log('✅ Exercise plan compliance retrieved successfully');
         return response.data;
       } else {
-        _log('❌ Failed to get exercise plan compliance: ${response.statusMessage}');
-        throw Exception('Failed to get exercise plan compliance: ${response.statusMessage}');
+        _log(
+          '❌ Failed to get exercise plan compliance: ${response.statusMessage}',
+        );
+        throw Exception(
+          'Failed to get exercise plan compliance: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error getting exercise plan compliance: $e');

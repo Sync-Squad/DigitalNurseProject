@@ -15,10 +15,7 @@ import '../widgets/alert_history_timeline.dart';
 class PatientReportsScreen extends StatefulWidget {
   final String elderId;
 
-  const PatientReportsScreen({
-    super.key,
-    required this.elderId,
-  });
+  const PatientReportsScreen({super.key, required this.elderId});
 
   @override
   State<PatientReportsScreen> createState() => _PatientReportsScreenState();
@@ -49,7 +46,10 @@ class _PatientReportsScreenState extends State<PatientReportsScreen>
 
     await Future.wait([
       healthProvider.loadVitals(widget.elderId, elderUserId: widget.elderId),
-      medicationProvider.loadMedicines(widget.elderId, elderUserId: widget.elderId),
+      medicationProvider.loadMedicines(
+        widget.elderId,
+        elderUserId: widget.elderId,
+      ),
       lifestyleProvider.loadAll(widget.elderId, elderUserId: widget.elderId),
       notificationProvider.loadNotifications(),
     ]);
@@ -64,10 +64,7 @@ class _PatientReportsScreenState extends State<PatientReportsScreen>
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Patient Reports',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         bottom: TabBar(
           controller: _tabController,
@@ -83,14 +80,8 @@ class _PatientReportsScreenState extends State<PatientReportsScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          _ReportView(
-            elderId: widget.elderId,
-            period: 'weekly',
-          ),
-          _ReportView(
-            elderId: widget.elderId,
-            period: 'monthly',
-          ),
+          _ReportView(elderId: widget.elderId, period: 'weekly'),
+          _ReportView(elderId: widget.elderId, period: 'monthly'),
         ],
       ),
     );
@@ -101,10 +92,7 @@ class _ReportView extends StatelessWidget {
   final String elderId;
   final String period;
 
-  const _ReportView({
-    required this.elderId,
-    required this.period,
-  });
+  const _ReportView({required this.elderId, required this.period});
 
   @override
   Widget build(BuildContext context) {
@@ -126,10 +114,7 @@ class _ReportView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Report summary
-            ReportSummaryCard(
-              elderId: elderId,
-              period: period,
-            ),
+            ReportSummaryCard(elderId: elderId, period: period),
             SizedBox(height: 24.h),
             // Health trends
             _SectionHeader(
@@ -190,25 +175,16 @@ class _SectionHeader extends StatelessWidget {
   final String title;
   final VoidCallback? onViewAll;
 
-  const _SectionHeader({
-    required this.title,
-    this.onViewAll,
-  });
+  const _SectionHeader({required this.title, this.onViewAll});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          title,
-          style: ModernSurfaceTheme.sectionTitleStyle(context),
-        ),
+        Text(title, style: ModernSurfaceTheme.sectionTitleStyle(context)),
         if (onViewAll != null)
-          TextButton(
-            onPressed: onViewAll,
-            child: const Text('View All'),
-          ),
+          TextButton(onPressed: onViewAll, child: const Text('View All')),
       ],
     );
   }
@@ -218,25 +194,19 @@ class _SummaryRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _SummaryRow({
-    required this.label,
-    required this.value,
-  });
+  const _SummaryRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
+        Text(label, style: Theme.of(context).textTheme.bodyMedium),
         Text(
           value,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
       ],
     );
@@ -253,8 +223,8 @@ class HealthTrendsPreview extends StatelessWidget {
         Text(
           'View detailed health trends and graphs',
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         SizedBox(height: 16.h),
         ElevatedButton(
@@ -265,4 +235,3 @@ class HealthTrendsPreview extends StatelessWidget {
     );
   }
 }
-

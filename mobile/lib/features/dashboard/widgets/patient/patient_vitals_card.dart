@@ -22,7 +22,7 @@ class PatientVitalsCard extends StatelessWidget {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final healthProvider = context.watch<HealthProvider>();
     final recentVitals = healthProvider.vitals.take(5).toList();
     final abnormalVitals = healthProvider.vitals
@@ -42,10 +42,7 @@ class PatientVitalsCard extends StatelessWidget {
       routeForViewDetails: '/health',
       expandedChild: recentVitals.isEmpty
           ? Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 18.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
               decoration: CaregiverDashboardTheme.tintedCard(
                 context,
                 CaregiverDashboardTheme.primaryTeal,
@@ -66,16 +63,16 @@ class PatientVitalsCard extends StatelessWidget {
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
-                child: Text(
-                  'patient.noVitalsRecorded'.tr(),
-                  style: context.theme.typography.sm.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: CaregiverDashboardTheme.tintedForegroundColor(
-                      CaregiverDashboardTheme.primaryTeal,
-                      brightness: brightness,
+                    child: Text(
+                      'patient.noVitalsRecorded'.tr(),
+                      style: context.theme.typography.sm.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: CaregiverDashboardTheme.tintedForegroundColor(
+                          CaregiverDashboardTheme.primaryTeal,
+                          brightness: brightness,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
                   ),
                 ],
               ),
@@ -125,7 +122,7 @@ class _VitalRow extends StatelessWidget {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final brightness = Theme.of(context).brightness;
     final onTint = CaregiverDashboardTheme.tintedForegroundColor(
       accent,
@@ -193,9 +190,7 @@ class _VitalRow extends StatelessWidget {
           SizedBox(height: 12.h),
           Text(
             DateFormat('MMM d, h:mm a').format(vital.timestamp),
-            style: context.theme.typography.xs.copyWith(
-              color: onTintMuted,
-            ),
+            style: context.theme.typography.xs.copyWith(color: onTintMuted),
           ),
         ],
       ),

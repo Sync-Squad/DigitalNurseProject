@@ -64,10 +64,10 @@ class AlarmService {
   // Future<void> _playSystemSoundLoop() async {
   //   print('🔔 Starting system sound loop');
   //   _systemSoundTimer?.cancel();
-  //   
+  //
   //   // Play system sound immediately
   //   await _playSystemSoundOnce();
-  //   
+  //
   //   // Then repeat every 2 seconds
   //   _systemSoundTimer = Timer.periodic(const Duration(seconds: 2), (timer) async {
   //     if (!_isPlaying) {
@@ -95,7 +95,7 @@ class AlarmService {
   /// Stop the alarm sound
   Future<void> stopAlarm() async {
     if (!_isPlaying) return;
-    
+
     _isPlaying = false;
 
     try {
@@ -128,4 +128,3 @@ class AlarmService {
     await stopAlarm();
   }
 }
-

@@ -75,9 +75,7 @@ class InvitationNotificationCard extends StatelessWidget {
                     onPressed: () => _handleDecline(context),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: context.theme.colors.foreground,
-                      side: BorderSide(
-                        color: context.theme.colors.border,
-                      ),
+                      side: BorderSide(color: context.theme.colors.border),
                     ),
                     child: const Text('Decline'),
                   ),
@@ -99,20 +97,22 @@ class InvitationNotificationCard extends StatelessWidget {
 
   void _handleAccept(BuildContext context, String inviteCode) {
     // Navigate to accept invitation code screen
-    context.push(
-      '/caregiver/accept-invitation-code',
-      extra: {
-        'inviteCode': inviteCode,
-        'invitation': invitation,
-        'notificationId': notificationId,
-      },
-    ).then((result) {
-      // Always refresh the list when returning from accept screen
-      // This removes already-processed invitations even if acceptance failed
-      if (onAction != null) {
-        onAction!();
-      }
-    });
+    context
+        .push(
+          '/caregiver/accept-invitation-code',
+          extra: {
+            'inviteCode': inviteCode,
+            'invitation': invitation,
+            'notificationId': notificationId,
+          },
+        )
+        .then((result) {
+          // Always refresh the list when returning from accept screen
+          // This removes already-processed invitations even if acceptance failed
+          if (onAction != null) {
+            onAction!();
+          }
+        });
   }
 
   Future<void> _handleDecline(BuildContext context) async {
@@ -134,8 +134,10 @@ class InvitationNotificationCard extends StatelessWidget {
 
       // Mark notification as read if notificationId is provided
       if (notificationId != null) {
-        final notificationProvider =
-            Provider.of<NotificationProvider>(context, listen: false);
+        final notificationProvider = Provider.of<NotificationProvider>(
+          context,
+          listen: false,
+        );
         await notificationProvider.markAsRead(notificationId!);
       }
 
@@ -163,4 +165,3 @@ class InvitationNotificationCard extends StatelessWidget {
     }
   }
 }
-

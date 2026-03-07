@@ -50,12 +50,8 @@ class ProfessionalAvatar extends StatelessWidget {
           child: CachedNetworkImage(
             imageUrl: avatarUrl!,
             fit: BoxFit.cover,
-            placeholder: (context, url) => _buildInitialsPlaceholder(
-              context,
-              initials,
-              bgColor,
-              txtColor,
-            ),
+            placeholder: (context, url) =>
+                _buildInitialsPlaceholder(context, initials, bgColor, txtColor),
             errorWidget: (context, url, error) {
               debugPrint('Avatar image error: $error for URL: $url');
               return _buildInitialsPlaceholder(
@@ -83,10 +79,7 @@ class ProfessionalAvatar extends StatelessWidget {
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: bgColor,
-      ),
+      decoration: BoxDecoration(shape: BoxShape.circle, color: bgColor),
       child: Center(
         child: Text(
           initials,
@@ -117,4 +110,3 @@ class ProfessionalAvatar extends StatelessWidget {
     }
   }
 }
-

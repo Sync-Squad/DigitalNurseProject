@@ -34,10 +34,7 @@ class CaregiverVitalsWatchlistCard extends StatelessWidget {
       routeForViewDetails: '/health',
       expandedChild: abnormalVitals.isEmpty
           ? Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 18.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
               decoration: CaregiverDashboardTheme.tintedCard(
                 context,
                 CaregiverDashboardTheme.primaryTeal,
@@ -58,16 +55,16 @@ class CaregiverVitalsWatchlistCard extends StatelessWidget {
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
-                child: Text(
-                  'All vitals are within normal range.',
-                  style: context.theme.typography.sm.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: CaregiverDashboardTheme.tintedForegroundColor(
-                      CaregiverDashboardTheme.primaryTeal,
-                      brightness: brightness,
+                    child: Text(
+                      'All vitals are within normal range.',
+                      style: context.theme.typography.sm.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: CaregiverDashboardTheme.tintedForegroundColor(
+                          CaregiverDashboardTheme.primaryTeal,
+                          brightness: brightness,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
                   ),
                 ],
               ),
@@ -176,13 +173,10 @@ class _VitalRow extends StatelessWidget {
           SizedBox(height: 12.h),
           Text(
             DateFormat('MMM d, h:mm a').format(vital.timestamp),
-            style: context.theme.typography.xs.copyWith(
-              color: onTintMuted,
-            ),
+            style: context.theme.typography.xs.copyWith(color: onTintMuted),
           ),
         ],
       ),
     );
   }
 }
-

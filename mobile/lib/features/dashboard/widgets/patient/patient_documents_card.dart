@@ -19,7 +19,7 @@ class PatientDocumentsCard extends StatelessWidget {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final documentProvider = context.watch<DocumentProvider>();
     final documents = documentProvider.documents;
     final recentDocuments = documents.take(4).toList();
@@ -34,10 +34,7 @@ class PatientDocumentsCard extends StatelessWidget {
       routeForViewDetails: '/documents',
       expandedChild: documents.isEmpty
           ? Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 18.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
               decoration: CaregiverDashboardTheme.tintedCard(
                 context,
                 CaregiverDashboardTheme.primaryTeal,
@@ -58,16 +55,16 @@ class PatientDocumentsCard extends StatelessWidget {
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
-                child: Text(
-                  'patient.noDocumentsFound'.tr(),
-                  style: context.theme.typography.sm.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: CaregiverDashboardTheme.tintedForegroundColor(
-                      CaregiverDashboardTheme.primaryTeal,
-                      brightness: brightness,
+                    child: Text(
+                      'patient.noDocumentsFound'.tr(),
+                      style: context.theme.typography.sm.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: CaregiverDashboardTheme.tintedForegroundColor(
+                          CaregiverDashboardTheme.primaryTeal,
+                          brightness: brightness,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
                   ),
                 ],
               ),
@@ -97,18 +94,16 @@ class _DocumentRow extends StatelessWidget {
   final DocumentModel document;
   final VoidCallback onTap;
 
-  const _DocumentRow({
-    required this.document,
-    required this.onTap,
-  });
+  const _DocumentRow({required this.document, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
-    final accent = CaregiverDashboardTheme.accentBlue; // Default accent for documents
+
+    final accent =
+        CaregiverDashboardTheme.accentBlue; // Default accent for documents
     final brightness = Theme.of(context).brightness;
     final onTint = CaregiverDashboardTheme.tintedForegroundColor(
       accent,
@@ -177,9 +172,7 @@ class _DocumentRow extends StatelessWidget {
           SizedBox(height: 12.h),
           Text(
             DateFormat('MMM d, h:mm a').format(document.uploadDate),
-            style: context.theme.typography.xs.copyWith(
-              color: onTintMuted,
-            ),
+            style: context.theme.typography.xs.copyWith(color: onTintMuted),
           ),
         ],
       ),

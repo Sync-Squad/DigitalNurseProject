@@ -104,33 +104,46 @@ class CareContextProvider with ChangeNotifier {
     MedicationProvider? medicationProvider,
     LifestyleProvider? lifestyleProvider,
   }) async {
-    print('🔍 [CARE_CONTEXT] Enriching recipient: ${recipient.elderId} (${recipient.name})');
-    
+    print(
+      '🔍 [CARE_CONTEXT] Enriching recipient: ${recipient.elderId} (${recipient.name})',
+    );
+
     // Check cache first
     if (_enrichedRecipients.containsKey(recipient.elderId)) {
-      print('✅ [CARE_CONTEXT] Using cached enriched data for ${recipient.elderId}');
+      print(
+        '✅ [CARE_CONTEXT] Using cached enriched data for ${recipient.elderId}',
+      );
       return _enrichedRecipients[recipient.elderId]!;
     }
 
     try {
       // Fetch user details
-      print('📡 [CARE_CONTEXT] Fetching user details for ${recipient.elderId}...');
-      final userDetails = await _caregiverService.getUserDetails(recipient.elderId);
-      print('📦 [CARE_CONTEXT] User details received: ${userDetails.keys.toList()}');
+      print(
+        '📡 [CARE_CONTEXT] Fetching user details for ${recipient.elderId}...',
+      );
+      final userDetails = await _caregiverService.getUserDetails(
+        recipient.elderId,
+      );
+      print(
+        '📦 [CARE_CONTEXT] User details received: ${userDetails.keys.toList()}',
+      );
       print('   - age: ${userDetails['age']}');
       print('   - dob: ${userDetails['dob']}');
       print('   - avatarUrl: ${userDetails['avatarUrl']}');
-      
+
       final avatarUrl = userDetails['avatarUrl']?.toString();
-      final age = userDetails['age']?.toString() ?? 
-                  (userDetails['dob'] != null 
-                    ? _calculateAge(userDetails['dob'].toString())
-                    : null);
+      final age =
+          userDetails['age']?.toString() ??
+          (userDetails['dob'] != null
+              ? _calculateAge(userDetails['dob'].toString())
+              : null);
       print('✅ [CARE_CONTEXT] Calculated age: $age, avatarUrl: $avatarUrl');
 
       // Calculate last activity time
       DateTime? lastActivityTime;
-      if (healthProvider != null || medicationProvider != null || lifestyleProvider != null) {
+      if (healthProvider != null ||
+          medicationProvider != null ||
+          lifestyleProvider != null) {
         print('⏰ [CARE_CONTEXT] Calculating last activity time...');
         lastActivityTime = await _calculateLastActivity(
           recipient.elderId,
@@ -140,7 +153,9 @@ class CareContextProvider with ChangeNotifier {
         );
         print('   - Last activity: $lastActivityTime');
       } else {
-        print('⚠️ [CARE_CONTEXT] No providers available for activity calculation');
+        print(
+          '⚠️ [CARE_CONTEXT] No providers available for activity calculation',
+        );
       }
 
       // Calculate patient status
@@ -154,7 +169,9 @@ class CareContextProvider with ChangeNotifier {
         );
         print('   - Status: $status');
       } else {
-        print('⚠️ [CARE_CONTEXT] No providers available for status calculation');
+        print(
+          '⚠️ [CARE_CONTEXT] No providers available for status calculation',
+        );
       }
 
       final enriched = recipient.copyWith(
@@ -173,7 +190,9 @@ class CareContextProvider with ChangeNotifier {
       _enrichedRecipients[recipient.elderId] = enriched;
       return enriched;
     } catch (e, stackTrace) {
-      print('❌ [CARE_CONTEXT] Error enriching recipient ${recipient.elderId}: $e');
+      print(
+        '❌ [CARE_CONTEXT] Error enriching recipient ${recipient.elderId}: $e',
+      );
       print('   Stack trace: $stackTrace');
       // Return original if enrichment fails
       return recipient;
@@ -192,7 +211,10 @@ class CareContextProvider with ChangeNotifier {
     // Get last vital
     if (healthProvider != null) {
       try {
-        final vitals = await healthProvider.getRecentVitals(elderId, elderUserId: elderId);
+        final vitals = await healthProvider.getRecentVitals(
+          elderId,
+          elderUserId: elderId,
+        );
         if (vitals.isNotEmpty) {
           activities.add(vitals.first.timestamp);
         }
@@ -272,7 +294,8 @@ class CareContextProvider with ChangeNotifier {
       final dob = DateTime.parse(dobString);
       final now = DateTime.now();
       int age = now.year - dob.year;
-      if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+      if (now.month < dob.month ||
+          (now.month == dob.month && now.day < dob.day)) {
         age--;
       }
       return age.toString();
@@ -292,7 +315,11 @@ class CareContextProvider with ChangeNotifier {
     }
     final recipient = _careRecipients.firstWhere(
       (assignment) => assignment.elderId == elderId,
-      orElse: () => _selectedRecipient ?? (_careRecipients.isNotEmpty ? _careRecipients.first : throw StateError('No care recipients available')),
+      orElse: () =>
+          _selectedRecipient ??
+          (_careRecipients.isNotEmpty
+              ? _careRecipients.first
+              : throw StateError('No care recipients available')),
     );
     _selectedRecipient = recipient;
     notifyListeners();
@@ -305,4 +332,3 @@ class CareContextProvider with ChangeNotifier {
     _isLoading = false;
   }
 }
-

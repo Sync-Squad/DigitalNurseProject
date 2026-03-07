@@ -247,7 +247,8 @@ class AuthProvider with ChangeNotifier {
     } on PlatformException catch (e) {
       // Handle PlatformException specifically
       if (e.code == 'no_fragment_activity') {
-        _error = 'Biometric authentication is not properly configured. Please contact support.';
+        _error =
+            'Biometric authentication is not properly configured. Please contact support.';
       } else {
         _error = 'Biometric authentication failed: ${e.message ?? e.code}';
       }
@@ -302,7 +303,8 @@ class AuthProvider with ChangeNotifier {
       if (!isAvailable) {
         return false;
       }
-      final usersWithBiometric = await _authService.getUsersWithBiometricEnabled();
+      final usersWithBiometric = await _authService
+          .getUsersWithBiometricEnabled();
       return usersWithBiometric.isNotEmpty;
     } catch (e) {
       return false;

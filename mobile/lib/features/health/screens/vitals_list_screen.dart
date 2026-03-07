@@ -403,8 +403,12 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
                                         ),
                                         SizedBox(height: 4),
                                         Text(
-                                          DateFormat('MMM d, yyyy - h:mm a').format(
-                                            TimezoneUtil.toPakistanTime(vital.timestamp),
+                                          DateFormat(
+                                            'MMM d, yyyy - h:mm a',
+                                          ).format(
+                                            TimezoneUtil.toPakistanTime(
+                                              vital.timestamp,
+                                            ),
                                           ),
                                           style: textTheme.bodySmall?.copyWith(
                                             color: muted,

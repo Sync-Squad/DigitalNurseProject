@@ -8,10 +8,7 @@ import '../../../core/theme/modern_surface_theme.dart';
 class DietExerciseSummaryCard extends StatelessWidget {
   final String elderId;
 
-  const DietExerciseSummaryCard({
-    super.key,
-    required this.elderId,
-  });
+  const DietExerciseSummaryCard({super.key, required this.elderId});
 
   @override
   Widget build(BuildContext context) {
@@ -136,10 +133,7 @@ class _SummaryMetric extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Column(
         children: [
@@ -148,21 +142,20 @@ class _SummaryMetric extends StatelessWidget {
           Text(
             value,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           SizedBox(height: 4.h),
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
   }
 }
-

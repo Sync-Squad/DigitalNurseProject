@@ -44,11 +44,11 @@ class _DietExerciseLogScreenState extends State<DietExerciseLogScreen>
     final lifestyleProvider = context.read<LifestyleProvider>();
     final authProvider = context.read<AuthProvider>();
     final user = authProvider.currentUser;
-    
+
     if (user != null) {
       String? elderUserId;
       String? targetUserId = user.id;
-      
+
       if (user.role == UserRole.caregiver) {
         final careContext = context.read<CareContextProvider>();
         await careContext.ensureLoaded();
@@ -56,7 +56,7 @@ class _DietExerciseLogScreenState extends State<DietExerciseLogScreen>
         targetUserId = careContext.selectedElderId ?? user.id;
         elderUserId = targetUserId;
       }
-      
+
       await lifestyleProvider.loadAll(
         targetUserId,
         date: date,
@@ -88,9 +88,9 @@ class _DietExerciseLogScreenState extends State<DietExerciseLogScreen>
         title: Text(
           'Diet & Exercise',
           style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: onPrimary,
-              ),
+            fontWeight: FontWeight.bold,
+            color: onPrimary,
+          ),
         ),
       ),
       body: Padding(
@@ -115,7 +115,8 @@ class _DietExerciseLogScreenState extends State<DietExerciseLogScreen>
                   FLineCalendar(
                     initialSelection: _selectedDate,
                     initialScroll: _selectedDate,
-                    onChange: (date) => _handleDateChanged(date ?? DateTime.now()),
+                    onChange: (date) =>
+                        _handleDateChanged(date ?? DateTime.now()),
                     toggleable: true,
                     start: DateTime(1900),
                     end: DateTime(2050),
@@ -140,7 +141,9 @@ class _DietExerciseLogScreenState extends State<DietExerciseLogScreen>
                 controller: _tabController,
                 indicatorColor: ModernSurfaceTheme.primaryTeal,
                 labelColor: ModernSurfaceTheme.primaryTeal,
-                unselectedLabelColor: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.5),
+                unselectedLabelColor: ModernSurfaceTheme.deepTeal.withValues(
+                  alpha: 0.5,
+                ),
                 dividerColor: Colors.transparent,
                 tabs: const [
                   Tab(text: 'Meals'),
@@ -209,7 +212,7 @@ class _MealsTabState extends State<_MealsTab> {
       try {
         final authProvider = context.read<AuthProvider>();
         final user = authProvider.currentUser;
-        
+
         if (user == null) {
           return;
         }
@@ -246,7 +249,9 @@ class _MealsTabState extends State<_MealsTab> {
               elderUserId: elderUserId,
             );
           } else {
-            final errorMessage = lifestyleProvider.error ?? 'Failed to delete meal. Please try again.';
+            final errorMessage =
+                lifestyleProvider.error ??
+                'Failed to delete meal. Please try again.';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(errorMessage),
@@ -279,7 +284,8 @@ class _MealsTabState extends State<_MealsTab> {
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: () {
-                  final dateStr = '${widget.selectedDate.year}-${widget.selectedDate.month.toString().padLeft(2, '0')}-${widget.selectedDate.day.toString().padLeft(2, '0')}';
+                  final dateStr =
+                      '${widget.selectedDate.year}-${widget.selectedDate.month.toString().padLeft(2, '0')}-${widget.selectedDate.day.toString().padLeft(2, '0')}';
                   context.push('/lifestyle/meal/add?selectedDate=$dateStr');
                 },
                 icon: const Icon(FIcons.plus),
@@ -341,7 +347,10 @@ class _MealsTabState extends State<_MealsTab> {
                                 context,
                                 ModernSurfaceTheme.primaryTeal,
                               ),
-                              child: const Icon(FIcons.utensils, color: Colors.white),
+                              child: const Icon(
+                                FIcons.utensils,
+                                color: Colors.white,
+                              ),
                             ),
                             SizedBox(width: 16.w),
                             Expanded(
@@ -354,17 +363,24 @@ class _MealsTabState extends State<_MealsTab> {
                                         child: Text(
                                           meal.mealType.displayName,
                                           style: textTheme.bodyMedium?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                                color: colorScheme.onSurface,
-                                              ),
+                                            fontWeight: FontWeight.w600,
+                                            color: colorScheme.onSurface,
+                                          ),
                                         ),
                                       ),
                                       if (meal.sourcePlanId != null)
                                         Container(
-                                          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 6.w,
+                                            vertical: 2.h,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: ModernSurfaceTheme.primaryTeal.withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(8),
+                                            color: ModernSurfaceTheme
+                                                .primaryTeal
+                                                .withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -372,14 +388,18 @@ class _MealsTabState extends State<_MealsTab> {
                                               Icon(
                                                 FIcons.calendar,
                                                 size: 12,
-                                                color: ModernSurfaceTheme.primaryTeal,
+                                                color: ModernSurfaceTheme
+                                                    .primaryTeal,
                                               ),
                                               SizedBox(width: 4.w),
                                               Text(
                                                 'Plan',
-                                                style: textTheme.bodySmall?.copyWith(
-                                                      color: ModernSurfaceTheme.primaryTeal,
-                                                      fontWeight: FontWeight.w600,
+                                                style: textTheme.bodySmall
+                                                    ?.copyWith(
+                                                      color: ModernSurfaceTheme
+                                                          .primaryTeal,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                       fontSize: 10,
                                                     ),
                                               ),
@@ -392,19 +412,21 @@ class _MealsTabState extends State<_MealsTab> {
                                   Text(
                                     meal.description,
                                     style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   SizedBox(height: 4.h),
                                   Text(
                                     DateFormat('MMM d, yyyy').format(
-                                      TimezoneUtil.toPakistanTime(meal.timestamp),
+                                      TimezoneUtil.toPakistanTime(
+                                        meal.timestamp,
+                                      ),
                                     ),
                                     style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -416,15 +438,15 @@ class _MealsTabState extends State<_MealsTab> {
                                 Text(
                                   '${meal.calories}',
                                   style: textTheme.bodyLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: ModernSurfaceTheme.primaryTeal,
-                                      ),
+                                    fontWeight: FontWeight.bold,
+                                    color: ModernSurfaceTheme.primaryTeal,
+                                  ),
                                 ),
                                 Text(
                                   'cal',
                                   style: textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
                               ],
                             ),
@@ -443,7 +465,10 @@ class _MealsTabState extends State<_MealsTab> {
                                 : IconButton(
                                     onPressed: _deletingMealId != null
                                         ? null
-                                        : () => _handleDeleteMeal(context, meal.id),
+                                        : () => _handleDeleteMeal(
+                                            context,
+                                            meal.id,
+                                          ),
                                     icon: Icon(
                                       Icons.delete_outline,
                                       color: AppTheme.getErrorColor(context),
@@ -475,26 +500,22 @@ class _MealsTabState extends State<_MealsTab> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 48,
-            color: colorScheme.primary,
-          ),
+          Icon(icon, size: 48, color: colorScheme.primary),
           SizedBox(height: 12.h),
           Text(
             title,
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
             message,
             textAlign: TextAlign.center,
             style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -514,7 +535,10 @@ class _WorkoutsTab extends StatefulWidget {
 class _WorkoutsTabState extends State<_WorkoutsTab> {
   String? _deletingWorkoutId;
 
-  Future<void> _handleDeleteWorkout(BuildContext context, String workoutId) async {
+  Future<void> _handleDeleteWorkout(
+    BuildContext context,
+    String workoutId,
+  ) async {
     if (_deletingWorkoutId != null) return;
     final confirm = await showDialog<bool>(
       context: context,
@@ -545,7 +569,7 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
       try {
         final authProvider = context.read<AuthProvider>();
         final user = authProvider.currentUser;
-        
+
         if (user == null) {
           return;
         }
@@ -582,7 +606,9 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
               elderUserId: elderUserId,
             );
           } else {
-            final errorMessage = lifestyleProvider.error ?? 'Failed to delete workout. Please try again.';
+            final errorMessage =
+                lifestyleProvider.error ??
+                'Failed to delete workout. Please try again.';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(errorMessage),
@@ -615,7 +641,8 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
             Expanded(
               child: ElevatedButton.icon(
                 onPressed: () {
-                  final dateStr = '${widget.selectedDate.year}-${widget.selectedDate.month.toString().padLeft(2, '0')}-${widget.selectedDate.day.toString().padLeft(2, '0')}';
+                  final dateStr =
+                      '${widget.selectedDate.year}-${widget.selectedDate.month.toString().padLeft(2, '0')}-${widget.selectedDate.day.toString().padLeft(2, '0')}';
                   context.push('/lifestyle/workout/add?selectedDate=$dateStr');
                 },
                 icon: const Icon(FIcons.plus),
@@ -677,7 +704,10 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
                                 context,
                                 ModernSurfaceTheme.accentBlue,
                               ),
-                              child: const Icon(FIcons.activity, color: Colors.white),
+                              child: const Icon(
+                                FIcons.activity,
+                                color: Colors.white,
+                              ),
                             ),
                             SizedBox(width: 16.w),
                             Expanded(
@@ -690,17 +720,23 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
                                         child: Text(
                                           workout.activityType.displayName,
                                           style: textTheme.bodyMedium?.copyWith(
-                                                fontWeight: FontWeight.w600,
-                                                color: colorScheme.onSurface,
-                                              ),
+                                            fontWeight: FontWeight.w600,
+                                            color: colorScheme.onSurface,
+                                          ),
                                         ),
                                       ),
                                       if (workout.sourcePlanId != null)
                                         Container(
-                                          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 6.w,
+                                            vertical: 2.h,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: ModernSurfaceTheme.accentBlue.withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(8),
+                                            color: ModernSurfaceTheme.accentBlue
+                                                .withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -708,14 +744,18 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
                                               Icon(
                                                 FIcons.calendar,
                                                 size: 12,
-                                                color: ModernSurfaceTheme.accentBlue,
+                                                color: ModernSurfaceTheme
+                                                    .accentBlue,
                                               ),
                                               SizedBox(width: 4.w),
                                               Text(
                                                 'Plan',
-                                                style: textTheme.bodySmall?.copyWith(
-                                                      color: ModernSurfaceTheme.accentBlue,
-                                                      fontWeight: FontWeight.w600,
+                                                style: textTheme.bodySmall
+                                                    ?.copyWith(
+                                                      color: ModernSurfaceTheme
+                                                          .accentBlue,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                       fontSize: 10,
                                                     ),
                                               ),
@@ -728,8 +768,8 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
                                   Text(
                                     workout.description,
                                     style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -737,8 +777,8 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
                                   Text(
                                     '${workout.durationMinutes} min • ${DateFormat('MMM d, yyyy').format(TimezoneUtil.toPakistanTime(workout.timestamp))}',
                                     style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -750,15 +790,15 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
                                 Text(
                                   '${workout.caloriesBurned}',
                                   style: textTheme.bodyLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: ModernSurfaceTheme.accentBlue,
-                                      ),
+                                    fontWeight: FontWeight.bold,
+                                    color: ModernSurfaceTheme.accentBlue,
+                                  ),
                                 ),
                                 Text(
                                   'cal',
                                   style: textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
                               ],
                             ),
@@ -777,7 +817,10 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
                                 : IconButton(
                                     onPressed: _deletingWorkoutId != null
                                         ? null
-                                        : () => _handleDeleteWorkout(context, workout.id),
+                                        : () => _handleDeleteWorkout(
+                                            context,
+                                            workout.id,
+                                          ),
                                     icon: Icon(
                                       Icons.delete_outline,
                                       color: AppTheme.getErrorColor(context),
@@ -809,26 +852,22 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 48,
-            color: colorScheme.primary,
-          ),
+          Icon(icon, size: 48, color: colorScheme.primary),
           SizedBox(height: 12.h),
           Text(
             title,
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
             message,
             textAlign: TextAlign.center,
             style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+              color: colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -905,16 +944,16 @@ class _SummaryMetric extends StatelessWidget {
           Text(
             value,
             style: textTheme.headlineSmall?.copyWith(
-                  color: onPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: onPrimary,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           SizedBox(height: 4.h),
           Text(
             label,
             style: textTheme.bodySmall?.copyWith(
-                  color: onPrimary.withValues(alpha: 0.85),
-                ),
+              color: onPrimary.withValues(alpha: 0.85),
+            ),
             textAlign: TextAlign.center,
           ),
         ],

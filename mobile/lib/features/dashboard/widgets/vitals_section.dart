@@ -57,7 +57,9 @@ class VitalsSection extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: context.theme.colors.muted,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: context.theme.colors.border),
+                          border: Border.all(
+                            color: context.theme.colors.border,
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -82,7 +84,9 @@ class VitalsSection extends StatelessWidget {
                                   ),
                                   Text(
                                     DateFormat('MMM d, h:mm a').format(
-                                      TimezoneUtil.toPakistanTime(vital.timestamp),
+                                      TimezoneUtil.toPakistanTime(
+                                        vital.timestamp,
+                                      ),
                                     ),
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(

@@ -77,17 +77,9 @@ class LocaleProvider with ChangeNotifier {
 
   // Get all available locales for UI selection
   List<LocaleOption> get localeOptions => [
-        LocaleOption(
-          locale: const Locale('en'),
-          name: 'English',
-          code: 'en',
-        ),
-        LocaleOption(
-          locale: const Locale('ur'),
-          name: 'اردو',
-          code: 'ur',
-        ),
-      ];
+    LocaleOption(locale: const Locale('en'), name: 'English', code: 'en'),
+    LocaleOption(locale: const Locale('ur'), name: 'اردو', code: 'ur'),
+  ];
 }
 
 class LocaleOption {
@@ -101,4 +93,3 @@ class LocaleOption {
     required this.code,
   });
 }
-

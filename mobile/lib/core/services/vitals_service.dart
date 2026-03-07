@@ -19,17 +19,24 @@ class VitalsService {
     try {
       final response = await _apiService.get(
         '/vitals',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
-        final vitals = data
-            .map((json) => VitalMapper.fromApiResponse(
-                json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json)))
-            .toList()
-          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        final vitals =
+            data
+                .map(
+                  (json) => VitalMapper.fromApiResponse(
+                    json is Map<String, dynamic>
+                        ? json
+                        : Map<String, dynamic>.from(json),
+                  ),
+                )
+                .toList()
+              ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
         _log('✅ Fetched ${vitals.length} vital measurements');
         return vitals;
       } else {
@@ -43,11 +50,11 @@ class VitalsService {
   }
 
   // Get vitals by type
-Future<List<VitalMeasurementModel>> getVitalsByType(
-  String userId,
-  VitalType type, {
-  String? elderUserId,
-}) async {
+  Future<List<VitalMeasurementModel>> getVitalsByType(
+    String userId,
+    VitalType type, {
+    String? elderUserId,
+  }) async {
     _log('📋 Fetching vitals by type: $type for user: $userId');
     try {
       // Convert type enum to string for API
@@ -85,16 +92,24 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
-        final vitals = data
-            .map((json) => VitalMapper.fromApiResponse(
-                json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json)))
-            .toList()
-          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        final vitals =
+            data
+                .map(
+                  (json) => VitalMapper.fromApiResponse(
+                    json is Map<String, dynamic>
+                        ? json
+                        : Map<String, dynamic>.from(json),
+                  ),
+                )
+                .toList()
+              ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
         _log('✅ Fetched ${vitals.length} vital measurements of type $type');
         return vitals;
       } else {
         _log('❌ Failed to fetch vitals by type: ${response.statusMessage}');
-        throw Exception('Failed to fetch vitals by type: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch vitals by type: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error fetching vitals by type: $e');
@@ -110,10 +125,7 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
         vital,
         elderUserId: vital.userId,
       );
-      final response = await _apiService.post(
-        '/vitals',
-        data: requestData,
-      );
+      final response = await _apiService.post('/vitals', data: requestData);
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final addedVital = VitalMapper.fromApiResponse(response.data);
@@ -140,8 +152,9 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
       final response = await _apiService.patch(
         '/vitals/${vital.id}',
         data: requestData,
-        queryParameters:
-            vital.userId.isNotEmpty ? {'elderUserId': vital.userId} : null,
+        queryParameters: vital.userId.isNotEmpty
+            ? {'elderUserId': vital.userId}
+            : null,
       );
 
       if (response.statusCode == 200) {
@@ -164,8 +177,9 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
     try {
       final response = await _apiService.delete(
         '/vitals/$vitalId',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
@@ -187,7 +201,9 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
   }) async {
     _log('📋 Fetching recent vitals (last 7 days) for user: $userId');
     try {
-      final cutoffDate = TimezoneUtil.nowInPakistan().subtract(const Duration(days: 7));
+      final cutoffDate = TimezoneUtil.nowInPakistan().subtract(
+        const Duration(days: 7),
+      );
       final response = await _apiService.get(
         '/vitals',
         queryParameters: {
@@ -198,16 +214,24 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
-        final vitals = data
-            .map((json) => VitalMapper.fromApiResponse(
-                json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json)))
-            .toList()
-          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        final vitals =
+            data
+                .map(
+                  (json) => VitalMapper.fromApiResponse(
+                    json is Map<String, dynamic>
+                        ? json
+                        : Map<String, dynamic>.from(json),
+                  ),
+                )
+                .toList()
+              ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
         _log('✅ Fetched ${vitals.length} recent vital measurements');
         return vitals;
       } else {
         _log('❌ Failed to fetch recent vitals: ${response.statusMessage}');
-        throw Exception('Failed to fetch recent vitals: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch recent vitals: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error fetching recent vitals: $e');
@@ -259,50 +283,76 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
       if (response.statusCode == 200) {
         final data = response.data;
         _log('✅ Trends calculated successfully');
-        
+
         // Handle empty array response - calculate locally as fallback
         if (data is List && data.isEmpty) {
-          _log('⚠️ Empty trends data from API, calculating locally as fallback');
-          return await _calculateTrendsLocally(userId, type, days: days, elderUserId: elderUserId);
+          _log(
+            '⚠️ Empty trends data from API, calculating locally as fallback',
+          );
+          return await _calculateTrendsLocally(
+            userId,
+            type,
+            days: days,
+            elderUserId: elderUserId,
+          );
         }
-        
+
         // Handle Map response
         if (data is Map<String, dynamic>) {
           final count = (data['count'] ?? 0) as int;
           // If API returns empty count, try local calculation as fallback
           if (count == 0) {
             _log('⚠️ API returned count=0, calculating locally as fallback');
-            return await _calculateTrendsLocally(userId, type, days: days, elderUserId: elderUserId);
+            return await _calculateTrendsLocally(
+              userId,
+              type,
+              days: days,
+              elderUserId: elderUserId,
+            );
           }
           return {
             'average': (data['average'] ?? 0.0).toDouble(),
             'count': count,
             'hasAbnormal': (data['hasAbnormal'] ?? false) as bool,
             'measurements': (data['measurements'] ?? [])
-                .map((json) => VitalMapper.fromApiResponse(
-                      json is Map<String, dynamic>
-                          ? json
-                          : Map<String, dynamic>.from(json),
-                    ))
+                .map(
+                  (json) => VitalMapper.fromApiResponse(
+                    json is Map<String, dynamic>
+                        ? json
+                        : Map<String, dynamic>.from(json),
+                  ),
+                )
                 .toList(),
           };
         }
-        
+
         // Fallback for unexpected data types - calculate locally
-        _log('⚠️ Unexpected data type: ${data.runtimeType}, calculating locally as fallback');
-        return await _calculateTrendsLocally(userId, type, days: days, elderUserId: elderUserId);
+        _log(
+          '⚠️ Unexpected data type: ${data.runtimeType}, calculating locally as fallback',
+        );
+        return await _calculateTrendsLocally(
+          userId,
+          type,
+          days: days,
+          elderUserId: elderUserId,
+        );
       } else {
         _log('❌ Failed to calculate trends: ${response.statusMessage}');
         throw Exception(
-            'Failed to calculate trends: ${response.statusMessage}');
+          'Failed to calculate trends: ${response.statusMessage}',
+        );
       }
-    } 
-    catch (e) {
+    } catch (e) {
       _log('❌ Error calculating trends from API: $e');
       _log('🔄 Falling back to local calculation');
       // Fallback to local calculation if API fails
       try {
-        return await _calculateTrendsLocally(userId, type, days: days, elderUserId: elderUserId);
+        return await _calculateTrendsLocally(
+          userId,
+          type,
+          days: days,
+          elderUserId: elderUserId,
+        );
       } catch (localError) {
         _log('❌ Error in local calculation: $localError');
         throw Exception('Failed to calculate trends: ${e.toString()}');
@@ -317,13 +367,17 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
     int days = 7,
     String? elderUserId,
   }) async {
-    _log('📊 Calculating trends locally for ${type.toString()} (last $days days)');
+    _log(
+      '📊 Calculating trends locally for ${type.toString()} (last $days days)',
+    );
     try {
       // Get all vitals for the user
       final allVitals = await getVitals(userId, elderUserId: elderUserId);
-      
+
       // Filter by type and date range
-      final cutoffDate = TimezoneUtil.nowInPakistan().subtract(Duration(days: days));
+      final cutoffDate = TimezoneUtil.nowInPakistan().subtract(
+        Duration(days: days),
+      );
       final filteredVitals = allVitals.where((vital) {
         return vital.type == type && vital.timestamp.isAfter(cutoffDate);
       }).toList();
@@ -353,7 +407,8 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
             .where((v) => v > 0)
             .toList();
         if (systolicValues.isNotEmpty) {
-          average = systolicValues.reduce((a, b) => a + b) / systolicValues.length;
+          average =
+              systolicValues.reduce((a, b) => a + b) / systolicValues.length;
         }
       } else {
         // For other vitals, parse numeric value
@@ -362,14 +417,17 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
             .where((v) => v > 0)
             .toList();
         if (numericValues.isNotEmpty) {
-          average = numericValues.reduce((a, b) => a + b) / numericValues.length;
+          average =
+              numericValues.reduce((a, b) => a + b) / numericValues.length;
         }
       }
 
       // Check for abnormal readings
       final hasAbnormal = filteredVitals.any((v) => v.isAbnormal());
 
-      _log('✅ Local trends calculated: count=${filteredVitals.length}, average=$average');
+      _log(
+        '✅ Local trends calculated: count=${filteredVitals.length}, average=$average',
+      );
       return {
         'average': average,
         'count': filteredVitals.length,
@@ -396,22 +454,31 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
     try {
       final response = await _apiService.get(
         '/vitals/abnormal',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
-        final vitals = data
-            .map((json) => VitalMapper.fromApiResponse(
-                json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json)))
-            .toList()
-          ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+        final vitals =
+            data
+                .map(
+                  (json) => VitalMapper.fromApiResponse(
+                    json is Map<String, dynamic>
+                        ? json
+                        : Map<String, dynamic>.from(json),
+                  ),
+                )
+                .toList()
+              ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
         _log('✅ Fetched ${vitals.length} abnormal readings');
         return vitals;
       } else {
         _log('❌ Failed to fetch abnormal readings: ${response.statusMessage}');
-        throw Exception('Failed to fetch abnormal readings: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch abnormal readings: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error fetching abnormal readings: $e');
@@ -428,28 +495,34 @@ Future<List<VitalMeasurementModel>> getVitalsByType(
     try {
       final response = await _apiService.get(
         '/vitals/latest',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
         final data = response.data;
         final latestVitals = <String, VitalMeasurementModel>{};
-        
+
         if (data is Map) {
           data.forEach((key, value) {
             if (value != null) {
               latestVitals[key] = VitalMapper.fromApiResponse(
-                  value is Map<String, dynamic> ? value : Map<String, dynamic>.from(value));
+                value is Map<String, dynamic>
+                    ? value
+                    : Map<String, dynamic>.from(value),
+              );
             }
           });
         }
-        
+
         _log('✅ Fetched latest vitals for ${latestVitals.length} types');
         return latestVitals;
       } else {
         _log('❌ Failed to fetch latest vitals: ${response.statusMessage}');
-        throw Exception('Failed to fetch latest vitals: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch latest vitals: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error fetching latest vitals: $e');

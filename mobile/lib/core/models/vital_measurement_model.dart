@@ -163,4 +163,3 @@ enum VitalType {
   oxygenSaturation,
   weight,
 }
-

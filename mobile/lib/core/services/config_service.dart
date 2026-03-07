@@ -19,7 +19,8 @@ class ConfigService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        final apiKey = data['apiKey']?.toString() ?? data['config_value']?.toString();
+        final apiKey =
+            data['apiKey']?.toString() ?? data['config_value']?.toString();
 
         if (apiKey != null && apiKey.isNotEmpty) {
           // Cache the API key locally
@@ -52,7 +53,7 @@ class ConfigService {
 
       if (response.statusCode == 200) {
         final data = response.data;
-        
+
         // Handle array of config items
         if (data is List) {
           for (final item in data) {
@@ -73,10 +74,12 @@ class ConfigService {
         }
 
         _log('✅ App configuration fetched: ${config.keys.length} items');
-        
+
         // Cache Gemini API key if present
         if (config.containsKey('gemini_api_key')) {
-          await AppConfig.cacheGeminiApiKeyFromDatabase(config['gemini_api_key']!);
+          await AppConfig.cacheGeminiApiKeyFromDatabase(
+            config['gemini_api_key']!,
+          );
           _log('✅ Gemini API key cached from config');
         }
       } else {

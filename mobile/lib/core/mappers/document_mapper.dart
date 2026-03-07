@@ -8,7 +8,9 @@ class DocumentMapper {
     // Convert type string to enum
     DocumentType type = DocumentType.other;
     if (json['type'] != null || json['typeCode'] != null) {
-      final typeStr = (json['type'] ?? json['typeCode']).toString().toLowerCase();
+      final typeStr = (json['type'] ?? json['typeCode'])
+          .toString()
+          .toLowerCase();
       switch (typeStr) {
         case 'prescription':
           type = DocumentType.prescription;
@@ -39,7 +41,9 @@ class DocumentMapper {
     // Convert visibility string to enum
     DocumentVisibility visibility = DocumentVisibility.private;
     if (json['visibility'] != null || json['visibilityCode'] != null) {
-      final visStr = (json['visibility'] ?? json['visibilityCode']).toString().toLowerCase();
+      final visStr = (json['visibility'] ?? json['visibilityCode'])
+          .toString()
+          .toLowerCase();
       switch (visStr) {
         case 'private':
           visibility = DocumentVisibility.private;
@@ -60,26 +64,29 @@ class DocumentMapper {
     DateTime uploadDate = DateTime.now();
     if (json['uploadDate'] != null) {
       try {
-        uploadDate = TimezoneUtil.fromPakistanTimeIso8601(json['uploadDate'].toString());
+        uploadDate = TimezoneUtil.fromPakistanTimeIso8601(
+          json['uploadDate'].toString(),
+        );
       } catch (e) {
         uploadDate = DateTime.now();
       }
     } else if (json['createdAt'] != null) {
       try {
-        uploadDate = TimezoneUtil.fromPakistanTimeIso8601(json['createdAt'].toString());
+        uploadDate = TimezoneUtil.fromPakistanTimeIso8601(
+          json['createdAt'].toString(),
+        );
       } catch (e) {
         uploadDate = DateTime.now();
       }
     }
 
     // Get file path - backend may return fileName or filePath
-    String filePath = json['filePath']?.toString() ?? 
-                     json['fileName']?.toString() ?? 
-                     '';
-    
+    String filePath =
+        json['filePath']?.toString() ?? json['fileName']?.toString() ?? '';
+
     // Get file URL - backend now returns fileUrl
     String? fileUrl = json['fileUrl']?.toString();
-    
+
     // Get file type
     String? fileType = json['fileType']?.toString();
 
@@ -93,7 +100,8 @@ class DocumentMapper {
       uploadDate: uploadDate,
       visibility: visibility,
       description: json['description']?.toString(),
-      userId: json['userId']?.toString() ?? json['elderUserId']?.toString() ?? '',
+      userId:
+          json['userId']?.toString() ?? json['elderUserId']?.toString() ?? '',
     );
   }
 
@@ -149,4 +157,3 @@ class DocumentMapper {
     };
   }
 }
-

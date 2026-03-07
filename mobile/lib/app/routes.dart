@@ -105,10 +105,7 @@ final goRouter = GoRouter(
       builder: (context, state) {
         final email = state.uri.queryParameters['email'] ?? '';
         final token = state.uri.queryParameters['token'];
-        return EmailVerificationScreen(
-          email: email,
-          token: token,
-        );
+        return EmailVerificationScreen(email: email, token: token);
       },
     ),
 
@@ -291,7 +288,8 @@ final goRouter = GoRouter(
     ),
     GoRoute(
       path: '/lifestyle/plans/diet/create',
-      builder: (context, state) => const CreateWeeklyPlanScreen(isDietPlan: true),
+      builder: (context, state) =>
+          const CreateWeeklyPlanScreen(isDietPlan: true),
     ),
     GoRoute(
       path: '/lifestyle/plans/diet/edit/:id',
@@ -302,7 +300,8 @@ final goRouter = GoRouter(
     ),
     GoRoute(
       path: '/lifestyle/plans/exercise/create',
-      builder: (context, state) => const CreateWeeklyPlanScreen(isDietPlan: false),
+      builder: (context, state) =>
+          const CreateWeeklyPlanScreen(isDietPlan: false),
     ),
     GoRoute(
       path: '/lifestyle/plans/exercise/edit/:id',

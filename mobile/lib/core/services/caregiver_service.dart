@@ -62,7 +62,9 @@ class CaregiverService {
         _log('✅ Fetched ${assignments.length} caregiver assignments');
         return assignments;
       } else {
-        _log('❌ Failed to fetch caregiver assignments: ${response.statusMessage}');
+        _log(
+          '❌ Failed to fetch caregiver assignments: ${response.statusMessage}',
+        );
         throw Exception(
           'Failed to fetch caregiver assignments: ${response.statusMessage}',
         );
@@ -206,7 +208,9 @@ class CaregiverService {
         _log('✅ Fetched ${invitations.length} pending invitations');
         return invitations;
       } else {
-        _log('❌ Failed to fetch pending invitations: ${response.statusMessage}');
+        _log(
+          '❌ Failed to fetch pending invitations: ${response.statusMessage}',
+        );
         throw Exception(
           'Failed to fetch pending invitations: ${response.statusMessage}',
         );
@@ -232,7 +236,9 @@ class CaregiverService {
             ? response.data
             : Map<String, dynamic>.from(response.data);
       } else {
-        _log('❌ Failed to accept invitation by code: ${response.statusMessage}');
+        _log(
+          '❌ Failed to accept invitation by code: ${response.statusMessage}',
+        );
         throw Exception(
           'Failed to accept invitation by code: ${response.statusMessage}',
         );

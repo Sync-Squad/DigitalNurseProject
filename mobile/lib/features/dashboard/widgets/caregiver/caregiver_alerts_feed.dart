@@ -46,9 +46,7 @@ class CaregiverAlertsFeed extends StatelessWidget {
                   children: [
                     Text(
                       'Care alerts',
-                      style: CaregiverDashboardTheme.sectionTitleStyle(
-                        context,
-                      ),
+                      style: CaregiverDashboardTheme.sectionTitleStyle(context),
                     ),
                     SizedBox(height: 4.h),
                     Text(
@@ -76,10 +74,7 @@ class CaregiverAlertsFeed extends StatelessWidget {
           SizedBox(height: 20.h),
           if (notifications.isEmpty)
             Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 18.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
               decoration: CaregiverDashboardTheme.tintedCard(
                 context,
                 CaregiverDashboardTheme.primaryTeal,
@@ -137,10 +132,7 @@ class _AlertRow extends StatelessWidget {
   final NotificationModel notification;
   final VoidCallback onTap;
 
-  const _AlertRow({
-    required this.notification,
-    required this.onTap,
-  });
+  const _AlertRow({required this.notification, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -215,13 +207,10 @@ class _AlertRow extends StatelessWidget {
           SizedBox(height: 12.h),
           Text(
             DateFormat('MMM d, h:mm a').format(notification.timestamp),
-            style: context.theme.typography.xs.copyWith(
-              color: onTintMuted,
-            ),
+            style: context.theme.typography.xs.copyWith(color: onTintMuted),
           ),
         ],
       ),
     );
   }
 }
-

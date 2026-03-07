@@ -81,9 +81,10 @@ class _ExpandablePatientCardState extends State<ExpandablePatientCard>
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
-    final chipForeground =
-        CaregiverDashboardTheme.chipForegroundColor(widget.accentColor);
+
+    final chipForeground = CaregiverDashboardTheme.chipForegroundColor(
+      widget.accentColor,
+    );
     return Container(
       padding: CaregiverDashboardTheme.cardPadding(),
       decoration: CaregiverDashboardTheme.glassCard(context),
@@ -125,16 +126,18 @@ class _ExpandablePatientCardState extends State<ExpandablePatientCard>
                                 children: [
                                   Text(
                                     widget.title,
-                                    style: CaregiverDashboardTheme.sectionTitleStyle(
-                                      context,
-                                    ),
+                                    style:
+                                        CaregiverDashboardTheme.sectionTitleStyle(
+                                          context,
+                                        ),
                                   ),
                                   SizedBox(height: 4.h),
                                   Text(
                                     widget.subtitle,
-                                    style: CaregiverDashboardTheme.sectionSubtitleStyle(
-                                      context,
-                                    ),
+                                    style:
+                                        CaregiverDashboardTheme.sectionSubtitleStyle(
+                                          context,
+                                        ),
                                   ),
                                 ],
                               ),
@@ -230,7 +233,9 @@ class _ExpandablePatientCardState extends State<ExpandablePatientCard>
               ),
             ),
           // View all button (shown when expanded and there's content)
-          if (_isExpanded && widget.routeForViewDetails != null && widget.expandedChild != null)
+          if (_isExpanded &&
+              widget.routeForViewDetails != null &&
+              widget.expandedChild != null)
             Padding(
               padding: EdgeInsets.only(top: 16.h),
               child: Align(
@@ -252,4 +257,3 @@ class _ExpandablePatientCardState extends State<ExpandablePatientCard>
     );
   }
 }
-

@@ -9,12 +9,7 @@ class PatientCard extends StatelessWidget {
   final VoidCallback? onTap;
   final int? index; // Optional index for color assignment
 
-  const PatientCard({
-    super.key,
-    required this.patient,
-    this.onTap,
-    this.index,
-  });
+  const PatientCard({super.key, required this.patient, this.onTap, this.index});
 
   /// Get a color for the patient card based on index or elderId hash
   Color _getCardColor() {
@@ -75,24 +70,25 @@ class PatientCard extends StatelessWidget {
                     Text(
                       '#PAT${patient.elderId}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: mutedContent,
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        color: mutedContent,
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     SizedBox(height: 4.h),
                     // Name
                     Text(
                       patient.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: contentColor,
-                            fontSize: 16.sp,
-                          ),
+                        fontWeight: FontWeight.w700,
+                        color: contentColor,
+                        fontSize: 16.sp,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (patient.relationship != null || patient.age != null) ...[
+                    if (patient.relationship != null ||
+                        patient.age != null) ...[
                       SizedBox(height: 2.h),
                       // Relationship and Age
                       Row(
@@ -100,7 +96,8 @@ class PatientCard extends StatelessWidget {
                           if (patient.relationship != null) ...[
                             Text(
                               patient.relationship!,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
                                     color: mutedContent,
                                     fontSize: 13.sp,
                                   ),
@@ -108,7 +105,8 @@ class PatientCard extends StatelessWidget {
                             if (patient.age != null) ...[
                               Text(
                                 ' • ',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
                                       color: mutedContent,
                                       fontSize: 13.sp,
                                     ),
@@ -118,7 +116,8 @@ class PatientCard extends StatelessWidget {
                           if (patient.age != null)
                             Text(
                               '${patient.age} Yrs.',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
                                     color: mutedContent,
                                     fontSize: 13.sp,
                                   ),
@@ -130,16 +129,11 @@ class PatientCard extends StatelessWidget {
                 ),
               ),
               // Navigation Arrow
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 16,
-                color: mutedContent,
-              ),
+              Icon(Icons.arrow_forward_ios, size: 16, color: mutedContent),
             ],
           ),
         ),
       ),
     );
   }
-
 }

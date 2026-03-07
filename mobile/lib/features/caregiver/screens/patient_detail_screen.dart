@@ -19,10 +19,7 @@ import '../widgets/emergency_alerts_section.dart';
 class PatientDetailScreen extends StatefulWidget {
   final String elderId;
 
-  const PatientDetailScreen({
-    super.key,
-    required this.elderId,
-  });
+  const PatientDetailScreen({super.key, required this.elderId});
 
   @override
   State<PatientDetailScreen> createState() => _PatientDetailScreenState();
@@ -62,7 +59,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     // Load patient-specific data
     await Future.wait([
       healthProvider.loadVitals(widget.elderId, elderUserId: widget.elderId),
-      medicationProvider.loadMedicines(widget.elderId, elderUserId: widget.elderId),
+      medicationProvider.loadMedicines(
+        widget.elderId,
+        elderUserId: widget.elderId,
+      ),
       lifestyleProvider.loadAll(widget.elderId, elderUserId: widget.elderId),
     ]);
 
@@ -94,9 +94,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.white),
         ),
-        body: Center(
-          child: Text('Patient not found'),
-        ),
+        body: Center(child: Text('Patient not found')),
       );
     }
 
@@ -202,21 +200,24 @@ class _PatientHeader extends StatelessWidget {
                 Text(
                   patient.name,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 if (patient.age != null) ...[
                   SizedBox(height: 4.h),
                   Text(
                     '${patient.age} years old',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
                 SizedBox(height: 8.h),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 6.h,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(12),
@@ -229,14 +230,17 @@ class _PatientHeader extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        isStable ? Icons.check_circle : Icons.warning_amber_rounded,
+                        isStable
+                            ? Icons.check_circle
+                            : Icons.warning_amber_rounded,
                         size: 16,
                         color: statusColor,
                       ),
                       SizedBox(width: 6.w),
                       Text(
                         statusText,
-                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        style: Theme.of(context).textTheme.labelMedium
+                            ?.copyWith(
                               color: statusColor,
                               fontWeight: FontWeight.w600,
                             ),
@@ -318,10 +322,7 @@ class _QuickActionButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: color.withOpacity(0.15),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: color.withOpacity(0.3),
-              width: 1,
-            ),
+            border: Border.all(color: color.withOpacity(0.3), width: 1),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -331,9 +332,9 @@ class _QuickActionButton extends StatelessWidget {
               Text(
                 label,
                 style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                      color: color,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -342,4 +343,3 @@ class _QuickActionButton extends StatelessWidget {
     );
   }
 }
-

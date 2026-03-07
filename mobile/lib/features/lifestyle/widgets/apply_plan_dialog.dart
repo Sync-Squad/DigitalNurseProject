@@ -73,9 +73,7 @@ class _ApplyPlanDialogState extends State<ApplyPlanDialog> {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              result['message'] ?? 'Plan applied successfully',
-            ),
+            content: Text(result['message'] ?? 'Plan applied successfully'),
             backgroundColor: AppTheme.getSuccessColor(context),
           ),
         );
@@ -113,8 +111,8 @@ class _ApplyPlanDialogState extends State<ApplyPlanDialog> {
             Text(
               'Start Date',
               style: textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             SizedBox(height: 8.h),
             InkWell(
@@ -160,8 +158,8 @@ class _ApplyPlanDialogState extends State<ApplyPlanDialog> {
             Text(
               'If unchecked, days with existing logs will be skipped.',
               style: textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -185,4 +183,3 @@ class _ApplyPlanDialogState extends State<ApplyPlanDialog> {
     );
   }
 }
-

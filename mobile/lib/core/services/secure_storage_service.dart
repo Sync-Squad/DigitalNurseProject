@@ -3,15 +3,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureStorageService {
   static const _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(
-      encryptedSharedPreferences: true,
-    ),
+    aOptions: AndroidOptions(encryptedSharedPreferences: true),
   );
 
   // Multi-user support: keys are now per-user
   static String _phoneKey(String userId) => 'biometric_phone_$userId';
   static String _passwordKey(String userId) => 'biometric_password_$userId';
-  static String _biometricEnabledKey(String userId) => 'biometric_enabled_$userId';
+  static String _biometricEnabledKey(String userId) =>
+      'biometric_enabled_$userId';
   static const String _usersListKey = 'biometric_users_list';
 
   void _log(String message) {
@@ -26,15 +25,15 @@ class SecureStorageService {
   }) async {
     try {
       _log('💾 Saving credentials securely for user: $userId');
-      
+
       // Store credentials separately for security, keyed by userId
       await _storage.write(key: _phoneKey(userId), value: phone);
       await _storage.write(key: _passwordKey(userId), value: password);
       await _storage.write(key: _biometricEnabledKey(userId), value: 'true');
-      
+
       // Add userId to the list of users with biometric enabled
       await _addUserToBiometricList(userId);
-      
+
       _log('✅ Credentials saved successfully for user: $userId');
     } catch (e) {
       _log('❌ Error saving credentials for user $userId: $e');
@@ -92,7 +91,11 @@ class SecureStorageService {
     try {
       final phone = await getSavedPhone(userId);
       final password = await getSavedPassword(userId);
-      final hasCredentials = phone != null && password != null && phone.isNotEmpty && password.isNotEmpty;
+      final hasCredentials =
+          phone != null &&
+          password != null &&
+          phone.isNotEmpty &&
+          password.isNotEmpty;
       _log('🔍 Has saved credentials for user $userId: $hasCredentials');
       return hasCredentials;
     } catch (e) {
@@ -108,10 +111,10 @@ class SecureStorageService {
       await _storage.delete(key: _phoneKey(userId));
       await _storage.delete(key: _passwordKey(userId));
       await _storage.delete(key: _biometricEnabledKey(userId));
-      
+
       // Remove userId from the list
       await _removeUserFromBiometricList(userId);
-      
+
       _log('✅ Credentials cleared for user: $userId');
     } catch (e) {
       _log('❌ Error clearing credentials for user $userId: $e');
@@ -124,10 +127,10 @@ class SecureStorageService {
     try {
       _log('🔒 Disabling biometric login for user: $userId');
       await _storage.write(key: _biometricEnabledKey(userId), value: 'false');
-      
+
       // Remove userId from the list
       await _removeUserFromBiometricList(userId);
-      
+
       _log('✅ Biometric login disabled for user: $userId');
     } catch (e) {
       _log('❌ Error disabling biometric for user $userId: $e');
@@ -140,10 +143,10 @@ class SecureStorageService {
     try {
       _log('🔓 Enabling biometric login for user: $userId');
       await _storage.write(key: _biometricEnabledKey(userId), value: 'true');
-      
+
       // Add userId to the list
       await _addUserToBiometricList(userId);
-      
+
       _log('✅ Biometric login enabled for user: $userId');
     } catch (e) {
       _log('❌ Error enabling biometric for user $userId: $e');
@@ -162,16 +165,19 @@ class SecureStorageService {
 
       final List<dynamic> usersList = json.decode(usersListJson);
       final List<String> userIds = usersList.map((e) => e.toString()).toList();
-      
+
       // Filter to only include users who actually have biometric enabled
       final List<String> validUserIds = [];
       for (final userId in userIds) {
-        if (await isBiometricEnabled(userId) && await hasSavedCredentials(userId)) {
+        if (await isBiometricEnabled(userId) &&
+            await hasSavedCredentials(userId)) {
           validUserIds.add(userId);
         }
       }
-      
-      _log('🔍 Found ${validUserIds.length} users with biometric enabled: $validUserIds');
+
+      _log(
+        '🔍 Found ${validUserIds.length} users with biometric enabled: $validUserIds',
+      );
       return validUserIds;
     } catch (e) {
       _log('❌ Error getting users with biometric enabled: $e');
@@ -184,7 +190,7 @@ class SecureStorageService {
     try {
       final usersListJson = await _storage.read(key: _usersListKey);
       List<String> currentUsers = [];
-      
+
       if (usersListJson != null && usersListJson.isNotEmpty) {
         try {
           final List<dynamic> usersList = json.decode(usersListJson);
@@ -193,10 +199,13 @@ class SecureStorageService {
           _log('⚠️ Error parsing users list, starting fresh: $e');
         }
       }
-      
+
       if (!currentUsers.contains(userId)) {
         currentUsers.add(userId);
-        await _storage.write(key: _usersListKey, value: json.encode(currentUsers));
+        await _storage.write(
+          key: _usersListKey,
+          value: json.encode(currentUsers),
+        );
         _log('✅ Added user $userId to biometric users list');
       }
     } catch (e) {
@@ -211,7 +220,7 @@ class SecureStorageService {
       if (usersListJson == null || usersListJson.isEmpty) {
         return;
       }
-      
+
       List<String> currentUsers = [];
       try {
         final List<dynamic> usersList = json.decode(usersListJson);
@@ -220,10 +229,13 @@ class SecureStorageService {
         _log('⚠️ Error parsing users list: $e');
         return;
       }
-      
+
       if (currentUsers.contains(userId)) {
         currentUsers.remove(userId);
-        await _storage.write(key: _usersListKey, value: json.encode(currentUsers));
+        await _storage.write(
+          key: _usersListKey,
+          value: json.encode(currentUsers),
+        );
         _log('✅ Removed user $userId from biometric users list');
       }
     } catch (e) {
@@ -231,4 +243,3 @@ class SecureStorageService {
     }
   }
 }
-

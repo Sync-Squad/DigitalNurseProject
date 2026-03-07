@@ -63,7 +63,9 @@ class MedicineReminderSection extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: context.theme.colors.muted,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: context.theme.colors.border),
+                          border: Border.all(
+                            color: context.theme.colors.border,
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -88,7 +90,10 @@ class MedicineReminderSection extends StatelessWidget {
                                     medicine.dosage,
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
-                                          color: context.theme.colors.mutedForeground,
+                                          color: context
+                                              .theme
+                                              .colors
+                                              .mutedForeground,
                                         ),
                                   ),
                                 ],
@@ -111,9 +116,9 @@ class MedicineReminderSection extends StatelessWidget {
                     const SizedBox(height: 8),
                     Center(
                       child: Text(
-                        'dashboard.moreReminders'.tr(namedArgs: {
-                          'count': '${todayReminders.length - 3}'
-                        }),
+                        'dashboard.moreReminders'.tr(
+                          namedArgs: {'count': '${todayReminders.length - 3}'},
+                        ),
                         style: TextStyle(
                           color: context.theme.colors.mutedForeground,
                           fontSize: 12,

@@ -123,19 +123,20 @@ class _CaregiverDashboardViewState extends State<CaregiverDashboardView> {
               ...(_showAllInvitations
                       ? _pendingInvitations
                       : _pendingInvitations.take(_maxInitialInvitations))
-                  .map((invitation) => Padding(
-                        padding: EdgeInsets.only(bottom: 12.h),
-                        child: InvitationNotificationCard(
-                          invitation: invitation,
-                          notificationId:
-                              invitation['notificationId'] as String?,
-                          onAction: () {
-                            // Refresh both invitations and care recipients
-                            // This ensures new patients appear after accepting invitations
-                            _refreshAll();
-                          },
-                        ),
-                      )),
+                  .map(
+                    (invitation) => Padding(
+                      padding: EdgeInsets.only(bottom: 12.h),
+                      child: InvitationNotificationCard(
+                        invitation: invitation,
+                        notificationId: invitation['notificationId'] as String?,
+                        onAction: () {
+                          // Refresh both invitations and care recipients
+                          // This ensures new patients appear after accepting invitations
+                          _refreshAll();
+                        },
+                      ),
+                    ),
+                  ),
               SizedBox(height: 24.h),
             ],
             PatientCardsGrid(
@@ -145,9 +146,12 @@ class _CaregiverDashboardViewState extends State<CaregiverDashboardView> {
             SizedBox(height: cardSpacing),
             if (widget.careContext.selectedElderId != null)
               AIInsightsDashboardWidget(
-                elderUserId: int.tryParse(widget.careContext.selectedElderId ?? ''),
+                elderUserId: int.tryParse(
+                  widget.careContext.selectedElderId ?? '',
+                ),
               ),
-            if (widget.careContext.selectedElderId != null) SizedBox(height: cardSpacing),
+            if (widget.careContext.selectedElderId != null)
+              SizedBox(height: cardSpacing),
             // const CaregiverOverviewCard(),
             // SizedBox(height: cardSpacing),
             // const CaregiverActionShortcuts(),
@@ -173,10 +177,7 @@ class _WelcomeMessage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: CaregiverDashboardTheme.cardPadding(),
-      decoration: CaregiverDashboardTheme.glassCard(
-        context,
-        highlighted: true,
-      ),
+      decoration: CaregiverDashboardTheme.glassCard(context, highlighted: true),
       child: Row(
         children: [
           ProfessionalAvatar(
@@ -201,9 +202,9 @@ class _WelcomeMessage extends StatelessWidget {
                 SizedBox(height: 4.h),
                 Text(
                   '$patientCount ${patientCount == 1 ? 'patient' : 'patients'}',
-                  style: CaregiverDashboardTheme.sectionSubtitleStyle(context).copyWith(
-                    fontSize: 12,
-                  ),
+                  style: CaregiverDashboardTheme.sectionSubtitleStyle(
+                    context,
+                  ).copyWith(fontSize: 12),
                 ),
               ],
             ),
@@ -212,7 +213,4 @@ class _WelcomeMessage extends StatelessWidget {
       ),
     );
   }
-
 }
-
-

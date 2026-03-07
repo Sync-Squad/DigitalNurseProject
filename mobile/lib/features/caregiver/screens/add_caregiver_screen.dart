@@ -190,7 +190,7 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(height: 40.h),
-                
+
                 // Hero section with logo/title
                 Container(
                   decoration: ModernSurfaceTheme.heroDecoration(context),
@@ -199,28 +199,24 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
                     children: [
                       SizedBox(height: 20.h),
                       // Logo/Icon
-                      Icon(
-                        FIcons.userPlus,
-                        size: 80.r,
-                        color: Colors.white,
-                      ),
+                      Icon(FIcons.userPlus, size: 80.r, color: Colors.white),
                       SizedBox(height: ModernSurfaceTheme.heroSpacing()),
 
                       // Title
                       Text(
                         'Add Caregiver',
-                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                        style: Theme.of(context).textTheme.headlineLarge
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 8.h),
                       Text(
                         'Invite someone to help manage your care',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: Colors.white.withOpacity(0.9)),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 20.h),
@@ -231,7 +227,10 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
 
                 // Form container with glassmorphic card
                 Container(
-                  decoration: ModernSurfaceTheme.glassCard(context, highlighted: true),
+                  decoration: ModernSurfaceTheme.glassCard(
+                    context,
+                    highlighted: true,
+                  ),
                   padding: ModernSurfaceTheme.cardPadding(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -279,7 +278,9 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            onTap: caregiverProvider.isLoading ? null : _handleAdd,
+                            onTap: caregiverProvider.isLoading
+                                ? null
+                                : _handleAdd,
                             borderRadius: BorderRadius.circular(30),
                             child: Container(
                               padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -290,17 +291,21 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
                                       height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white,
-                                        ),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
                                       ),
                                     )
                                   : Text(
                                       'Send Invitation',
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
                             ),
                           ),

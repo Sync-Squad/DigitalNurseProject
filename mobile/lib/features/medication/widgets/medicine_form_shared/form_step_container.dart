@@ -22,17 +22,11 @@ class FormStepContainer extends StatelessWidget {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
       transitionBuilder: (child, animation) {
-        return FadeTransition(
-          opacity: animation,
-          child: child,
-        );
+        return FadeTransition(opacity: animation, child: child);
       },
       child: Container(
         key: ValueKey(stepNumber),
-        decoration: ModernSurfaceTheme.glassCard(
-          context,
-          highlighted: true,
-        ),
+        decoration: ModernSurfaceTheme.glassCard(context, highlighted: true),
         padding: EdgeInsets.all(20.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -40,17 +34,17 @@ class FormStepContainer extends StatelessWidget {
             Text(
               title,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: ModernSurfaceTheme.deepTeal,
-                  ),
+                fontWeight: FontWeight.w700,
+                color: ModernSurfaceTheme.deepTeal,
+              ),
             ),
             if (description != null) ...[
               SizedBox(height: 8.h),
               Text(
                 description!,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.7),
-                    ),
+                  color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.7),
+                ),
               ),
             ],
             SizedBox(height: 24.h),

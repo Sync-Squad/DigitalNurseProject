@@ -62,10 +62,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
         ),
         title: const Text(
           'Choose Your Plan',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
       body: SingleChildScrollView(
@@ -74,7 +71,7 @@ class _SubscriptionPlansScreenState extends State<SubscriptionPlansScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(height: 20.h),
-            
+
             // Hero section
             Container(
               decoration: ModernSurfaceTheme.heroDecoration(context),
@@ -225,8 +222,10 @@ class _PlanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final accent = isPremium ? ModernSurfaceTheme.accentYellow : ModernSurfaceTheme.primaryTeal;
-    
+    final accent = isPremium
+        ? ModernSurfaceTheme.accentYellow
+        : ModernSurfaceTheme.primaryTeal;
+
     return Container(
       decoration: isSelected
           ? ModernSurfaceTheme.tintedCard(context, accent)
@@ -248,27 +247,37 @@ class _PlanCard extends StatelessWidget {
                       children: [
                         Text(
                           title,
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: isSelected
-                                ? ModernSurfaceTheme.tintedForegroundColor(
-                                    accent,
-                                    brightness: Theme.of(context).brightness,
-                                  )
-                                : Theme.of(context).colorScheme.onSurface,
-                          ),
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: isSelected
+                                    ? ModernSurfaceTheme.tintedForegroundColor(
+                                        accent,
+                                        brightness: Theme.of(
+                                          context,
+                                        ).brightness,
+                                      )
+                                    : Theme.of(context).colorScheme.onSurface,
+                              ),
                         ),
                         if (isPremium) ...[
                           SizedBox(width: 12.w),
                           Container(
                             decoration: ModernSurfaceTheme.frostedChip(context),
-                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 6.h,
+                            ),
                             child: Text(
                               'Popular',
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: ModernSurfaceTheme.chipForegroundColor(accent),
-                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color:
+                                        ModernSurfaceTheme.chipForegroundColor(
+                                          accent,
+                                        ),
+                                  ),
                             ),
                           ),
                         ],
@@ -276,7 +285,10 @@ class _PlanCard extends StatelessWidget {
                     ),
                     if (isSelected)
                       Container(
-                        decoration: ModernSurfaceTheme.iconBadge(context, accent),
+                        decoration: ModernSurfaceTheme.iconBadge(
+                          context,
+                          accent,
+                        ),
                         padding: EdgeInsets.all(8.w),
                         child: Icon(
                           FIcons.check,
@@ -292,15 +304,16 @@ class _PlanCard extends StatelessWidget {
                   children: [
                     Text(
                       price,
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isSelected
-                            ? ModernSurfaceTheme.tintedForegroundColor(
-                                ModernSurfaceTheme.primaryTeal,
-                                brightness: Theme.of(context).brightness,
-                              )
-                            : ModernSurfaceTheme.primaryTeal,
-                      ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? ModernSurfaceTheme.tintedForegroundColor(
+                                    ModernSurfaceTheme.primaryTeal,
+                                    brightness: Theme.of(context).brightness,
+                                  )
+                                : ModernSurfaceTheme.primaryTeal,
+                          ),
                     ),
                     SizedBox(width: 6.w),
                     Padding(
@@ -328,7 +341,9 @@ class _PlanCard extends StatelessWidget {
                         Container(
                           decoration: ModernSurfaceTheme.iconBadge(
                             context,
-                            isSelected ? accent : ModernSurfaceTheme.primaryTeal,
+                            isSelected
+                                ? accent
+                                : ModernSurfaceTheme.primaryTeal,
                           ),
                           padding: EdgeInsets.all(4.w),
                           child: Icon(
@@ -341,15 +356,18 @@ class _PlanCard extends StatelessWidget {
                         Expanded(
                           child: Text(
                             feature,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: isSelected
-                                  ? ModernSurfaceTheme.tintedForegroundColor(
-                                      accent,
-                                      brightness: Theme.of(context).brightness,
-                                    )
-                                  : Theme.of(context).colorScheme.onSurface,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: isSelected
+                                      ? ModernSurfaceTheme.tintedForegroundColor(
+                                          accent,
+                                          brightness: Theme.of(
+                                            context,
+                                          ).brightness,
+                                        )
+                                      : Theme.of(context).colorScheme.onSurface,
+                                  fontWeight: FontWeight.w500,
+                                ),
                           ),
                         ),
                       ],

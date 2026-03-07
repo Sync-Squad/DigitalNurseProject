@@ -46,18 +46,14 @@ class _MedicationActionDialogState extends State<MedicationActionDialog> {
       // Map action to IntakeStatus
       // Note: This assumes IntakeStatus enum has 'taken' and 'skipped'
       // You may need to adjust based on your actual enum values
-      final status = _selectedAction == 'administered'
-          ? 'taken'
-          : 'skipped';
+      final status = _selectedAction == 'administered' ? 'taken' : 'skipped';
 
       // TODO: Implement actual API call to mark medication
       // For now, using the existing logIntake method
       await medicationProvider.logIntake(
         medicineId: widget.medicine.id,
         scheduledTime: widget.scheduledTime,
-        status: status == 'taken'
-            ? IntakeStatus.taken
-            : IntakeStatus.skipped,
+        status: status == 'taken' ? IntakeStatus.taken : IntakeStatus.skipped,
         userId: authProvider.currentUser!.id,
       );
 
@@ -69,20 +65,13 @@ class _MedicationActionDialogState extends State<MedicationActionDialog> {
       if (mounted) {
         Navigator.of(context).pop(true);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Medication marked as $_selectedAction',
-            ),
-          ),
+          SnackBar(content: Text('Medication marked as $_selectedAction')),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -110,9 +99,9 @@ class _MedicationActionDialogState extends State<MedicationActionDialog> {
             SizedBox(height: 16.h),
             Text(
               'Action:',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 8.h),
             RadioListTile<String>(
@@ -138,9 +127,9 @@ class _MedicationActionDialogState extends State<MedicationActionDialog> {
             SizedBox(height: 16.h),
             Text(
               'Notes (optional):',
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
             ),
             SizedBox(height: 8.h),
             TextField(
@@ -158,9 +147,7 @@ class _MedicationActionDialogState extends State<MedicationActionDialog> {
               onPressed: () {
                 // TODO: Implement photo upload
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Photo upload coming soon'),
-                  ),
+                  const SnackBar(content: Text('Photo upload coming soon')),
                 );
               },
               icon: const Icon(Icons.camera_alt),
@@ -192,4 +179,3 @@ class _MedicationActionDialogState extends State<MedicationActionDialog> {
     return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 }
-

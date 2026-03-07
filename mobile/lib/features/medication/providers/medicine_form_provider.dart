@@ -243,7 +243,7 @@ class MedicineFormProvider extends ChangeNotifier {
     final dosage = _formData.strength.trim().isNotEmpty
         ? '${_formData.doseAmount.trim()} of ${_formData.strength.trim()}'
         : _formData.doseAmount.trim();
-    
+
     return MedicineModel(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: _formData.name.trim(),

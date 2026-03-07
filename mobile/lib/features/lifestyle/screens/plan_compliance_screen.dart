@@ -98,204 +98,209 @@ class _PlanComplianceScreenState extends State<PlanComplianceScreen> {
         title: Text(
           'Plan Compliance',
           style: textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: onPrimary,
-              ),
+            fontWeight: FontWeight.bold,
+            color: onPrimary,
+          ),
         ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Error loading compliance data',
-                        style: textTheme.bodyLarge,
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        _error!,
-                        style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.error,
-                            ),
-                      ),
-                      SizedBox(height: 16.h),
-                      ElevatedButton(
-                        onPressed: _loadCompliance,
-                        child: const Text('Retry'),
-                      ),
-                    ],
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Error loading compliance data',
+                    style: textTheme.bodyLarge,
                   ),
-                )
-              : _complianceData == null
-                  ? const Center(child: Text('No compliance data available'))
-                  : SingleChildScrollView(
-                      padding: ModernSurfaceTheme.screenPadding(),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Header with plan name and overall compliance
-                          Container(
-                            decoration: ModernSurfaceTheme.heroDecoration(context),
-                            padding: ModernSurfaceTheme.heroPadding(),
-                            child: Column(
+                  SizedBox(height: 8.h),
+                  Text(
+                    _error!,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.error,
+                    ),
+                  ),
+                  SizedBox(height: 16.h),
+                  ElevatedButton(
+                    onPressed: _loadCompliance,
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            )
+          : _complianceData == null
+          ? const Center(child: Text('No compliance data available'))
+          : SingleChildScrollView(
+              padding: ModernSurfaceTheme.screenPadding(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header with plan name and overall compliance
+                  Container(
+                    decoration: ModernSurfaceTheme.heroDecoration(context),
+                    padding: ModernSurfaceTheme.heroPadding(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          widget.planName,
+                          style: textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 16.h),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  widget.planName,
+                                  'Overall Compliance',
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                                SizedBox(height: 4.h),
+                                Text(
+                                  '${(_complianceData!['overallCompliance'] as num).toStringAsFixed(1)}%',
+                                  style: textTheme.headlineMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              width: 80.w,
+                              height: 80.w,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.2),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  '${(_complianceData!['overallCompliance'] as num).toStringAsFixed(0)}%',
                                   style: textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                ),
-                                SizedBox(height: 16.h),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Overall Compliance',
-                                          style: textTheme.bodyMedium?.copyWith(
-                                                color: Colors.white70,
-                                              ),
-                                        ),
-                                        SizedBox(height: 4.h),
-                                        Text(
-                                          '${(_complianceData!['overallCompliance'] as num).toStringAsFixed(1)}%',
-                                          style: textTheme.headlineMedium?.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                    Container(
-                                      width: 80.w,
-                                      height: 80.w,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        color: Colors.white.withValues(alpha: 0.2),
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          '${(_complianceData!['overallCompliance'] as num).toStringAsFixed(0)}%',
-                                          style: textTheme.titleLarge?.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(height: 24.h),
-
-                          // Date range selector
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _DateRangeButton(
-                                  label: '7 Days',
-                                  isSelected: _endDate.difference(_startDate).inDays == 6,
-                                  onTap: () => _selectDateRange(7),
-                                ),
-                              ),
-                              SizedBox(width: 8.w),
-                              Expanded(
-                                child: _DateRangeButton(
-                                  label: '30 Days',
-                                  isSelected: _endDate.difference(_startDate).inDays == 29,
-                                  onTap: () => _selectDateRange(30),
-                                ),
-                              ),
-                              SizedBox(width: 8.w),
-                              Expanded(
-                                child: _DateRangeButton(
-                                  label: 'Custom',
-                                  isSelected: _endDate.difference(_startDate).inDays != 6 &&
-                                      _endDate.difference(_startDate).inDays != 29,
-                                  onTap: () async {
-                                    final range = await showDateRangePicker(
-                                      context: context,
-                                      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-                                      lastDate: DateTime.now(),
-                                      initialDateRange: DateTimeRange(
-                                        start: _startDate,
-                                        end: _endDate,
-                                      ),
-                                    );
-                                    if (range != null) {
-                                      setState(() {
-                                        _startDate = range.start;
-                                        _endDate = range.end;
-                                        _loadCompliance();
-                                      });
-                                    }
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 24.h),
-
-                          // View selector
-                          Container(
-                            decoration: ModernSurfaceTheme.glassCard(context),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: _ViewTab(
-                                    label: 'Calendar',
-                                    isSelected: _selectedView == 0,
-                                    onTap: () => setState(() => _selectedView = 0),
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
                                   ),
                                 ),
-                                Expanded(
-                                  child: _ViewTab(
-                                    label: 'Daily',
-                                    isSelected: _selectedView == 1,
-                                    onTap: () => setState(() => _selectedView = 1),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: _ViewTab(
-                                    label: 'Detailed',
-                                    isSelected: _selectedView == 2,
-                                    onTap: () => setState(() => _selectedView = 2),
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
-                          SizedBox(height: 24.h),
-
-                          // Content based on selected view
-                          if (_selectedView == 0)
-                            _CalendarView(
-                              complianceData: _complianceData!,
-                              startDate: _startDate,
-                              endDate: _endDate,
-                            )
-                          else if (_selectedView == 1)
-                            _DailyBreakdownView(
-                              complianceData: _complianceData!,
-                              isDietPlan: widget.isDietPlan,
-                            )
-                          else
-                            _DetailedComparisonView(
-                              complianceData: _complianceData!,
-                              isDietPlan: widget.isDietPlan,
-                            ),
-                        ],
-                      ),
+                          ],
+                        ),
+                      ],
                     ),
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Date range selector
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _DateRangeButton(
+                          label: '7 Days',
+                          isSelected:
+                              _endDate.difference(_startDate).inDays == 6,
+                          onTap: () => _selectDateRange(7),
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      Expanded(
+                        child: _DateRangeButton(
+                          label: '30 Days',
+                          isSelected:
+                              _endDate.difference(_startDate).inDays == 29,
+                          onTap: () => _selectDateRange(30),
+                        ),
+                      ),
+                      SizedBox(width: 8.w),
+                      Expanded(
+                        child: _DateRangeButton(
+                          label: 'Custom',
+                          isSelected:
+                              _endDate.difference(_startDate).inDays != 6 &&
+                              _endDate.difference(_startDate).inDays != 29,
+                          onTap: () async {
+                            final range = await showDateRangePicker(
+                              context: context,
+                              firstDate: DateTime.now().subtract(
+                                const Duration(days: 365),
+                              ),
+                              lastDate: DateTime.now(),
+                              initialDateRange: DateTimeRange(
+                                start: _startDate,
+                                end: _endDate,
+                              ),
+                            );
+                            if (range != null) {
+                              setState(() {
+                                _startDate = range.start;
+                                _endDate = range.end;
+                                _loadCompliance();
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // View selector
+                  Container(
+                    decoration: ModernSurfaceTheme.glassCard(context),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _ViewTab(
+                            label: 'Calendar',
+                            isSelected: _selectedView == 0,
+                            onTap: () => setState(() => _selectedView = 0),
+                          ),
+                        ),
+                        Expanded(
+                          child: _ViewTab(
+                            label: 'Daily',
+                            isSelected: _selectedView == 1,
+                            onTap: () => setState(() => _selectedView = 1),
+                          ),
+                        ),
+                        Expanded(
+                          child: _ViewTab(
+                            label: 'Detailed',
+                            isSelected: _selectedView == 2,
+                            onTap: () => setState(() => _selectedView = 2),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 24.h),
+
+                  // Content based on selected view
+                  if (_selectedView == 0)
+                    _CalendarView(
+                      complianceData: _complianceData!,
+                      startDate: _startDate,
+                      endDate: _endDate,
+                    )
+                  else if (_selectedView == 1)
+                    _DailyBreakdownView(
+                      complianceData: _complianceData!,
+                      isDietPlan: widget.isDietPlan,
+                    )
+                  else
+                    _DetailedComparisonView(
+                      complianceData: _complianceData!,
+                      isDietPlan: widget.isDietPlan,
+                    ),
+                ],
+              ),
+            ),
     );
   }
 }
@@ -328,9 +333,9 @@ class _DateRangeButton extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isSelected ? Colors.white : ModernSurfaceTheme.primaryTeal,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
+              color: isSelected ? Colors.white : ModernSurfaceTheme.primaryTeal,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
         ),
       ),
@@ -358,7 +363,9 @@ class _ViewTab extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: isSelected ? ModernSurfaceTheme.primaryTeal : Colors.transparent,
+              color: isSelected
+                  ? ModernSurfaceTheme.primaryTeal
+                  : Colors.transparent,
               width: 2,
             ),
           ),
@@ -367,11 +374,11 @@ class _ViewTab extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: isSelected
-                      ? ModernSurfaceTheme.primaryTeal
-                      : Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
+              color: isSelected
+                  ? ModernSurfaceTheme.primaryTeal
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
         ),
       ),
@@ -423,8 +430,8 @@ class _CalendarView extends StatelessWidget {
             Text(
               DateFormat('MMMM yyyy').format(month),
               style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             SizedBox(height: 16.h),
             GridView.builder(
@@ -442,7 +449,9 @@ class _CalendarView extends StatelessWidget {
                 final date = DateTime.parse(day['date']);
                 return Container(
                   decoration: BoxDecoration(
-                    color: _getComplianceColor(compliance.toDouble()).withValues(alpha: 0.2),
+                    color: _getComplianceColor(
+                      compliance.toDouble(),
+                    ).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: _getComplianceColor(compliance.toDouble()),
@@ -455,15 +464,13 @@ class _CalendarView extends StatelessWidget {
                       Text(
                         '${date.day}',
                         style: textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       SizedBox(height: 4.h),
                       Text(
                         '${compliance.toStringAsFixed(0)}%',
-                        style: textTheme.bodySmall?.copyWith(
-                              fontSize: 10,
-                            ),
+                        style: textTheme.bodySmall?.copyWith(fontSize: 10),
                       ),
                     ],
                   ),
@@ -512,7 +519,8 @@ class _DailyBreakdownViewState extends State<_DailyBreakdownView> {
 
   @override
   Widget build(BuildContext context) {
-    final dailyBreakdown = widget.complianceData['dailyBreakdown'] as List<dynamic>;
+    final dailyBreakdown =
+        widget.complianceData['dailyBreakdown'] as List<dynamic>;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -541,31 +549,36 @@ class _DailyBreakdownViewState extends State<_DailyBreakdownView> {
                           Text(
                             DateFormat('EEEE, MMMM d').format(date),
                             style: textTheme.bodyLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           SizedBox(height: 4.h),
                           Text(
                             '${day['matched']} of ${day['planned']} items completed',
                             style: textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ],
                       ),
                     ),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 6.h,
+                      ),
                       decoration: BoxDecoration(
-                        color: _getComplianceColor(compliance.toDouble()).withValues(alpha: 0.2),
+                        color: _getComplianceColor(
+                          compliance.toDouble(),
+                        ).withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         '${compliance.toStringAsFixed(0)}%',
                         style: textTheme.bodyMedium?.copyWith(
-                              color: _getComplianceColor(compliance.toDouble()),
-                              fontWeight: FontWeight.bold,
-                            ),
+                          color: _getComplianceColor(compliance.toDouble()),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     SizedBox(width: 8.w),
@@ -590,8 +603,8 @@ class _DailyBreakdownViewState extends State<_DailyBreakdownView> {
                       color: matched
                           ? Colors.green.withValues(alpha: 0.1)
                           : (planned == null
-                              ? Colors.grey.withValues(alpha: 0.1)
-                              : Colors.red.withValues(alpha: 0.1)),
+                                ? Colors.grey.withValues(alpha: 0.1)
+                                : Colors.red.withValues(alpha: 0.1)),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: matched
@@ -605,7 +618,9 @@ class _DailyBreakdownViewState extends State<_DailyBreakdownView> {
                         Icon(
                           matched
                               ? Icons.check_circle
-                              : (planned == null ? Icons.add_circle : Icons.cancel),
+                              : (planned == null
+                                    ? Icons.add_circle
+                                    : Icons.cancel),
                           color: matched
                               ? Colors.green
                               : (planned == null ? Colors.grey : Colors.red),
@@ -620,15 +635,15 @@ class _DailyBreakdownViewState extends State<_DailyBreakdownView> {
                                 Text(
                                   'Planned: ${planned['description']}',
                                   style: textTheme.bodySmall?.copyWith(
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               if (actual != null)
                                 Text(
                                   'Actual: ${actual['description']}',
                                   style: textTheme.bodySmall?.copyWith(
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                 ),
                             ],
                           ),
@@ -676,8 +691,8 @@ class _DetailedComparisonView extends StatelessWidget {
               Text(
                 DateFormat('EEEE, MMMM d').format(date),
                 style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               SizedBox(height: 16.h),
               Row(
@@ -690,12 +705,14 @@ class _DetailedComparisonView extends StatelessWidget {
                         Text(
                           'Planned',
                           style: textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: ModernSurfaceTheme.primaryTeal,
-                              ),
+                            fontWeight: FontWeight.bold,
+                            color: ModernSurfaceTheme.primaryTeal,
+                          ),
                         ),
                         SizedBox(height: 8.h),
-                        ...details.where((d) => d['planned'] != null).map((detail) {
+                        ...details.where((d) => d['planned'] != null).map((
+                          detail,
+                        ) {
                           final planned = detail['planned'];
                           return Container(
                             margin: EdgeInsets.only(bottom: 8.h),
@@ -715,15 +732,16 @@ class _DetailedComparisonView extends StatelessWidget {
                                   Text(
                                     '${planned['calories']} cal',
                                     style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                                   )
-                                else if (!isDietPlan && planned['durationMinutes'] != null)
+                                else if (!isDietPlan &&
+                                    planned['durationMinutes'] != null)
                                   Text(
                                     '${planned['durationMinutes']} min',
                                     style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                                   ),
                               ],
                             ),
@@ -740,12 +758,14 @@ class _DetailedComparisonView extends StatelessWidget {
                         Text(
                           'Actual',
                           style: textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: ModernSurfaceTheme.accentBlue,
-                              ),
+                            fontWeight: FontWeight.bold,
+                            color: ModernSurfaceTheme.accentBlue,
+                          ),
                         ),
                         SizedBox(height: 8.h),
-                        ...details.where((d) => d['actual'] != null).map((detail) {
+                        ...details.where((d) => d['actual'] != null).map((
+                          detail,
+                        ) {
                           final actual = detail['actual'];
                           final matched = detail['matched'] as bool;
                           return Container(
@@ -757,7 +777,9 @@ class _DetailedComparisonView extends StatelessWidget {
                                   : colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
-                                color: matched ? Colors.green : Colors.transparent,
+                                color: matched
+                                    ? Colors.green
+                                    : Colors.transparent,
                                 width: 1,
                               ),
                             ),
@@ -785,15 +807,16 @@ class _DetailedComparisonView extends StatelessWidget {
                                   Text(
                                     '${actual['calories']} cal',
                                     style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                                   )
-                                else if (!isDietPlan && actual['durationMinutes'] != null)
+                                else if (!isDietPlan &&
+                                    actual['durationMinutes'] != null)
                                   Text(
                                     '${actual['durationMinutes']} min',
                                     style: textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.onSurfaceVariant,
-                                        ),
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
                                   ),
                               ],
                             ),
@@ -811,4 +834,3 @@ class _DetailedComparisonView extends StatelessWidget {
     );
   }
 }
-

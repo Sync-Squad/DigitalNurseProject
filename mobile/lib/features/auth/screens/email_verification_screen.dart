@@ -10,14 +10,11 @@ class EmailVerificationScreen extends StatefulWidget {
   final String email;
   final String? token;
 
-  const EmailVerificationScreen({
-    super.key,
-    required this.email,
-    this.token,
-  });
+  const EmailVerificationScreen({super.key, required this.email, this.token});
 
   @override
-  State<EmailVerificationScreen> createState() => _EmailVerificationScreenState();
+  State<EmailVerificationScreen> createState() =>
+      _EmailVerificationScreenState();
 }
 
 class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
@@ -94,7 +91,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           });
         } else {
           setState(() {
-            _error = authProvider.error ?? 'Failed to resend verification email';
+            _error =
+                authProvider.error ?? 'Failed to resend verification email';
             _successMessage = null;
           });
         }
@@ -254,7 +252,9 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       vertical: 12.h,
                     ),
                     decoration: BoxDecoration(
-                      color: AppTheme.getWarningColor(context).withOpacity(0.08),
+                      color: AppTheme.getWarningColor(
+                        context,
+                      ).withOpacity(0.08),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(

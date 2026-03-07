@@ -24,8 +24,11 @@ class LifestyleProvider with ChangeNotifier {
   String? get error => _error;
 
   // Load diet logs
-  Future<void> loadDietLogs(String userId,
-      {DateTime? date, String? elderUserId}) async {
+  Future<void> loadDietLogs(
+    String userId, {
+    DateTime? date,
+    String? elderUserId,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
@@ -45,8 +48,11 @@ class LifestyleProvider with ChangeNotifier {
   }
 
   // Load exercise logs
-  Future<void> loadExerciseLogs(String userId,
-      {DateTime? date, String? elderUserId}) async {
+  Future<void> loadExerciseLogs(
+    String userId, {
+    DateTime? date,
+    String? elderUserId,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
@@ -66,8 +72,11 @@ class LifestyleProvider with ChangeNotifier {
   }
 
   // Load both diet and exercise logs
-  Future<void> loadAll(String userId,
-      {DateTime? date, String? elderUserId}) async {
+  Future<void> loadAll(
+    String userId, {
+    DateTime? date,
+    String? elderUserId,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
@@ -117,13 +126,13 @@ class LifestyleProvider with ChangeNotifier {
   }
 
   // Delete diet log
-  Future<bool> deleteDietLog(String logId, String userId,
-      {String? elderUserId}) async {
+  Future<bool> deleteDietLog(
+    String logId,
+    String userId, {
+    String? elderUserId,
+  }) async {
     try {
-      await _service.deleteDietLog(
-        logId,
-        elderUserId: elderUserId,
-      );
+      await _service.deleteDietLog(logId, elderUserId: elderUserId);
       _dietLogs.removeWhere((d) => d.id == logId);
       _dailySummary = await _service.getDailySummary(
         userId,
@@ -161,13 +170,13 @@ class LifestyleProvider with ChangeNotifier {
   }
 
   // Delete exercise log
-  Future<bool> deleteExerciseLog(String logId, String userId,
-      {String? elderUserId}) async {
+  Future<bool> deleteExerciseLog(
+    String logId,
+    String userId, {
+    String? elderUserId,
+  }) async {
     try {
-      await _service.deleteExerciseLog(
-        logId,
-        elderUserId: elderUserId,
-      );
+      await _service.deleteExerciseLog(logId, elderUserId: elderUserId);
       _exerciseLogs.removeWhere((e) => e.id == logId);
       _dailySummary = await _service.getDailySummary(
         userId,
@@ -185,12 +194,11 @@ class LifestyleProvider with ChangeNotifier {
   }
 
   // Get weekly summary
-  Future<Map<String, dynamic>> getWeeklySummary(String userId,
-      {String? elderUserId}) async {
-    return await _service.getWeeklySummary(
-      userId,
-      elderUserId: elderUserId,
-    );
+  Future<Map<String, dynamic>> getWeeklySummary(
+    String userId, {
+    String? elderUserId,
+  }) async {
+    return await _service.getWeeklySummary(userId, elderUserId: elderUserId);
   }
 
   // Initialize mock data (deprecated - no longer needed with API integration)
@@ -225,9 +233,15 @@ class LifestyleProvider with ChangeNotifier {
     }
   }
 
-  Future<DietPlanModel> createDietPlan(DietPlanModel plan, {String? elderUserId}) async {
+  Future<DietPlanModel> createDietPlan(
+    DietPlanModel plan, {
+    String? elderUserId,
+  }) async {
     try {
-      final created = await _service.createDietPlan(plan, elderUserId: elderUserId);
+      final created = await _service.createDietPlan(
+        plan,
+        elderUserId: elderUserId,
+      );
       _dietPlans.insert(0, created);
       _error = null;
       notifyListeners();
@@ -239,9 +253,17 @@ class LifestyleProvider with ChangeNotifier {
     }
   }
 
-  Future<DietPlanModel> updateDietPlan(String planId, DietPlanModel plan, {String? elderUserId}) async {
+  Future<DietPlanModel> updateDietPlan(
+    String planId,
+    DietPlanModel plan, {
+    String? elderUserId,
+  }) async {
     try {
-      final updated = await _service.updateDietPlan(planId, plan, elderUserId: elderUserId);
+      final updated = await _service.updateDietPlan(
+        planId,
+        plan,
+        elderUserId: elderUserId,
+      );
       final index = _dietPlans.indexWhere((p) => p.id == planId);
       if (index != -1) {
         _dietPlans[index] = updated;
@@ -285,7 +307,11 @@ class LifestyleProvider with ChangeNotifier {
       );
       // Reload diet logs after applying plan
       if (elderUserId != null) {
-        await loadDietLogs(elderUserId, date: startDate, elderUserId: elderUserId);
+        await loadDietLogs(
+          elderUserId,
+          date: startDate,
+          elderUserId: elderUserId,
+        );
       }
       _error = null;
       notifyListeners();
@@ -306,7 +332,9 @@ class LifestyleProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _exercisePlans = await _service.getExercisePlans(elderUserId: elderUserId);
+      _exercisePlans = await _service.getExercisePlans(
+        elderUserId: elderUserId,
+      );
       _error = null;
     } catch (e) {
       _error = e.toString();
@@ -316,9 +344,15 @@ class LifestyleProvider with ChangeNotifier {
     }
   }
 
-  Future<ExercisePlanModel> createExercisePlan(ExercisePlanModel plan, {String? elderUserId}) async {
+  Future<ExercisePlanModel> createExercisePlan(
+    ExercisePlanModel plan, {
+    String? elderUserId,
+  }) async {
     try {
-      final created = await _service.createExercisePlan(plan, elderUserId: elderUserId);
+      final created = await _service.createExercisePlan(
+        plan,
+        elderUserId: elderUserId,
+      );
       _exercisePlans.insert(0, created);
       _error = null;
       notifyListeners();
@@ -331,9 +365,16 @@ class LifestyleProvider with ChangeNotifier {
   }
 
   Future<ExercisePlanModel> updateExercisePlan(
-      String planId, ExercisePlanModel plan, {String? elderUserId}) async {
+    String planId,
+    ExercisePlanModel plan, {
+    String? elderUserId,
+  }) async {
     try {
-      final updated = await _service.updateExercisePlan(planId, plan, elderUserId: elderUserId);
+      final updated = await _service.updateExercisePlan(
+        planId,
+        plan,
+        elderUserId: elderUserId,
+      );
       final index = _exercisePlans.indexWhere((p) => p.id == planId);
       if (index != -1) {
         _exercisePlans[index] = updated;
@@ -377,7 +418,11 @@ class LifestyleProvider with ChangeNotifier {
       );
       // Reload exercise logs after applying plan
       if (elderUserId != null) {
-        await loadExerciseLogs(elderUserId, date: startDate, elderUserId: elderUserId);
+        await loadExerciseLogs(
+          elderUserId,
+          date: startDate,
+          elderUserId: elderUserId,
+        );
       }
       _error = null;
       notifyListeners();

@@ -52,7 +52,9 @@ class DietExerciseSection extends StatelessWidget {
                     child: Text(
                       'dashboard.noDietExercise'.tr(),
                       style: TextStyle(
-                        color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.6),
+                        color: ModernSurfaceTheme.deepTeal.withValues(
+                          alpha: 0.6,
+                        ),
                         fontSize: 14,
                       ),
                     ),
@@ -69,9 +71,9 @@ class DietExerciseSection extends StatelessWidget {
                     Text(
                       'dashboard.meals'.tr(),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.getSuccessColor(context),
-                          ),
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.getSuccessColor(context),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     ...todayDietLogs.take(2).map((log) {
@@ -110,10 +112,16 @@ class DietExerciseSection extends StatelessWidget {
                                         ),
                                         if (log.sourcePlanId != null)
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                              vertical: 2,
+                                            ),
                                             decoration: BoxDecoration(
-                                              color: AppTheme.getSuccessColor(context).withValues(alpha: 0.2),
-                                              borderRadius: BorderRadius.circular(6),
+                                              color: AppTheme.getSuccessColor(
+                                                context,
+                                              ).withValues(alpha: 0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -121,14 +129,24 @@ class DietExerciseSection extends StatelessWidget {
                                                 Icon(
                                                   FIcons.calendar,
                                                   size: 10,
-                                                  color: AppTheme.getSuccessColor(context),
+                                                  color:
+                                                      AppTheme.getSuccessColor(
+                                                        context,
+                                                      ),
                                                 ),
                                                 const SizedBox(width: 2),
                                                 Text(
                                                   'Plan',
-                                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                        color: AppTheme.getSuccessColor(context),
-                                                        fontWeight: FontWeight.w600,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color:
+                                                            AppTheme.getSuccessColor(
+                                                              context,
+                                                            ),
+                                                        fontWeight:
+                                                            FontWeight.w600,
                                                         fontSize: 9,
                                                       ),
                                                 ),
@@ -143,7 +161,10 @@ class DietExerciseSection extends StatelessWidget {
                                           .textTheme
                                           .bodySmall
                                           ?.copyWith(
-                                            color: context.theme.colors.mutedForeground,
+                                            color: context
+                                                .theme
+                                                .colors
+                                                .mutedForeground,
                                           ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -172,9 +193,9 @@ class DietExerciseSection extends StatelessWidget {
                     Text(
                       'dashboard.exercise'.tr(),
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: ModernSurfaceTheme.accentBlue,
-                          ),
+                        fontWeight: FontWeight.w700,
+                        color: ModernSurfaceTheme.accentBlue,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     ...todayExerciseLogs.take(2).map((log) {
@@ -213,10 +234,16 @@ class DietExerciseSection extends StatelessWidget {
                                         ),
                                         if (log.sourcePlanId != null)
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 4,
+                                              vertical: 2,
+                                            ),
                                             decoration: BoxDecoration(
-                                              color: ModernSurfaceTheme.accentBlue.withValues(alpha: 0.2),
-                                              borderRadius: BorderRadius.circular(6),
+                                              color: ModernSurfaceTheme
+                                                  .accentBlue
+                                                  .withValues(alpha: 0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
@@ -224,14 +251,21 @@ class DietExerciseSection extends StatelessWidget {
                                                 Icon(
                                                   FIcons.calendar,
                                                   size: 10,
-                                                  color: ModernSurfaceTheme.accentBlue,
+                                                  color: ModernSurfaceTheme
+                                                      .accentBlue,
                                                 ),
                                                 const SizedBox(width: 2),
                                                 Text(
                                                   'Plan',
-                                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                        color: ModernSurfaceTheme.accentBlue,
-                                                        fontWeight: FontWeight.w600,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color:
+                                                            ModernSurfaceTheme
+                                                                .accentBlue,
+                                                        fontWeight:
+                                                            FontWeight.w600,
                                                         fontSize: 9,
                                                       ),
                                                 ),
@@ -246,7 +280,10 @@ class DietExerciseSection extends StatelessWidget {
                                           .textTheme
                                           .bodySmall
                                           ?.copyWith(
-                                            color: context.theme.colors.mutedForeground,
+                                            color: context
+                                                .theme
+                                                .colors
+                                                .mutedForeground,
                                           ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
@@ -286,11 +323,13 @@ class DietExerciseSection extends StatelessWidget {
                     const SizedBox(height: 8),
                     Center(
                       child: Text(
-                        'dashboard.moreActivities'.tr(namedArgs: {
-                          'count': '${todayTotalLogs - 4}'
-                        }),
+                        'dashboard.moreActivities'.tr(
+                          namedArgs: {'count': '${todayTotalLogs - 4}'},
+                        ),
                         style: TextStyle(
-                          color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.6),
+                          color: ModernSurfaceTheme.deepTeal.withValues(
+                            alpha: 0.6,
+                          ),
                           fontSize: 12,
                           fontStyle: FontStyle.italic,
                         ),

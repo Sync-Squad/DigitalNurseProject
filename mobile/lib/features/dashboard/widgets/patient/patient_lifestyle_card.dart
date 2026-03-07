@@ -21,7 +21,7 @@ class PatientLifestyleCard extends StatelessWidget {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final lifestyleProvider = context.watch<LifestyleProvider>();
     final now = TimezoneUtil.nowInPakistan();
     final todayStart = DateTime(now.year, now.month, now.day);
@@ -51,10 +51,7 @@ class PatientLifestyleCard extends StatelessWidget {
       routeForViewDetails: '/lifestyle',
       expandedChild: todayTotalLogs == 0
           ? Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 18.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
               decoration: CaregiverDashboardTheme.tintedCard(
                 context,
                 CaregiverDashboardTheme.primaryTeal,
@@ -75,16 +72,16 @@ class PatientLifestyleCard extends StatelessWidget {
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
-                child: Text(
-                  'patient.noLifestyleLogs'.tr(),
-                  style: context.theme.typography.sm.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: CaregiverDashboardTheme.tintedForegroundColor(
-                      CaregiverDashboardTheme.primaryTeal,
-                      brightness: brightness,
+                    child: Text(
+                      'patient.noLifestyleLogs'.tr(),
+                      style: context.theme.typography.sm.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: CaregiverDashboardTheme.tintedForegroundColor(
+                          CaregiverDashboardTheme.primaryTeal,
+                          brightness: brightness,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
                   ),
                 ],
               ),
@@ -131,7 +128,8 @@ class PatientLifestyleCard extends StatelessWidget {
                       child: _LifestyleLogRow(
                         icon: Icons.fitness_center,
                         title: log.activityType.displayName,
-                        subtitle: '${log.durationMinutes} min, ${log.caloriesBurned} cal',
+                        subtitle:
+                            '${log.durationMinutes} min, ${log.caloriesBurned} cal',
                         value: '${log.durationMinutes} min',
                         accent: context.theme.colors.secondary,
                         onTap: () => context.push('/lifestyle'),
@@ -184,11 +182,7 @@ class _LifestyleLogRow extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: CaregiverDashboardTheme.iconBadge(context, accent),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 22,
-            ),
+            child: Icon(icon, color: Colors.white, size: 22),
           ),
           SizedBox(width: 14.w),
           Expanded(

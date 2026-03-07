@@ -32,9 +32,9 @@ class RecommendationCard extends StatelessWidget {
                   if (category != null)
                     Text(
                       category!,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: Colors.grey,
-                          ),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.labelSmall?.copyWith(color: Colors.grey),
                     ),
                   Text(
                     recommendation,
@@ -54,4 +54,3 @@ class RecommendationCard extends StatelessWidget {
     );
   }
 }
-

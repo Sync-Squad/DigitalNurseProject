@@ -42,7 +42,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
     final now = TimezoneUtil.nowInPakistan();
     _selectedDate = widget.selectedDate ?? now;
     _selectedTime = TimeOfDay.fromDateTime(now);
-    
+
     // Clear error when user types in description
     _descriptionController.addListener(() {
       if (_analysisError != null && mounted) {
@@ -62,7 +62,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   Future<void> _handleAnalyze() async {
     final description = _descriptionController.text.trim();
-    
+
     if (description.isEmpty) {
       setState(() {
         _analysisError = 'Please enter a food description first';
@@ -77,14 +77,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
     try {
       final calories = await _openAIService.analyzeFoodCalories(description);
-      
+
       if (mounted) {
         if (calories != null && calories > 0) {
           setState(() {
             _caloriesController.text = calories.toString();
             _analysisError = null;
           });
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Calculated: $calories calories'),
@@ -94,14 +94,16 @@ class _AddMealScreenState extends State<AddMealScreen> {
           );
         } else {
           setState(() {
-            _analysisError = 'Unable to calculate calories. Please enter manually.';
+            _analysisError =
+                'Unable to calculate calories. Please enter manually.';
           });
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _analysisError = 'Analysis failed: ${e.toString().replaceAll('Exception: ', '')}';
+          _analysisError =
+              'Analysis failed: ${e.toString().replaceAll('Exception: ', '')}';
         });
       }
     } finally {
@@ -208,9 +210,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
           title: Text(
             'Add Meal',
             style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onPrimary,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onPrimary,
+            ),
           ),
         ),
         body: SingleChildScrollView(
@@ -257,8 +259,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
                                 child: Text(
                                   type.displayName,
                                   style: textTheme.bodyMedium?.copyWith(
-                                        color: colorScheme.onSurface,
-                                      ),
+                                    color: colorScheme.onSurface,
+                                  ),
                                 ),
                               ),
                             )
@@ -318,13 +320,16 @@ class _AddMealScreenState extends State<AddMealScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      DateFormat('MMM d, yyyy').format(_selectedDate),
+                                      DateFormat(
+                                        'MMM d, yyyy',
+                                      ).format(_selectedDate),
                                       style: textTheme.bodyMedium?.copyWith(
-                                            color: colorScheme.onSurface,
-                                          ),
+                                        color: colorScheme.onSurface,
+                                      ),
                                     ),
                                     Icon(
                                       FIcons.calendar,
@@ -360,13 +365,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       _selectedTime.format(context),
                                       style: textTheme.bodyMedium?.copyWith(
-                                            color: colorScheme.onSurface,
-                                          ),
+                                        color: colorScheme.onSurface,
+                                      ),
                                     ),
                                     Icon(
                                       FIcons.clock,
@@ -392,7 +398,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
                     FTextField(
                       controller: _descriptionController,
                       label: const Text('Description'),
-                      hint: 'What did you eat? (e.g., "Grilled chicken breast with rice and vegetables")',
+                      hint:
+                          'What did you eat? (e.g., "Grilled chicken breast with rice and vegetables")',
                       maxLines: 3,
                     ),
                   ],
@@ -460,8 +467,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           child: Text(
                             _analysisError!,
                             style: textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.getErrorColor(context),
-                                ),
+                              color: AppTheme.getErrorColor(context),
+                            ),
                           ),
                         ),
                       ],
@@ -505,9 +512,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         : Text(
                             'Save Meal',
                             style: textTheme.labelLarge?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                   ),
                 ),

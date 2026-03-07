@@ -21,8 +21,9 @@ class AIChatBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
-        mainAxisAlignment:
-            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser) ...[
@@ -82,24 +83,32 @@ class AIChatBubble extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         color: isUser
                             ? Colors.white.withOpacity(0.9)
-                            : Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                            : Theme.of(
+                                context,
+                              ).colorScheme.onSurface.withOpacity(0.7),
                       ),
                     ),
                     const SizedBox(height: 4),
-                    ...sources!.take(3).map((source) => Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: Text(
-                            '• ${source['text'] ?? 'Source'}',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: isUser
-                                  ? Colors.white.withOpacity(0.8)
-                                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    ...sources!
+                        .take(3)
+                        .map(
+                          (source) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(
+                              '• ${source['text'] ?? 'Source'}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isUser
+                                    ? Colors.white.withOpacity(0.8)
+                                    : Theme.of(
+                                        context,
+                                      ).colorScheme.onSurface.withOpacity(0.6),
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        )),
+                        ),
                   ],
                 ],
               ),
@@ -118,4 +127,3 @@ class AIChatBubble extends StatelessWidget {
     );
   }
 }
-

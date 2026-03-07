@@ -17,7 +17,7 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final AIService _aiService = AIService();
-  
+
   List<Map<String, dynamic>> _messages = [];
   int? _conversationId;
   bool _isLoading = false;
@@ -176,16 +176,20 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                         const SizedBox(height: 16),
                         Text(
                           'Ask me anything about your health',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                color: Theme.of(context).colorScheme.onSurface,
+                              ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'I can help you understand your medications, vitals, and health trends',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -298,4 +302,3 @@ class _QuickActionButton extends StatelessWidget {
     );
   }
 }
-

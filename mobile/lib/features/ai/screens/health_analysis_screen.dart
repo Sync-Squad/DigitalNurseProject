@@ -28,14 +28,12 @@ class _HealthAnalysisScreenState extends State<HealthAnalysisScreen> {
     try {
       final careContext = context.read<CareContextProvider>();
       await careContext.ensureLoaded();
-      
+
       final elderUserId = careContext.selectedElderId != null
           ? int.tryParse(careContext.selectedElderId!)
           : null;
 
-      final analysis = await _aiService.analyzeHealth(
-        elderUserId: elderUserId,
-      );
+      final analysis = await _aiService.analyzeHealth(elderUserId: elderUserId);
 
       setState(() {
         _analysis = analysis;
@@ -44,9 +42,9 @@ class _HealthAnalysisScreenState extends State<HealthAnalysisScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load analysis: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load analysis: $e')));
       }
     }
   }
@@ -57,46 +55,39 @@ class _HealthAnalysisScreenState extends State<HealthAnalysisScreen> {
       appBar: AppBar(
         title: const Text('Health Analysis'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadAnalysis,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadAnalysis),
         ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _analysis == null
-              ? const Center(child: Text('No analysis available'))
-              : RefreshIndicator(
-                  onRefresh: _loadAnalysis,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Medication Adherence Section
-                        if (_analysis!['medicationAdherence'] != null)
-                          _buildMedicationAdherenceSection(
-                            _analysis!['medicationAdherence'],
-                          ),
-                        // Health Trends Section
-                        if (_analysis!['healthTrends'] != null)
-                          _buildHealthTrendsSection(
-                            _analysis!['healthTrends'],
-                          ),
-                        // Lifestyle Section
-                        if (_analysis!['lifestyleCorrelation'] != null)
-                          _buildLifestyleSection(
-                            _analysis!['lifestyleCorrelation'],
-                          ),
-                        // Risk Factors Section
-                        if (_analysis!['riskFactors'] != null)
-                          _buildRiskFactorsSection(
-                            _analysis!['riskFactors'],
-                          ),
-                      ],
-                    ),
-                  ),
+          ? const Center(child: Text('No analysis available'))
+          : RefreshIndicator(
+              onRefresh: _loadAnalysis,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Medication Adherence Section
+                    if (_analysis!['medicationAdherence'] != null)
+                      _buildMedicationAdherenceSection(
+                        _analysis!['medicationAdherence'],
+                      ),
+                    // Health Trends Section
+                    if (_analysis!['healthTrends'] != null)
+                      _buildHealthTrendsSection(_analysis!['healthTrends']),
+                    // Lifestyle Section
+                    if (_analysis!['lifestyleCorrelation'] != null)
+                      _buildLifestyleSection(
+                        _analysis!['lifestyleCorrelation'],
+                      ),
+                    // Risk Factors Section
+                    if (_analysis!['riskFactors'] != null)
+                      _buildRiskFactorsSection(_analysis!['riskFactors']),
+                  ],
                 ),
+              ),
+            ),
     );
   }
 
@@ -111,9 +102,9 @@ class _HealthAnalysisScreenState extends State<HealthAnalysisScreen> {
           children: [
             Text(
               'Medication Adherence',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             CircularProgressIndicator(
@@ -127,8 +118,9 @@ class _HealthAnalysisScreenState extends State<HealthAnalysisScreen> {
             ),
             if (data['recommendations'] != null) ...[
               const SizedBox(height: 16),
-              ...(data['recommendations'] as List).map((rec) =>
-                  RecommendationCard(recommendation: rec.toString())),
+              ...(data['recommendations'] as List).map(
+                (rec) => RecommendationCard(recommendation: rec.toString()),
+              ),
             ],
           ],
         ),
@@ -146,24 +138,27 @@ class _HealthAnalysisScreenState extends State<HealthAnalysisScreen> {
           children: [
             Text(
               'Health Trends',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             if (data['vitals'] != null)
-              ...(data['vitals'] as List).map((vital) => ListTile(
-                    title: Text(vital['type'] ?? ''),
-                    subtitle: Text('Trend: ${vital['trend'] ?? ''}'),
-                    trailing: Chip(
-                      label: Text(vital['concernLevel'] ?? 'low'),
-                      backgroundColor: _getConcernColor(vital['concernLevel']),
-                    ),
-                  )),
+              ...(data['vitals'] as List).map(
+                (vital) => ListTile(
+                  title: Text(vital['type'] ?? ''),
+                  subtitle: Text('Trend: ${vital['trend'] ?? ''}'),
+                  trailing: Chip(
+                    label: Text(vital['concernLevel'] ?? 'low'),
+                    backgroundColor: _getConcernColor(vital['concernLevel']),
+                  ),
+                ),
+              ),
             if (data['recommendations'] != null) ...[
               const SizedBox(height: 16),
-              ...(data['recommendations'] as List).map((rec) =>
-                  RecommendationCard(recommendation: rec.toString())),
+              ...(data['recommendations'] as List).map(
+                (rec) => RecommendationCard(recommendation: rec.toString()),
+              ),
             ],
           ],
         ),
@@ -181,9 +176,9 @@ class _HealthAnalysisScreenState extends State<HealthAnalysisScreen> {
           children: [
             Text(
               'Lifestyle',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             if (data['diet'] != null)
@@ -191,19 +186,22 @@ class _HealthAnalysisScreenState extends State<HealthAnalysisScreen> {
                 leading: const Icon(Icons.restaurant),
                 title: const Text('Diet'),
                 subtitle: Text(
-                    'Avg Calories: ${data['diet']['averageCalories'] ?? 0}'),
+                  'Avg Calories: ${data['diet']['averageCalories'] ?? 0}',
+                ),
               ),
             if (data['exercise'] != null)
               ListTile(
                 leading: const Icon(Icons.fitness_center),
                 title: const Text('Exercise'),
                 subtitle: Text(
-                    'Avg Minutes: ${data['exercise']['averageMinutes'] ?? 0}'),
+                  'Avg Minutes: ${data['exercise']['averageMinutes'] ?? 0}',
+                ),
               ),
             if (data['recommendations'] != null) ...[
               const SizedBox(height: 16),
-              ...(data['recommendations'] as List).map((rec) =>
-                  RecommendationCard(recommendation: rec.toString())),
+              ...(data['recommendations'] as List).map(
+                (rec) => RecommendationCard(recommendation: rec.toString()),
+              ),
             ],
           ],
         ),
@@ -221,26 +219,28 @@ class _HealthAnalysisScreenState extends State<HealthAnalysisScreen> {
           children: [
             Text(
               'Risk Factors',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            ...riskFactors.map((risk) => Card(
-                  color: _getRiskColor(risk['severity']).withOpacity(0.1),
-                  child: ListTile(
-                    leading: Icon(
-                      Icons.warning,
-                      color: _getRiskColor(risk['severity']),
-                    ),
-                    title: Text(risk['type'] ?? ''),
-                    subtitle: Text(risk['description'] ?? ''),
-                    trailing: Chip(
-                      label: Text(risk['severity'] ?? ''),
-                      backgroundColor: _getRiskColor(risk['severity']),
-                    ),
+            ...riskFactors.map(
+              (risk) => Card(
+                color: _getRiskColor(risk['severity']).withOpacity(0.1),
+                child: ListTile(
+                  leading: Icon(
+                    Icons.warning,
+                    color: _getRiskColor(risk['severity']),
                   ),
-                )),
+                  title: Text(risk['type'] ?? ''),
+                  subtitle: Text(risk['description'] ?? ''),
+                  trailing: Chip(
+                    label: Text(risk['severity'] ?? ''),
+                    backgroundColor: _getRiskColor(risk['severity']),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -269,4 +269,3 @@ class _HealthAnalysisScreenState extends State<HealthAnalysisScreen> {
     }
   }
 }
-

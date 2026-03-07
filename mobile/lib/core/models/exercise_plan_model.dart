@@ -63,8 +63,13 @@ class ExercisePlanModel {
       description: json['description'] ?? '',
       isActive: json['isActive'] ?? true,
       userId: json['userId']?.toString() ?? '',
-      items: (json['items'] as List<dynamic>?)
-              ?.map((item) => ExercisePlanItemModel.fromJson(item as Map<String, dynamic>))
+      items:
+          (json['items'] as List<dynamic>?)
+              ?.map(
+                (item) => ExercisePlanItemModel.fromJson(
+                  item as Map<String, dynamic>,
+                ),
+              )
               .toList() ??
           [],
       createdAt: json['createdAt'] != null
@@ -150,8 +155,15 @@ class ExercisePlanItemModel {
   }
 
   String get dayName {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const days = [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ];
     return days[dayOfWeek];
   }
 }
-

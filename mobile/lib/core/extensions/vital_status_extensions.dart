@@ -85,4 +85,3 @@ extension VitalMeasurementStatusExtensions on VitalMeasurementModel {
     return getHealthStatus().getStatusLabel(context);
   }
 }
-

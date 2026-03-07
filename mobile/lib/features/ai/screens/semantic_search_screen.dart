@@ -26,7 +26,7 @@ class _SemanticSearchScreenState extends State<SemanticSearchScreen> {
     try {
       final careContext = context.read<CareContextProvider>();
       await careContext.ensureLoaded();
-      
+
       final elderUserId = careContext.selectedElderId != null
           ? int.tryParse(careContext.selectedElderId!)
           : null;
@@ -43,9 +43,9 @@ class _SemanticSearchScreenState extends State<SemanticSearchScreen> {
     } catch (e) {
       setState(() => _isSearching = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Search failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Search failed: $e')));
       }
     }
   }
@@ -53,9 +53,7 @@ class _SemanticSearchScreenState extends State<SemanticSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return ModernScaffold(
-      appBar: AppBar(
-        title: const Text('Semantic Search'),
-      ),
+      appBar: AppBar(title: const Text('Semantic Search')),
       body: Column(
         children: [
           Padding(
@@ -164,4 +162,3 @@ class _SemanticSearchScreenState extends State<SemanticSearchScreen> {
     return Colors.grey;
   }
 }
-

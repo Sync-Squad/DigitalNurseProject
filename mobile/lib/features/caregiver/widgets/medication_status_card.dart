@@ -10,10 +10,7 @@ import '../../../core/theme/app_theme.dart';
 class MedicationStatusCard extends StatelessWidget {
   final String elderId;
 
-  const MedicationStatusCard({
-    super.key,
-    required this.elderId,
-  });
+  const MedicationStatusCard({super.key, required this.elderId});
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +26,8 @@ class MedicationStatusCard extends StatelessWidget {
     for (final medicine in medicines) {
       // Check if medicine is active today
       if (medicine.startDate.isAfter(today)) continue;
-      if (medicine.endDate != null && medicine.endDate!.isBefore(today)) continue;
+      if (medicine.endDate != null && medicine.endDate!.isBefore(today))
+        continue;
 
       for (final reminderTime in medicine.reminderTimes) {
         final parts = reminderTime.split(':');
@@ -71,7 +69,8 @@ class MedicationStatusCard extends StatelessWidget {
                 style: ModernSurfaceTheme.sectionTitleStyle(context),
               ),
               TextButton(
-                onPressed: () => context.push('/caregiver/patient/$elderId/medications'),
+                onPressed: () =>
+                    context.push('/caregiver/patient/$elderId/medications'),
                 child: Text('Manage'),
               ),
             ],
@@ -117,16 +116,18 @@ class MedicationStatusCard extends StatelessWidget {
                 child: Text(
                   'No medications scheduled',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             )
           else
-            ...medicines.take(3).map((medicine) => _MedicationItem(
-                  medicine: medicine,
-                  elderId: elderId,
-                )),
+            ...medicines
+                .take(3)
+                .map(
+                  (medicine) =>
+                      _MedicationItem(medicine: medicine, elderId: elderId),
+                ),
         ],
       ),
     );
@@ -153,10 +154,7 @@ class _StatusMetric extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
       ),
       child: Column(
         children: [
@@ -165,17 +163,17 @@ class _StatusMetric extends StatelessWidget {
           Text(
             '$count',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w700,
-                ),
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           SizedBox(height: 4.h),
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -187,10 +185,7 @@ class _MedicationItem extends StatelessWidget {
   final MedicineModel medicine;
   final String elderId;
 
-  const _MedicationItem({
-    required this.medicine,
-    required this.elderId,
-  });
+  const _MedicationItem({required this.medicine, required this.elderId});
 
   @override
   Widget build(BuildContext context) {
@@ -222,16 +217,16 @@ class _MedicationItem extends StatelessWidget {
               children: [
                 Text(
                   medicine.name,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 SizedBox(height: 4.h),
                 Text(
                   '${medicine.dosage} - ${medicine.reminderTimes.join(", ")}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -241,4 +236,3 @@ class _MedicationItem extends StatelessWidget {
     );
   }
 }
-

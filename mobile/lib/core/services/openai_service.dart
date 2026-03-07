@@ -22,7 +22,8 @@ class OpenAIService {
   static OpenAIService? _instance;
   Dio? _dio;
   String? _apiKey;
-  static const String _geminiBaseUrl = 'https://generativelanguage.googleapis.com/v1beta';
+  static const String _geminiBaseUrl =
+      'https://generativelanguage.googleapis.com/v1beta';
   // Try these models in order until one works
   static const List<String> _geminiModels = [
     'gemini-flash-latest', // Proven working model
@@ -78,13 +79,16 @@ class OpenAIService {
             throw GeminiApiException(
               'The AI service is currently overloaded. Please try again in a few moments.',
               statusCode: 503,
-              userMessage: 'The AI service is temporarily busy. Please wait a moment and try again.',
+              userMessage:
+                  'The AI service is temporarily busy. Please wait a moment and try again.',
             );
           }
 
-          _log('⚠️ Model $model is overloaded (503). Retrying in ${delay.inSeconds}s... (Attempt $attempt/$maxRetries)');
+          _log(
+            '⚠️ Model $model is overloaded (503). Retrying in ${delay.inSeconds}s... (Attempt $attempt/$maxRetries)',
+          );
           await Future.delayed(delay);
-          
+
           // Exponential backoff: 1s, 2s, 4s
           delay = Duration(seconds: delay.inSeconds * 2);
           continue;
@@ -98,7 +102,8 @@ class OpenAIService {
     throw GeminiApiException(
       'Failed to get response after $maxRetries attempts',
       statusCode: 503,
-      userMessage: 'The AI service is temporarily unavailable. Please try again later.',
+      userMessage:
+          'The AI service is temporarily unavailable. Please try again later.',
     );
   }
 
@@ -118,7 +123,9 @@ class OpenAIService {
 
     final apiKey = await _getApiKey();
     if (apiKey == null) {
-      throw Exception('Gemini API key not configured. Please set GEMINI_API_KEY environment variable or in app config.');
+      throw Exception(
+        'Gemini API key not configured. Please set GEMINI_API_KEY environment variable or in app config.',
+      );
     }
 
     _apiKey = apiKey;
@@ -127,9 +134,7 @@ class OpenAIService {
         baseUrl: _geminiBaseUrl,
         connectTimeout: const Duration(seconds: 30),
         receiveTimeout: const Duration(seconds: 30),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: {'Content-Type': 'application/json'},
       ),
     );
 
@@ -151,7 +156,9 @@ class OpenAIService {
         throw Exception('Gemini service not initialized');
       }
 
-      _log('🤖 Analyzing food description: ${foodDescription.substring(0, foodDescription.length > 50 ? 50 : foodDescription.length)}...');
+      _log(
+        '🤖 Analyzing food description: ${foodDescription.substring(0, foodDescription.length > 50 ? 50 : foodDescription.length)}...',
+      );
 
       // Create prompt for calorie analysis
       final prompt = _buildCalorieAnalysisPrompt(foodDescription);
@@ -159,23 +166,25 @@ class OpenAIService {
       // Try different models until one works
       DioException? lastError;
       GeminiApiException? lastApiException;
-      
+
       for (final model in _geminiModels) {
         try {
           _log('🔄 Trying model: $model');
-          
+
           final requestData = {
             'contents': [
               {
                 'parts': [
                   {
-                    'text': 'You are a nutrition expert. Analyze food descriptions and provide accurate calorie estimates. Return ONLY valid JSON. Do NOT include "Here is the JSON" or any other text.\n\n$prompt'
-                  }
-                ]
-              }
+                    'text':
+                        'You are a nutrition expert. Analyze food descriptions and provide accurate calorie estimates. Return ONLY valid JSON. Do NOT include "Here is the JSON" or any other text.\n\n$prompt',
+                  },
+                ],
+              },
             ],
             'generationConfig': {
-              'temperature': 0.1, // Lower temperature for more deterministic output
+              'temperature':
+                  0.1, // Lower temperature for more deterministic output
               'maxOutputTokens': 1000,
               'responseMimeType': 'application/json',
             },
@@ -186,15 +195,16 @@ class OpenAIService {
           _geminiModel = model; // Save working model
           _log('✅ Successfully using model: $model');
           final data = response.data;
-          
+
           // Try to extract content from response
           String? content;
           final candidates = data['candidates'] as List?;
           if (candidates != null && candidates.isNotEmpty) {
             final candidate = candidates[0] as Map<String, dynamic>?;
-            final candidateContent = candidate?['content'] as Map<String, dynamic>?;
+            final candidateContent =
+                candidate?['content'] as Map<String, dynamic>?;
             final parts = candidateContent?['parts'] as List?;
-            
+
             if (parts != null && parts.isNotEmpty) {
               // Try to get text from all parts and concatenate
               final textParts = <String>[];
@@ -211,7 +221,7 @@ class OpenAIService {
               }
             }
           }
-          
+
           if (content != null && content.isNotEmpty) {
             final result = _parseCalorieResponse(content);
             if (result != null) {
@@ -219,7 +229,9 @@ class OpenAIService {
               return result;
             }
           } else {
-            _log('⚠️ No content found in response. Response structure: ${data.toString().substring(0, data.toString().length > 500 ? 500 : data.toString().length)}');
+            _log(
+              '⚠️ No content found in response. Response structure: ${data.toString().substring(0, data.toString().length > 500 ? 500 : data.toString().length)}',
+            );
           }
         } on GeminiApiException catch (e) {
           lastApiException = e;
@@ -234,7 +246,9 @@ class OpenAIService {
           lastError = e;
           // Handle both Model Not Found (404) and Quota Exceeded (429)
           if (e.response?.statusCode == 404 || e.response?.statusCode == 429) {
-            final reason = e.response?.statusCode == 404 ? 'not available' : 'quota exceeded';
+            final reason = e.response?.statusCode == 404
+                ? 'not available'
+                : 'quota exceeded';
             _log('⚠️ Model $model $reason, trying next...');
             continue; // Try next model
           } else if (e.response?.statusCode == 503) {
@@ -250,22 +264,24 @@ class OpenAIService {
       // If we get here, all models failed
       // Try dynamic model discovery as a last resort
       if (lastError != null || lastApiException != null) {
-        _log('⚠️ All static models failed. Attempting dynamic model discovery...');
+        _log(
+          '⚠️ All static models failed. Attempting dynamic model discovery...',
+        );
         final dynamicResult = await _tryDynamicModels(
           'food',
           prompt,
           (content) => _parseCalorieResponse(content),
         );
-        
+
         if (dynamicResult != null) {
-           return dynamicResult;
+          return dynamicResult;
         }
-        
+
         // Throw user-friendly exception
         if (lastApiException != null) {
           throw lastApiException;
         }
-        
+
         // Convert DioException to user-friendly message
         if (lastError != null) {
           final statusCode = lastError.response?.statusCode;
@@ -279,23 +295,28 @@ class OpenAIService {
             throw GeminiApiException(
               'Model not found',
               statusCode: 404,
-              userMessage: 'AI service configuration error. Please contact support.',
+              userMessage:
+                  'AI service configuration error. Please contact support.',
             );
           } else {
             throw GeminiApiException(
               lastError.message ?? 'Unknown error',
               statusCode: statusCode,
-              userMessage: 'Unable to analyze food. Please try again or enter calories manually.',
+              userMessage:
+                  'Unable to analyze food. Please try again or enter calories manually.',
             );
           }
         }
       }
 
       // This code is now handled in the loop above
-      _log('❌ Failed to get valid response from Gemini after trying all models');
+      _log(
+        '❌ Failed to get valid response from Gemini after trying all models',
+      );
       throw GeminiApiException(
         'No available models',
-        userMessage: 'Unable to analyze food at this time. Please enter calories manually.',
+        userMessage:
+            'Unable to analyze food at this time. Please enter calories manually.',
       );
     } on GeminiApiException {
       rethrow; // Re-throw user-friendly exceptions as-is
@@ -304,14 +325,15 @@ class OpenAIService {
       if (e.response != null) {
         _log('Response: ${e.response?.data}');
       }
-      
+
       // Convert to user-friendly exception
       final statusCode = e.response?.statusCode;
       if (statusCode == 503) {
         throw GeminiApiException(
           'Service overloaded',
           statusCode: 503,
-          userMessage: 'The AI service is temporarily busy. Please wait a moment and try again.',
+          userMessage:
+              'The AI service is temporarily busy. Please wait a moment and try again.',
         );
       } else if (statusCode == 429) {
         throw GeminiApiException(
@@ -323,7 +345,8 @@ class OpenAIService {
         throw GeminiApiException(
           e.message ?? 'Unknown error',
           statusCode: statusCode,
-          userMessage: 'Unable to analyze food. Please try again or enter calories manually.',
+          userMessage:
+              'Unable to analyze food. Please try again or enter calories manually.',
         );
       }
     } catch (e) {
@@ -333,7 +356,8 @@ class OpenAIService {
       }
       throw GeminiApiException(
         e.toString(),
-        userMessage: 'Unable to analyze food. Please try again or enter calories manually.',
+        userMessage:
+            'Unable to analyze food. Please try again or enter calories manually.',
       );
     }
   }
@@ -364,17 +388,22 @@ Response (JSON only):''';
   /// Parse OpenAI response to extract calorie count
   int? _parseCalorieResponse(String jsonContent) {
     try {
-      _log('📝 Raw response content (length: ${jsonContent.length}): ${jsonContent.substring(0, jsonContent.length > 200 ? 200 : jsonContent.length)}${jsonContent.length > 200 ? "..." : ""}');
-      
+      _log(
+        '📝 Raw response content (length: ${jsonContent.length}): ${jsonContent.substring(0, jsonContent.length > 200 ? 200 : jsonContent.length)}${jsonContent.length > 200 ? "..." : ""}',
+      );
+
       // Clean up the response - extract JSON from markdown code blocks or text
       String cleanContent = jsonContent.trim();
-      
+
       // If content is too short or doesn't contain JSON-like characters, it might be incomplete
-      if (cleanContent.length < 10 || (!cleanContent.contains('{') && !cleanContent.contains('['))) {
-        _log('⚠️ Response appears incomplete or missing JSON. Full content: $cleanContent');
+      if (cleanContent.length < 10 ||
+          (!cleanContent.contains('{') && !cleanContent.contains('['))) {
+        _log(
+          '⚠️ Response appears incomplete or missing JSON. Full content: $cleanContent',
+        );
         return null;
       }
-      
+
       // Remove markdown code blocks (```json or ```)
       if (cleanContent.contains('```json')) {
         // Extract content between ```json and ```
@@ -383,7 +412,10 @@ Response (JSON only):''';
         if (endIndex > startIndex) {
           cleanContent = cleanContent.substring(startIndex, endIndex).trim();
         } else {
-          cleanContent = cleanContent.replaceAll('```json', '').replaceAll('```', '').trim();
+          cleanContent = cleanContent
+              .replaceAll('```json', '')
+              .replaceAll('```', '')
+              .trim();
         }
       } else if (cleanContent.contains('```')) {
         // Extract content between ``` and ```
@@ -395,28 +427,32 @@ Response (JSON only):''';
           cleanContent = cleanContent.replaceAll('```', '').trim();
         }
       }
-      
+
       // Remove any leading text before JSON (e.g., "Here is the JSON requested:")
       // Find the first occurrence of '{' which should be the start of JSON
       final jsonStartIndex = cleanContent.indexOf('{');
       if (jsonStartIndex > 0) {
         cleanContent = cleanContent.substring(jsonStartIndex);
       }
-      
+
       // Also check for trailing text after JSON (find last '}')
       final jsonEndIndex = cleanContent.lastIndexOf('}');
       if (jsonEndIndex > 0 && jsonEndIndex < cleanContent.length - 1) {
         cleanContent = cleanContent.substring(0, jsonEndIndex + 1);
       }
-      
+
       cleanContent = cleanContent.trim();
-      
+
       // Validate that we have something that looks like JSON
       if (!cleanContent.startsWith('{') || !cleanContent.endsWith('}')) {
-        _log('⚠️ Content does not appear to be valid JSON. Attempting to find JSON object...');
-        
+        _log(
+          '⚠️ Content does not appear to be valid JSON. Attempting to find JSON object...',
+        );
+
         // Try to find JSON object even if there's extra text
-        final jsonMatch = RegExp(r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}').firstMatch(cleanContent);
+        final jsonMatch = RegExp(
+          r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}',
+        ).firstMatch(cleanContent);
         if (jsonMatch != null) {
           cleanContent = jsonMatch.group(0)!;
           _log('✅ Found JSON object in response');
@@ -425,12 +461,12 @@ Response (JSON only):''';
           return null;
         }
       }
-      
+
       final json = jsonDecode(cleanContent) as Map<String, dynamic>;
-      
+
       // Try to get calories from the response
       final calories = json['calories'];
-      
+
       if (calories != null) {
         if (calories is int) {
           return calories;
@@ -442,7 +478,9 @@ Response (JSON only):''';
         }
       }
 
-      _log('❌ Unable to parse calories from response. JSON keys: ${json.keys.join(", ")}');
+      _log(
+        '❌ Unable to parse calories from response. JSON keys: ${json.keys.join(", ")}',
+      );
       return null;
     } catch (e, stackTrace) {
       _log('❌ Error parsing Gemini response: $e');
@@ -473,31 +511,38 @@ Response (JSON only):''';
         throw Exception('Gemini service not initialized');
       }
 
-      _log('🤖 Analyzing exercise: ${exerciseDescription.substring(0, exerciseDescription.length > 50 ? 50 : exerciseDescription.length)}... for $durationMinutes minutes');
+      _log(
+        '🤖 Analyzing exercise: ${exerciseDescription.substring(0, exerciseDescription.length > 50 ? 50 : exerciseDescription.length)}... for $durationMinutes minutes',
+      );
 
       // Create prompt for exercise calorie analysis
-      final prompt = _buildExerciseCalorieAnalysisPrompt(exerciseDescription, durationMinutes);
+      final prompt = _buildExerciseCalorieAnalysisPrompt(
+        exerciseDescription,
+        durationMinutes,
+      );
 
       // Try different models until one works
       DioException? lastError;
       GeminiApiException? lastApiException;
-      
+
       for (final model in _geminiModels) {
         try {
           _log('🔄 Trying model: $model');
-          
+
           final requestData = {
             'contents': [
               {
                 'parts': [
                   {
-                    'text': 'You are a fitness and exercise expert. Analyze exercise descriptions and calculate accurate calorie burn estimates based on duration. Return ONLY valid JSON. Do NOT include "Here is the JSON" or any other text.\n\n$prompt'
-                  }
-                ]
-              }
+                    'text':
+                        'You are a fitness and exercise expert. Analyze exercise descriptions and calculate accurate calorie burn estimates based on duration. Return ONLY valid JSON. Do NOT include "Here is the JSON" or any other text.\n\n$prompt',
+                  },
+                ],
+              },
             ],
             'generationConfig': {
-              'temperature': 0.1, // Lower temperature for more deterministic output
+              'temperature':
+                  0.1, // Lower temperature for more deterministic output
               'maxOutputTokens': 1000,
               'responseMimeType': 'application/json',
             },
@@ -508,15 +553,16 @@ Response (JSON only):''';
           _geminiModel = model; // Save working model
           _log('✅ Successfully using model: $model');
           final data = response.data;
-          
+
           // Try to extract content from response
           String? content;
           final candidates = data['candidates'] as List?;
           if (candidates != null && candidates.isNotEmpty) {
             final candidate = candidates[0] as Map<String, dynamic>?;
-            final candidateContent = candidate?['content'] as Map<String, dynamic>?;
+            final candidateContent =
+                candidate?['content'] as Map<String, dynamic>?;
             final parts = candidateContent?['parts'] as List?;
-            
+
             if (parts != null && parts.isNotEmpty) {
               // Try to get text from all parts and concatenate
               final textParts = <String>[];
@@ -533,7 +579,7 @@ Response (JSON only):''';
               }
             }
           }
-          
+
           if (content != null && content.isNotEmpty) {
             final result = _parseCalorieResponse(content);
             if (result != null) {
@@ -541,7 +587,9 @@ Response (JSON only):''';
               return result;
             }
           } else {
-            _log('⚠️ No content found in response. Response structure: ${data.toString().substring(0, data.toString().length > 500 ? 500 : data.toString().length)}');
+            _log(
+              '⚠️ No content found in response. Response structure: ${data.toString().substring(0, data.toString().length > 500 ? 500 : data.toString().length)}',
+            );
           }
         } on GeminiApiException catch (e) {
           lastApiException = e;
@@ -556,7 +604,9 @@ Response (JSON only):''';
           lastError = e;
           // Handle both Model Not Found (404) and Quota Exceeded (429)
           if (e.response?.statusCode == 404 || e.response?.statusCode == 429) {
-            final reason = e.response?.statusCode == 404 ? 'not available' : 'quota exceeded';
+            final reason = e.response?.statusCode == 404
+                ? 'not available'
+                : 'quota exceeded';
             _log('⚠️ Model $model $reason, trying next...');
             continue; // Try next model
           } else if (e.response?.statusCode == 503) {
@@ -572,22 +622,24 @@ Response (JSON only):''';
       // If we get here, all models failed
       // Try dynamic model discovery as a last resort
       if (lastError != null || lastApiException != null) {
-        _log('⚠️ All static models failed. Attempting dynamic model discovery...');
+        _log(
+          '⚠️ All static models failed. Attempting dynamic model discovery...',
+        );
         final dynamicResult = await _tryDynamicModels(
           'exercise',
           prompt,
           (content) => _parseCalorieResponse(content),
         );
-        
+
         if (dynamicResult != null) {
-           return dynamicResult;
+          return dynamicResult;
         }
 
         // Throw user-friendly exception
         if (lastApiException != null) {
           throw lastApiException;
         }
-        
+
         // Convert DioException to user-friendly message
         if (lastError != null) {
           final statusCode = lastError.response?.statusCode;
@@ -601,22 +653,27 @@ Response (JSON only):''';
             throw GeminiApiException(
               'Model not found',
               statusCode: 404,
-              userMessage: 'AI service configuration error. Please contact support.',
+              userMessage:
+                  'AI service configuration error. Please contact support.',
             );
           } else {
             throw GeminiApiException(
               lastError.message ?? 'Unknown error',
               statusCode: statusCode,
-              userMessage: 'Unable to analyze exercise. Please try again or enter calories manually.',
+              userMessage:
+                  'Unable to analyze exercise. Please try again or enter calories manually.',
             );
           }
         }
       }
-      
-      _log('❌ Failed to get valid response from Gemini after trying all models');
+
+      _log(
+        '❌ Failed to get valid response from Gemini after trying all models',
+      );
       throw GeminiApiException(
         'No available models',
-        userMessage: 'Unable to analyze exercise at this time. Please enter calories manually.',
+        userMessage:
+            'Unable to analyze exercise at this time. Please enter calories manually.',
       );
     } on GeminiApiException {
       rethrow; // Re-throw user-friendly exceptions as-is
@@ -625,14 +682,15 @@ Response (JSON only):''';
       if (e.response != null) {
         _log('Response: ${e.response?.data}');
       }
-      
+
       // Convert to user-friendly exception
       final statusCode = e.response?.statusCode;
       if (statusCode == 503) {
         throw GeminiApiException(
           'Service overloaded',
           statusCode: 503,
-          userMessage: 'The AI service is temporarily busy. Please wait a moment and try again.',
+          userMessage:
+              'The AI service is temporarily busy. Please wait a moment and try again.',
         );
       } else if (statusCode == 429) {
         throw GeminiApiException(
@@ -644,7 +702,8 @@ Response (JSON only):''';
         throw GeminiApiException(
           e.message ?? 'Unknown error',
           statusCode: statusCode,
-          userMessage: 'Unable to analyze exercise. Please try again or enter calories manually.',
+          userMessage:
+              'Unable to analyze exercise. Please try again or enter calories manually.',
         );
       }
     } catch (e) {
@@ -654,13 +713,17 @@ Response (JSON only):''';
       }
       throw GeminiApiException(
         e.toString(),
-        userMessage: 'Unable to analyze exercise. Please try again or enter calories manually.',
+        userMessage:
+            'Unable to analyze exercise. Please try again or enter calories manually.',
       );
     }
   }
 
   /// Build prompt for exercise calorie analysis
-  String _buildExerciseCalorieAnalysisPrompt(String exerciseDescription, int durationMinutes) {
+  String _buildExerciseCalorieAnalysisPrompt(
+    String exerciseDescription,
+    int durationMinutes,
+  ) {
     return '''Analyze the following exercise description and calculate the total estimated calories burned.
 
 Exercise description: "$exerciseDescription"
@@ -694,7 +757,8 @@ Response (JSON only):''';
     try {
       final models = await listAvailableModels();
       final generateContentModels = models.where((m) {
-        final methods = (m['supportedGenerationMethods'] as List<dynamic>?) ?? [];
+        final methods =
+            (m['supportedGenerationMethods'] as List<dynamic>?) ?? [];
         return methods.contains('generateContent');
       }).toList();
 
@@ -703,7 +767,9 @@ Response (JSON only):''';
         return null;
       }
 
-      _log('📋 Found ${generateContentModels.length} models supporting generateContent');
+      _log(
+        '📋 Found ${generateContentModels.length} models supporting generateContent',
+      );
 
       for (var modelData in generateContentModels) {
         // Extract model name (e.g., "models/gemini-pro" -> "gemini-pro")
@@ -719,8 +785,8 @@ Response (JSON only):''';
 
         try {
           _log('🔄 Trying dynamic model: $modelName');
-          
-          final systemPrompt = type == 'food' 
+
+          final systemPrompt = type == 'food'
               ? 'You are a nutrition expert. Analyze food descriptions and provide accurate calorie estimates. Return ONLY valid JSON. Do NOT include "Here is the JSON" or any other text.\n\n$prompt'
               : 'You are a fitness and exercise expert. Analyze exercise descriptions and calculate accurate calorie burn estimates based on duration. Return ONLY valid JSON. Do NOT include "Here is the JSON" or any other text.\n\n$prompt';
 
@@ -728,11 +794,9 @@ Response (JSON only):''';
             'contents': [
               {
                 'parts': [
-                  {
-                    'text': systemPrompt
-                  }
-                ]
-              }
+                  {'text': systemPrompt},
+                ],
+              },
             ],
             'generationConfig': {
               'temperature': 0.1,
@@ -747,15 +811,16 @@ Response (JSON only):''';
             _geminiModel = modelName; // Save working model
             _log('✅ Successfully using dynamic model: $modelName');
             final data = response.data;
-            
+
             // Try to extract content from response
             String? content;
             final candidates = data['candidates'] as List?;
             if (candidates != null && candidates.isNotEmpty) {
               final candidate = candidates[0] as Map<String, dynamic>?;
-              final candidateContent = candidate?['content'] as Map<String, dynamic>?;
+              final candidateContent =
+                  candidate?['content'] as Map<String, dynamic>?;
               final parts = candidateContent?['parts'] as List?;
-              
+
               if (parts != null && parts.isNotEmpty) {
                 final textParts = <String>[];
                 for (var part in parts) {
@@ -771,7 +836,7 @@ Response (JSON only):''';
                 }
               }
             }
-            
+
             if (content != null && content.isNotEmpty) {
               final result = parser(content);
               if (result != null) {
@@ -786,7 +851,7 @@ Response (JSON only):''';
     } catch (e) {
       _log('❌ Error in dynamic model discovery: $e');
     }
-    
+
     return null;
   }
 
@@ -808,9 +873,7 @@ Response (JSON only):''';
             baseUrl: 'https://generativelanguage.googleapis.com/v1beta',
             connectTimeout: const Duration(seconds: 30),
             receiveTimeout: const Duration(seconds: 30),
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: {'Content-Type': 'application/json'},
           ),
         );
 
@@ -823,15 +886,18 @@ Response (JSON only):''';
           final data = response.data;
           final models = (data['models'] as List<dynamic>?) ?? [];
           _log('✅ Found ${models.length} models in v1beta');
-          
+
           // Log each model
           for (var model in models) {
             final name = model['name'] ?? 'Unknown';
             final displayName = model['displayName'] ?? '';
-            final supportedMethods = (model['supportedGenerationMethods'] as List<dynamic>?) ?? [];
-            _log('  📌 $name ($displayName) - Methods: ${supportedMethods.join(", ")}');
+            final supportedMethods =
+                (model['supportedGenerationMethods'] as List<dynamic>?) ?? [];
+            _log(
+              '  📌 $name ($displayName) - Methods: ${supportedMethods.join(", ")}',
+            );
           }
-          
+
           return models.map((m) => Map<String, dynamic>.from(m)).toList();
         }
       } catch (e) {
@@ -848,15 +914,18 @@ Response (JSON only):''';
         final data = response.data;
         final models = (data['models'] as List<dynamic>?) ?? [];
         _log('✅ Found ${models.length} models in v1');
-        
+
         // Log each model
         for (var model in models) {
           final name = model['name'] ?? 'Unknown';
           final displayName = model['displayName'] ?? '';
-          final supportedMethods = (model['supportedGenerationMethods'] as List<dynamic>?) ?? [];
-          _log('  📌 $name ($displayName) - Methods: ${supportedMethods.join(", ")}');
+          final supportedMethods =
+              (model['supportedGenerationMethods'] as List<dynamic>?) ?? [];
+          _log(
+            '  📌 $name ($displayName) - Methods: ${supportedMethods.join(", ")}',
+          );
         }
-        
+
         return models.map((m) => Map<String, dynamic>.from(m)).toList();
       }
 
@@ -882,6 +951,6 @@ class GeminiException implements Exception {
   GeminiException(this.message, {this.statusCode});
 
   @override
-  String toString() => 'GeminiException: $message${statusCode != null ? ' (Status: $statusCode)' : ''}';
+  String toString() =>
+      'GeminiException: $message${statusCode != null ? ' (Status: $statusCode)' : ''}';
 }
-

@@ -54,15 +54,17 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
               padding: ModernSurfaceTheme.screenPadding(),
               child: Column(
                 children: [
-                  _ProgressHeader(progress: formProvider.progress, currentStep: formProvider.currentStep, totalSteps: formProvider.totalSteps),
+                  _ProgressHeader(
+                    progress: formProvider.progress,
+                    currentStep: formProvider.currentStep,
+                    totalSteps: formProvider.totalSteps,
+                  ),
                   if (formProvider.errorMessage != null) ...[
                     SizedBox(height: 16.h),
                     _ErrorNotice(message: formProvider.errorMessage!),
                   ],
                   SizedBox(height: 16.h),
-                  Expanded(
-                    child: _buildStepContent(formProvider),
-                  ),
+                  Expanded(child: _buildStepContent(formProvider)),
                   _buildNavigationButtons(context, formProvider),
                 ],
               ),
@@ -161,8 +163,8 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                 onPressed: (_isSaving && formProvider.isLastStep)
                     ? null
                     : (formProvider.isLastStep
-                        ? () => _handleSave(context, formProvider)
-                        : () => formProvider.nextStep()),
+                          ? () => _handleSave(context, formProvider)
+                          : () => formProvider.nextStep()),
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                   shape: RoundedRectangleBorder(
@@ -180,9 +182,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : Text(
-                        formProvider.isLastStep ? 'Save Medicine' : 'Next',
-                      ),
+                    : Text(formProvider.isLastStep ? 'Save Medicine' : 'Next'),
               ),
             ),
           ],
@@ -294,9 +294,9 @@ class _ProgressHeader extends StatelessWidget {
           Text(
             'Step ${currentStep + 1} of $totalSteps',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: ModernSurfaceTheme.deepTeal,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: ModernSurfaceTheme.deepTeal,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           SizedBox(height: 12.h),
           ClipRRect(
@@ -336,9 +336,9 @@ class _ErrorNotice extends StatelessWidget {
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

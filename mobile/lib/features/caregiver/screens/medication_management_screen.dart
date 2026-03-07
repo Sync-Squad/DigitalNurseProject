@@ -10,10 +10,7 @@ import '../widgets/medication_action_dialog.dart';
 class MedicationManagementScreen extends StatefulWidget {
   final String elderId;
 
-  const MedicationManagementScreen({
-    super.key,
-    required this.elderId,
-  });
+  const MedicationManagementScreen({super.key, required this.elderId});
 
   @override
   State<MedicationManagementScreen> createState() =>
@@ -48,10 +45,7 @@ class _MedicationManagementScreenState
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Medication Management',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
       body: RefreshIndicator(
@@ -130,15 +124,15 @@ class _MedicationManagementItem extends StatelessWidget {
                     Text(
                       medicine.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     SizedBox(height: 4.h),
                     Text(
                       '${medicine.dosage} • ${medicine.reminderTimes.join(", ")}',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -149,16 +143,18 @@ class _MedicationManagementItem extends StatelessWidget {
           // Today's schedule
           Text(
             'Today\'s Schedule',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           SizedBox(height: 12.h),
-          ...medicine.reminderTimes.map((time) => _MedicationTimeItem(
-                medicine: medicine,
-                time: time,
-                elderId: elderId,
-              )),
+          ...medicine.reminderTimes.map(
+            (time) => _MedicationTimeItem(
+              medicine: medicine,
+              time: time,
+              elderId: elderId,
+            ),
+          ),
         ],
       ),
     );
@@ -205,16 +201,16 @@ class _MedicationTimeItem extends StatelessWidget {
               children: [
                 Text(
                   time,
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 SizedBox(height: 4.h),
                 Text(
                   isPast ? 'Past due' : 'Upcoming',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -238,4 +234,3 @@ class _MedicationTimeItem extends StatelessWidget {
     );
   }
 }
-

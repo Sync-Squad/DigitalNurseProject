@@ -29,7 +29,9 @@ class AIService {
       // Convert conversationId from string to int if present
       final data = response.data as Map<String, dynamic>;
       if (data['conversationId'] != null) {
-        data['conversationId'] = int.tryParse(data['conversationId'].toString()) ?? data['conversationId'];
+        data['conversationId'] =
+            int.tryParse(data['conversationId'].toString()) ??
+            data['conversationId'];
       }
       return data;
     } catch (e) {
@@ -42,7 +44,9 @@ class AIService {
     try {
       final response = await _apiService.get(
         '/ai/conversations',
-        queryParameters: elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
       return response.data as List<dynamic>;
     } catch (e) {
@@ -53,7 +57,9 @@ class AIService {
   // Get conversation history
   Future<Map<String, dynamic>> getConversation(int conversationId) async {
     try {
-      final response = await _apiService.get('/ai/conversations/$conversationId');
+      final response = await _apiService.get(
+        '/ai/conversations/$conversationId',
+      );
       return response.data;
     } catch (e) {
       throw Exception('Failed to get conversation: $e');
@@ -70,9 +76,7 @@ class AIService {
     int limit = 20,
   }) async {
     try {
-      final queryParams = <String, dynamic>{
-        'limit': limit,
-      };
+      final queryParams = <String, dynamic>{'limit': limit};
       if (types != null && types.isNotEmpty) {
         queryParams['types'] = types;
       }
@@ -231,4 +235,3 @@ class AIService {
     }
   }
 }
-

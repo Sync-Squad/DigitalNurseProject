@@ -27,22 +27,24 @@ class _StepDoseStrengthState extends State<StepDoseStrength> {
     final provider = context.read<MedicineFormProvider>();
 
     _doseController.text = provider.formData.doseAmount;
-    
+
     // Parse existing strength to extract numeric part and unit
     final strength = provider.formData.strength;
     if (strength.isNotEmpty) {
       // Try to extract unit from end of string
       String? extractedUnit;
       String numericPart = strength;
-      
+
       for (final unit in _commonUnits) {
         if (strength.endsWith(unit)) {
           extractedUnit = unit;
-          numericPart = strength.substring(0, strength.length - unit.length).trim();
+          numericPart = strength
+              .substring(0, strength.length - unit.length)
+              .trim();
           break;
         }
       }
-      
+
       if (extractedUnit != null) {
         _selectedUnit = extractedUnit;
       }
@@ -246,5 +248,4 @@ class _StepDoseStrengthState extends State<StepDoseStrength> {
       provider.setStrength('');
     }
   }
-
 }

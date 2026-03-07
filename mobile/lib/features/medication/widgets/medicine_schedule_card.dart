@@ -59,7 +59,9 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
   void dispose() {
     // Remove the listener when disposing
     try {
-      context.read<MedicationProvider>().removeListener(_onMedicationProviderUpdate);
+      context.read<MedicationProvider>().removeListener(
+        _onMedicationProviderUpdate,
+      );
     } catch (e) {
       // Ignore if already disposed
     }
@@ -103,8 +105,9 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
     if (widget.medicines.isEmpty) return const SizedBox.shrink();
 
     final timeInfo = _getTimeInfo(context);
-    final chipForeground =
-        ModernSurfaceTheme.chipForegroundColor(timeInfo.color);
+    final chipForeground = ModernSurfaceTheme.chipForegroundColor(
+      timeInfo.color,
+    );
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final onSurface = colorScheme.onSurface;
@@ -129,12 +132,11 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
                 children: [
                   Container(
                     padding: EdgeInsets.all(12.w),
-                    decoration: ModernSurfaceTheme.iconBadge(context, timeInfo.color),
-                    child: Icon(
-                      timeInfo.icon,
-                      color: onPrimary,
-                      size: 20,
+                    decoration: ModernSurfaceTheme.iconBadge(
+                      context,
+                      timeInfo.color,
                     ),
+                    child: Icon(timeInfo.icon, color: onPrimary, size: 20),
                   ),
                   SizedBox(width: 16.w),
                   Expanded(
@@ -144,16 +146,14 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
                         Text(
                           timeInfo.label,
                           style: textTheme.titleMedium?.copyWith(
-                                color: onSurface,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            color: onSurface,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         SizedBox(height: 4.h),
                         Text(
                           _getStatusText(context),
-                          style: textTheme.bodySmall?.copyWith(
-                                color: muted,
-                              ),
+                          style: textTheme.bodySmall?.copyWith(color: muted),
                         ),
                       ],
                     ),
@@ -161,7 +161,10 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
                   _buildStatusIcon(context),
                   SizedBox(width: 12.w),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 14.w,
+                      vertical: 6.h,
+                    ),
                     decoration: ModernSurfaceTheme.frostedChip(
                       context,
                       baseColor: timeInfo.color,
@@ -171,8 +174,9 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
                       children: [
                         Text(
                           widget.medicines.length.toString(),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: chipForeground,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: chipForeground,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
@@ -180,7 +184,7 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
                         Icon(
                           _isExpanded ? FIcons.chevronUp : FIcons.chevronDown,
                           size: 14,
-                      color: chipForeground,
+                          color: chipForeground,
                         ),
                       ],
                     ),
@@ -190,10 +194,7 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
             ),
           ),
           if (_isExpanded) ...[
-            Divider(
-              height: 24.h,
-              color: onSurface.withValues(alpha: 0.08),
-            ),
+            Divider(height: 24.h, color: onSurface.withValues(alpha: 0.08)),
             Column(
               children: widget.medicines
                   .map((medicine) {
@@ -251,8 +252,12 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
 
     final statusList = _medicineStatuses.values.toList();
     final takenCount = statusList.where((s) => s == IntakeStatus.taken).length;
-    final missedCount = statusList.where((s) => s == IntakeStatus.missed).length;
-    final pendingCount = statusList.where((s) => s == IntakeStatus.pending).length;
+    final missedCount = statusList
+        .where((s) => s == IntakeStatus.missed)
+        .length;
+    final pendingCount = statusList
+        .where((s) => s == IntakeStatus.pending)
+        .length;
     final total = statusList.length;
 
     // If all taken, show check icon
@@ -269,7 +274,8 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
     }
 
     // Check if we're looking at today's date to determine if pending items are overdue
-    final isToday = widget.selectedDate.year == DateTime.now().year &&
+    final isToday =
+        widget.selectedDate.year == DateTime.now().year &&
         widget.selectedDate.month == DateTime.now().month &&
         widget.selectedDate.day == DateTime.now().day;
 
@@ -331,8 +337,12 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
 
     final statusList = _medicineStatuses.values.toList();
     final takenCount = statusList.where((s) => s == IntakeStatus.taken).length;
-    final missedCount = statusList.where((s) => s == IntakeStatus.missed).length;
-    final pendingCount = statusList.where((s) => s == IntakeStatus.pending).length;
+    final missedCount = statusList
+        .where((s) => s == IntakeStatus.missed)
+        .length;
+    final pendingCount = statusList
+        .where((s) => s == IntakeStatus.pending)
+        .length;
     final total = statusList.length;
 
     // If all taken, show "Taken"
@@ -346,7 +356,8 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
     }
 
     // Check if we're looking at today's date to determine if pending items are overdue
-    final isToday = widget.selectedDate.year == DateTime.now().year &&
+    final isToday =
+        widget.selectedDate.year == DateTime.now().year &&
         widget.selectedDate.month == DateTime.now().month &&
         widget.selectedDate.day == DateTime.now().day;
 
@@ -400,13 +411,25 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
   ) {
     switch (widget.timeOfDay) {
       case MedicineTimeOfDay.morning:
-        return (label: 'Morning', icon: FIcons.sunrise, color: ModernSurfaceTheme.accentYellow);
+        return (
+          label: 'Morning',
+          icon: FIcons.sunrise,
+          color: ModernSurfaceTheme.accentYellow,
+        );
       case MedicineTimeOfDay.afternoon:
         // Use a more vibrant teal for better visibility in the chip
         // Using a brighter, more saturated teal (similar vibrancy to accentYellow/accentBlue)
-        return (label: 'Afternoon', icon: FIcons.sun, color: const Color(0xFF14C4B3));
+        return (
+          label: 'Afternoon',
+          icon: FIcons.sun,
+          color: const Color(0xFF14C4B3),
+        );
       case MedicineTimeOfDay.evening:
-        return (label: 'Evening', icon: FIcons.moon, color: ModernSurfaceTheme.accentBlue);
+        return (
+          label: 'Evening',
+          icon: FIcons.moon,
+          color: ModernSurfaceTheme.accentBlue,
+        );
     }
   }
 }

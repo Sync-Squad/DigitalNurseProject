@@ -30,7 +30,7 @@ class _AnimatedHeartIconState extends State<AnimatedHeartIcon>
   @override
   void initState() {
     super.initState();
-    
+
     // Fill animation controller
     _fillController = AnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -38,48 +38,36 @@ class _AnimatedHeartIconState extends State<AnimatedHeartIcon>
     );
     _fillAnimation = Tween<double>(begin: 0.0, end: widget.percentage / 100.0)
         .animate(
-          CurvedAnimation(
-            parent: _fillController!,
-            curve: Curves.easeInOut,
-          ),
+          CurvedAnimation(parent: _fillController!, curve: Curves.easeInOut),
         );
     _fillController!.forward();
-    
+
     // Pulse animation controller (continuous loop)
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08)
-        .animate(
-          CurvedAnimation(
-            parent: _pulseController!,
-            curve: Curves.easeInOut,
-          ),
-        );
-    _glowAnimation = Tween<double>(begin: 0.15, end: 0.3)
-        .animate(
-          CurvedAnimation(
-            parent: _pulseController!,
-            curve: Curves.easeInOut,
-          ),
-        );
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
+      CurvedAnimation(parent: _pulseController!, curve: Curves.easeInOut),
+    );
+    _glowAnimation = Tween<double>(begin: 0.15, end: 0.3).animate(
+      CurvedAnimation(parent: _pulseController!, curve: Curves.easeInOut),
+    );
     _pulseController!.repeat(reverse: true);
   }
 
   @override
   void didUpdateWidget(AnimatedHeartIcon oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.percentage != widget.percentage && _fillController != null && _fillAnimation != null) {
+    if (oldWidget.percentage != widget.percentage &&
+        _fillController != null &&
+        _fillAnimation != null) {
       _fillAnimation =
           Tween<double>(
             begin: _fillAnimation!.value,
             end: widget.percentage / 100.0,
           ).animate(
-            CurvedAnimation(
-              parent: _fillController!,
-              curve: Curves.easeInOut,
-            ),
+            CurvedAnimation(parent: _fillController!, curve: Curves.easeInOut),
           );
       _fillController!.reset();
       _fillController!.forward();
@@ -96,15 +84,14 @@ class _AnimatedHeartIconState extends State<AnimatedHeartIcon>
   @override
   Widget build(BuildContext context) {
     final heartPath = _createHeartPath(widget.size);
-    
+
     // Return empty container if animations aren't initialized yet
-    if (_pulseAnimation == null || _glowAnimation == null || _fillAnimation == null) {
-      return SizedBox(
-        width: widget.size,
-        height: widget.size,
-      );
+    if (_pulseAnimation == null ||
+        _glowAnimation == null ||
+        _fillAnimation == null) {
+      return SizedBox(width: widget.size, height: widget.size);
     }
-    
+
     return SizedBox(
       width: widget.size,
       height: widget.size,
@@ -114,7 +101,7 @@ class _AnimatedHeartIconState extends State<AnimatedHeartIcon>
         builder: (context, child) {
           final pulseValue = _pulseAnimation!.value;
           // final glowValue = _glowAnimation!.value;
-          
+
           return Container(
             // decoration: BoxDecoration(
             //   shape: BoxShape.circle,
@@ -164,7 +151,9 @@ class _AnimatedHeartIconState extends State<AnimatedHeartIcon>
                         painter: _HeartStrokePainter(
                           path: heartPath,
                           strokeColor: widget.strokeColor,
-                          strokeWidth: 2.0 + (0.3 * (_pulseAnimation!.value - 1.0) / 0.08),
+                          strokeWidth:
+                              2.0 +
+                              (0.3 * (_pulseAnimation!.value - 1.0) / 0.08),
                         ),
                       );
                     },
@@ -207,19 +196,19 @@ class _AnimatedHeartIconState extends State<AnimatedHeartIcon>
     if (points.isEmpty) {
       return path;
     }
-    
+
     double minX = points.first.dx;
     double maxX = points.first.dx;
     double minY = points.first.dy;
     double maxY = points.first.dy;
-    
+
     for (final point in points) {
       minX = math.min(minX, point.dx);
       maxX = math.max(maxX, point.dx);
       minY = math.min(minY, point.dy);
       maxY = math.max(maxY, point.dy);
     }
-    
+
     // Calculate offsets to center the heart
     final offsetX = centerX - (minX + maxX) / 2;
     final offsetY = centerY - (minY + maxY) / 2;
@@ -244,15 +233,12 @@ class _HeartFillPainter extends CustomPainter {
   final Path path;
   final Color fillColor;
 
-  _HeartFillPainter({
-    required this.path,
-    required this.fillColor,
-  });
+  _HeartFillPainter({required this.path, required this.fillColor});
 
   @override
   void paint(Canvas canvas, Size size) {
     final bounds = path.getBounds();
-    
+
     // Create gradient from darker red at bottom to lighter red at top
     final gradient = LinearGradient(
       begin: Alignment.bottomCenter,
@@ -283,10 +269,7 @@ class _HeartFillClipper extends CustomClipper<Path> {
   final Path heartPath;
   final double fillPercentage;
 
-  _HeartFillClipper({
-    required this.heartPath,
-    required this.fillPercentage,
-  });
+  _HeartFillClipper({required this.heartPath, required this.fillPercentage});
 
   @override
   Path getClip(Size size) {
@@ -311,8 +294,7 @@ class _HeartFillClipper extends CustomClipper<Path> {
       clipHeight,
     );
 
-    final clipPath = Path()
-      ..addRect(clipRect);
+    final clipPath = Path()..addRect(clipRect);
 
     // Intersect the heart path with the clip rectangle
     final resultPath = Path.combine(
@@ -360,4 +342,3 @@ class _HeartStrokePainter extends CustomPainter {
         oldDelegate.strokeWidth != strokeWidth;
   }
 }
-

@@ -139,14 +139,20 @@ class _WelcomeHeroCard extends StatelessWidget {
                                     fontSize: 14.sp,
                                   ),
                                 ),
-                                Text(
-                                  userName,
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: textTheme.titleLarge?.copyWith(
-                                    color: onPrimary,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 18.sp,
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      userName,
+                                      maxLines: 1,
+                                      style: textTheme.titleLarge?.copyWith(
+                                        color: onPrimary,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 18.sp,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -280,6 +286,15 @@ class _HealthOverviewCard extends StatelessWidget {
                             color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          "let's improve together",
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.6),
+                            fontSize: 10.sp,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -287,7 +302,7 @@ class _HealthOverviewCard extends StatelessWidget {
                   // Right side - Circular progress
                   _CircularProgressWidget(
                     percentage: adherencePercentage,
-                    size: 100.w,
+                    size: 90.w,
                   ),
                 ],
               ),
@@ -393,17 +408,21 @@ class _AlertsAndVitalsRow extends StatelessWidget {
     final abnormalVitals = healthProvider.vitals
         .where((vital) => vital.isAbnormal())
         .toList();
-    
+
     // Specifically find the latest blood pressure measurement
-    final latestBP = healthProvider.vitals.isEmpty 
-        ? null 
+    final latestBP = healthProvider.vitals.isEmpty
+        ? null
         : healthProvider.vitals.firstWhere(
             (v) => v.type == VitalType.bloodPressure,
-            orElse: () => healthProvider.vitals.first, // Fallback if no BP (though we'll handle null in card)
+            orElse: () => healthProvider
+                .vitals
+                .first, // Fallback if no BP (though we'll handle null in card)
           );
-    
+
     // If the firstWhere fallback is used, we only want it if it's actually BP
-    final actualLatestBP = latestBP?.type == VitalType.bloodPressure ? latestBP : null;
+    final actualLatestBP = latestBP?.type == VitalType.bloodPressure
+        ? latestBP
+        : null;
 
     return IntrinsicHeight(
       child: Row(
@@ -461,7 +480,9 @@ class _AlertsCard extends StatelessWidget {
                           width: 32.w,
                           height: 32.w,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFB84D).withValues(alpha: 0.2),
+                            color: const Color(
+                              0xFFFFB84D,
+                            ).withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
@@ -536,8 +557,8 @@ class _BloodPressureCard extends StatelessWidget {
     final systolicStr = hasData ? (vital.value as String).split('/')[0] : '--';
     final diastolicStr = hasData ? (vital.value as String).split('/')[1] : '--';
     final status = hasData ? vital.getStatusLabel(context) : 'No records yet';
-    final statusColor = hasData 
-        ? vital.getHealthStatus().getStatusColor(context) 
+    final statusColor = hasData
+        ? vital.getHealthStatus().getStatusColor(context)
         : const Color(0xFF999999);
     final statusBadgeColor = hasData
         ? statusColor.withValues(alpha: 0.1)
@@ -599,7 +620,9 @@ class _BloodPressureCard extends StatelessWidget {
                       text: '$systolicStr / $diastolicStr ',
                       style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: hasData ? const Color(0xFF1A1A1A) : const Color(0xFFCCCCCC),
+                        color: hasData
+                            ? const Color(0xFF1A1A1A)
+                            : const Color(0xFFCCCCCC),
                       ),
                     ),
                     TextSpan(
@@ -618,24 +641,24 @@ class _BloodPressureCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(4),
                   gradient: LinearGradient(
-                    colors: hasData 
-                      ? [
-                          const Color(0xFF4CAF50),
-                          const Color(0xFFFFEB3B),
-                          const Color(0xFFFF9800),
-                          const Color(0xFFF44336),
-                        ]
-                      : [
-                          const Color(0xFFEEEEEE),
-                          const Color(0xFFEEEEEE),
-                        ],
+                    colors: hasData
+                        ? [
+                            const Color(0xFF4CAF50),
+                            const Color(0xFFFFEB3B),
+                            const Color(0xFFFF9800),
+                            const Color(0xFFF44336),
+                          ]
+                        : [const Color(0xFFEEEEEE), const Color(0xFFEEEEEE)],
                   ),
                 ),
               ),
               SizedBox(height: 8.h),
               Center(
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 4.h,
+                  ),
                   decoration: BoxDecoration(
                     color: statusBadgeColor,
                     borderRadius: BorderRadius.circular(12),
@@ -657,7 +680,7 @@ class _BloodPressureCard extends StatelessWidget {
   }
 }
 
-/// Circular Progress Widget
+/// Circular Progress Widget with Beating Heart
 class _CircularProgressWidget extends StatelessWidget {
   final double percentage;
   final double size;
@@ -666,8 +689,6 @@ class _CircularProgressWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     return SizedBox(
       width: size,
       height: size,
@@ -680,9 +701,11 @@ class _CircularProgressWidget extends StatelessWidget {
             height: size,
             child: CircularProgressIndicator(
               value: 1,
-              strokeWidth: 8,
-              backgroundColor: Colors.grey.shade200,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.grey.shade200),
+              strokeWidth: 6.w,
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Colors.white.withValues(alpha: 0.2),
+              ),
             ),
           ),
           // Progress circle
@@ -691,50 +714,145 @@ class _CircularProgressWidget extends StatelessWidget {
             height: size,
             child: CircularProgressIndicator(
               value: percentage / 100,
-              strokeWidth: 8,
-              backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.appleGreen),
+              strokeWidth: 6.w,
+              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                AppTheme.appleGreen.withValues(alpha: 0.7),
+              ),
               strokeCap: StrokeCap.round,
             ),
           ),
-          // Center content
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '${percentage.toInt()}%',
-                style: textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: Colors.black,
-                ),
-              ),
-              Text(
-                'adherence—',
-                style: textTheme.bodySmall?.copyWith(
-                  color: Colors.black.withValues(alpha: 0.8),
-                  fontSize: 10.sp,
-                ),
-              ),
-              Text(
-                'let\'s improve',
-                style: textTheme.bodySmall?.copyWith(
-                  color: Colors.black.withValues(alpha: 0.8),
-                  fontSize: 10.sp,
-                ),
-              ),
-              Text(
-                'together',
-                style: textTheme.bodySmall?.copyWith(
-                  color: Colors.black.withValues(alpha: 0.8),
-                  fontSize: 10.sp,
-                ),
-              ),
-              SizedBox(height: 4.h),
-              Icon(Icons.favorite, color: Colors.redAccent, size: 16),
-            ],
-          ),
+          // Center content - Beating Heart and Percentage
+          _BeatingHeart(adherencePercentage: percentage),
         ],
       ),
+    );
+  }
+}
+
+class _BeatingHeart extends StatefulWidget {
+  final double adherencePercentage;
+
+  const _BeatingHeart({required this.adherencePercentage});
+
+  @override
+  State<_BeatingHeart> createState() => _BeatingHeartState();
+}
+
+class _BeatingHeartState extends State<_BeatingHeart>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    // Speed: 100% adherence = 800ms, 0% adherence = 2000ms
+    final durationMs = (2000 - (1200 * (widget.adherencePercentage / 100)))
+        .toInt()
+        .clamp(600, 2000);
+
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: durationMs),
+    )..repeat(reverse: true);
+
+    // Intensity: Higher adherence = slightly more pronounced pulse
+    final intensity = 0.1 + (0.1 * (widget.adherencePercentage / 100));
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.0 + intensity).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+    );
+  }
+
+  @override
+  void didUpdateWidget(_BeatingHeart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.adherencePercentage != widget.adherencePercentage) {
+      final durationMs = (2000 - (1200 * (widget.adherencePercentage / 100)))
+          .toInt()
+          .clamp(600, 2000);
+      _controller.duration = Duration(milliseconds: durationMs);
+
+      final intensity = 0.1 + (0.1 * (widget.adherencePercentage / 100));
+      _scaleAnimation = Tween<double>(begin: 1.0, end: 1.0 + intensity).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final isMax = widget.adherencePercentage >= 100;
+    final progress = (widget.adherencePercentage / 100).clamp(0.0, 1.0);
+
+    // 100% = Healthy Red/Pink, < 100% = Apple Green Fill
+    final fillColor = isMax ? const Color(0xFFFF4D6D) : AppTheme.appleGreen;
+    final secondaryColor =
+        isMax ? const Color(0xFFFF85A1) : AppTheme.appleGreen.withValues(alpha: 0.8);
+    final emptyColor = Colors.white.withValues(alpha: 0.2);
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        ScaleTransition(
+          scale: _scaleAnimation,
+          child: ShaderMask(
+            shaderCallback: (Rect bounds) {
+              if (isMax) {
+                // Glossy healthy heart gradient
+                return LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.white, fillColor, secondaryColor],
+                  stops: const [0.0, 0.4, 1.0],
+                ).createShader(bounds);
+              } else {
+                // Vertical filler gradient
+                return LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [fillColor, fillColor, emptyColor, emptyColor],
+                  stops: [0.0, progress, progress, 1.0],
+                ).createShader(bounds);
+              }
+            },
+            child: Icon(
+              Icons.favorite,
+              color: Colors.white,
+              size: 38.w,
+              shadows: [
+                Shadow(
+                  color: Colors.black.withValues(alpha: 0.2),
+                  offset: const Offset(0, 2),
+                  blurRadius: 4,
+                ),
+                if (isMax)
+                  Shadow(
+                    color: fillColor.withValues(alpha: 0.5),
+                    offset: const Offset(0, 0),
+                    blurRadius: 12,
+                  ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(height: 2.h),
+        Text(
+          '${widget.adherencePercentage.toInt()}%',
+          style: textTheme.labelSmall?.copyWith(
+            fontWeight: FontWeight.w900,
+            color: Colors.white,
+            fontSize: 12.sp,
+          ),
+        ),
+      ],
     );
   }
 }

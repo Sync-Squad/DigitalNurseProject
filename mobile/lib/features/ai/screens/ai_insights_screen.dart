@@ -32,7 +32,7 @@ class _AIInsightsScreenState extends State<AIInsightsScreen> {
     try {
       final careContext = context.read<CareContextProvider>();
       await careContext.ensureLoaded();
-      
+
       final elderUserId = careContext.selectedElderId != null
           ? int.tryParse(careContext.selectedElderId!)
           : null;
@@ -51,9 +51,9 @@ class _AIInsightsScreenState extends State<AIInsightsScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load insights: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load insights: $e')));
       }
     }
   }
@@ -73,70 +73,70 @@ class _AIInsightsScreenState extends State<AIInsightsScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _insights.isEmpty
-              ? Column(
-                  children: [
-                    const AIFeaturesNavigation(),
-                    Expanded(
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.insights,
-                              size: 64,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No insights yet',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'AI insights will appear here as we analyze your health data',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+          ? Column(
+              children: [
+                const AIFeaturesNavigation(),
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.insights,
+                          size: 64,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No insights yet',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'AI insights will appear here as we analyze your health data',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
-                  ],
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadInsights,
-                  child: Column(
-                    children: [
-                      const AIFeaturesNavigation(),
-                      Expanded(
-                        child: ListView.builder(
-                          itemCount: _insights.length,
-                          itemBuilder: (context, index) {
-                            final insight = _insights[index];
-                            return AIInsightCard(
-                              id: insight['id']?.toString() ?? '',
-                              title: insight['title'] ?? 'Insight',
-                              content: insight['content'] ?? '',
-                              priority: insight['priority'] ?? 'medium',
-                              category: insight['category'],
-                              confidence: insight['confidence']?.toDouble(),
-                              recommendations: insight['recommendations'],
-                              isRead: insight['isRead'] ?? false,
-                              generatedAt: insight['generatedAt'] != null
-                                  ? DateTime.parse(insight['generatedAt'])
-                                  : DateTime.now(),
-                              onTap: () => _showInsightDetails(insight),
-                              onMarkRead: insight['isRead'] == false
-                                  ? () => _markAsRead(insight['id'])
-                                  : null,
-                              onArchive: () => _archiveInsight(insight['id']),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
                   ),
                 ),
+              ],
+            )
+          : RefreshIndicator(
+              onRefresh: _loadInsights,
+              child: Column(
+                children: [
+                  const AIFeaturesNavigation(),
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: _insights.length,
+                      itemBuilder: (context, index) {
+                        final insight = _insights[index];
+                        return AIInsightCard(
+                          id: insight['id']?.toString() ?? '',
+                          title: insight['title'] ?? 'Insight',
+                          content: insight['content'] ?? '',
+                          priority: insight['priority'] ?? 'medium',
+                          category: insight['category'],
+                          confidence: insight['confidence']?.toDouble(),
+                          recommendations: insight['recommendations'],
+                          isRead: insight['isRead'] ?? false,
+                          generatedAt: insight['generatedAt'] != null
+                              ? DateTime.parse(insight['generatedAt'])
+                              : DateTime.now(),
+                          onTap: () => _showInsightDetails(insight),
+                          onMarkRead: insight['isRead'] == false
+                              ? () => _markAsRead(insight['id'])
+                              : null,
+                          onArchive: () => _archiveInsight(insight['id']),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
     );
   }
 
@@ -237,16 +237,18 @@ class _AIInsightsScreenState extends State<AIInsightsScreen> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                   const SizedBox(height: 8),
-                  ...(insight['recommendations'] as List).map((rec) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text('• '),
-                            Expanded(child: Text(rec.toString())),
-                          ],
-                        ),
-                      )),
+                  ...(insight['recommendations'] as List).map(
+                    (rec) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('• '),
+                          Expanded(child: Text(rec.toString())),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -262,9 +264,9 @@ class _AIInsightsScreenState extends State<AIInsightsScreen> {
       _loadInsights();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to mark as read: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to mark as read: $e')));
       }
     }
   }
@@ -275,11 +277,10 @@ class _AIInsightsScreenState extends State<AIInsightsScreen> {
       _loadInsights();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to archive: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to archive: $e')));
       }
     }
   }
 }
-

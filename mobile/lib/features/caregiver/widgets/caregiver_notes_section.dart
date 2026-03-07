@@ -6,10 +6,7 @@ import '../../../core/theme/modern_surface_theme.dart';
 class CaregiverNotesSection extends StatefulWidget {
   final String elderId;
 
-  const CaregiverNotesSection({
-    super.key,
-    required this.elderId,
-  });
+  const CaregiverNotesSection({super.key, required this.elderId});
 
   @override
   State<CaregiverNotesSection> createState() => _CaregiverNotesSectionState();
@@ -128,8 +125,8 @@ class _CaregiverNotesSectionState extends State<CaregiverNotesSection> {
                     Text(
                       'No notes yet',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     SizedBox(height: 8.h),
                     TextButton(
@@ -141,15 +138,17 @@ class _CaregiverNotesSectionState extends State<CaregiverNotesSection> {
               ),
             )
           else
-            ..._notes.map((note) => _NoteItem(
-                  note: note,
-                  onDelete: () {
-                    setState(() {
-                      _notes.removeWhere((n) => n['id'] == note['id']);
-                    });
-                    // TODO: Delete note from backend
-                  },
-                )),
+            ..._notes.map(
+              (note) => _NoteItem(
+                note: note,
+                onDelete: () {
+                  setState(() {
+                    _notes.removeWhere((n) => n['id'] == note['id']);
+                  });
+                  // TODO: Delete note from backend
+                },
+              ),
+            ),
         ],
       ),
     );
@@ -160,10 +159,7 @@ class _NoteItem extends StatelessWidget {
   final Map<String, dynamic> note;
   final VoidCallback onDelete;
 
-  const _NoteItem({
-    required this.note,
-    required this.onDelete,
-  });
+  const _NoteItem({required this.note, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -184,16 +180,13 @@ class _NoteItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  text,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+                Text(text, style: Theme.of(context).textTheme.bodyMedium),
                 SizedBox(height: 8.h),
                 Text(
                   DateFormat('MMM d, y • h:mm a').format(timestamp),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
@@ -208,4 +201,3 @@ class _NoteItem extends StatelessWidget {
     );
   }
 }
-

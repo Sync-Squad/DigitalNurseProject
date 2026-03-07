@@ -8,7 +8,9 @@ class VitalMapper {
     // Convert type string to enum
     VitalType type = VitalType.bloodPressure;
     if (json['type'] != null || json['kindCode'] != null) {
-      final typeStr = (json['type'] ?? json['kindCode']).toString().toLowerCase();
+      final typeStr = (json['type'] ?? json['kindCode'])
+          .toString()
+          .toLowerCase();
       switch (typeStr) {
         case 'bloodpressure':
         case 'blood_pressure':
@@ -58,25 +60,33 @@ class VitalMapper {
     DateTime timestamp = DateTime.now();
     if (json['timestamp'] != null) {
       try {
-        timestamp = TimezoneUtil.fromPakistanTimeIso8601(json['timestamp'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(
+          json['timestamp'].toString(),
+        );
       } catch (e) {
         timestamp = DateTime.now();
       }
     } else if (json['recordedAt'] != null) {
       try {
-        timestamp = TimezoneUtil.fromPakistanTimeIso8601(json['recordedAt'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(
+          json['recordedAt'].toString(),
+        );
       } catch (e) {
         timestamp = DateTime.now();
       }
     }
 
     return VitalMeasurementModel(
-      id: json['id']?.toString() ?? json['vitalMeasurementId']?.toString() ?? '',
+      id:
+          json['id']?.toString() ??
+          json['vitalMeasurementId']?.toString() ??
+          '',
       type: type,
       value: value,
       timestamp: timestamp,
       notes: json['notes']?.toString(),
-      userId: json['userId']?.toString() ?? json['elderUserId']?.toString() ?? '',
+      userId:
+          json['userId']?.toString() ?? json['elderUserId']?.toString() ?? '',
     );
   }
 
@@ -128,4 +138,3 @@ class VitalMapper {
     return request;
   }
 }
-

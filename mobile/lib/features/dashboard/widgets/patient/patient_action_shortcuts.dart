@@ -23,7 +23,7 @@ class PatientActionShortcuts extends StatelessWidget {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final actions = [
       _ActionShortcut(
         icon: Icons.medication,
@@ -118,12 +118,7 @@ class PatientActionShortcuts extends StatelessWidget {
                 spacing: crossAxisSpacing,
                 runSpacing: 14.h,
                 children: actions
-                    .map(
-                      (action) => SizedBox(
-                        width: itemWidth,
-                        child: action,
-                      ),
-                    )
+                    .map((action) => SizedBox(width: itemWidth, child: action))
                     .toList(),
               ),
             ],
@@ -176,8 +171,8 @@ class _ActionShortcutState extends State<_ActionShortcut> {
     final scale = _isPressed
         ? 0.98
         : _isHovered
-            ? 1.02
-            : 1.0;
+        ? 1.02
+        : 1.0;
 
     final textTheme = context.theme.typography;
 
@@ -196,10 +191,7 @@ class _ActionShortcutState extends State<_ActionShortcut> {
             onTap: widget.onTap,
             onHighlightChanged: _handlePressed,
             child: Ink(
-              padding: EdgeInsets.symmetric(
-                horizontal: 18.w,
-                vertical: 18.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 18.h),
               decoration: CaregiverDashboardTheme.pillButton(
                 context,
                 widget.accent,
@@ -213,10 +205,7 @@ class _ActionShortcutState extends State<_ActionShortcut> {
                       context,
                       Colors.white,
                     ),
-                    child: Icon(
-                      widget.icon,
-                      color: widget.accent,
-                    ),
+                    child: Icon(widget.icon, color: widget.accent),
                   ),
                   SizedBox(width: 16.w),
                   Expanded(
@@ -254,4 +243,3 @@ class _ActionShortcutState extends State<_ActionShortcut> {
     );
   }
 }
-

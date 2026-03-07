@@ -68,7 +68,10 @@ class _MedicineAlarmScreenState extends State<MedicineAlarmScreen>
 
     // Update clock every second
     _updateTime();
-    _clockTimer = Timer.periodic(const Duration(seconds: 1), (_) => _updateTime());
+    _clockTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _updateTime(),
+    );
 
     // Auto-close after 5 minutes if no action
     _autoCloseTimer = Timer(const Duration(minutes: 5), () {
@@ -84,7 +87,8 @@ class _MedicineAlarmScreenState extends State<MedicineAlarmScreen>
       try {
         final data = jsonDecode(widget.payload!);
         _medicineId = data['medicineId'];
-        _medicineName = data['medicineName'] ?? widget.medicineName ?? 'Medicine';
+        _medicineName =
+            data['medicineName'] ?? widget.medicineName ?? 'Medicine';
         _dosage = data['dosage'] ?? widget.dosage ?? '';
       } catch (e) {
         print('Error parsing payload: $e');
@@ -140,11 +144,13 @@ class _MedicineAlarmScreenState extends State<MedicineAlarmScreen>
         final fcmService = FCMService();
         final snoozeTime = DateTime.now().add(const Duration(minutes: 5));
         await fcmService.scheduleLocalNotification(
-          id: '${_medicineId}_snooze_${snoozeTime.millisecondsSinceEpoch}'.hashCode,
+          id: '${_medicineId}_snooze_${snoozeTime.millisecondsSinceEpoch}'
+              .hashCode,
           title: 'Medicine Reminder (Snoozed)',
           body: 'Time to take $_medicineName $_dosage',
           scheduledDate: snoozeTime,
-          payload: '{"medicineId": "$_medicineId", "medicineName": "$_medicineName", "dosage": "$_dosage", "type": "medicine_reminder"}',
+          payload:
+              '{"medicineId": "$_medicineId", "medicineName": "$_medicineName", "dosage": "$_dosage", "type": "medicine_reminder"}',
           type: NotificationType.medicineReminder,
         );
         print('Snoozed alarm rescheduled for $snoozeTime');
@@ -320,10 +326,7 @@ class _MedicineAlarmScreenState extends State<MedicineAlarmScreen>
               // "Time to take your medicine" message
               Text(
                 'Time to take your medicine',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  color: Colors.white54,
-                ),
+                style: TextStyle(fontSize: 16.sp, color: Colors.white54),
               ),
 
               const Spacer(flex: 2),
@@ -411,18 +414,11 @@ class _AlarmButton extends StatelessWidget {
           decoration: BoxDecoration(
             color: color.withOpacity(0.2),
             borderRadius: BorderRadius.circular(24.r),
-            border: Border.all(
-              color: color.withOpacity(0.5),
-              width: 2,
-            ),
+            border: Border.all(color: color.withOpacity(0.5), width: 2),
           ),
           child: Column(
             children: [
-              Icon(
-                icon,
-                size: 48.w,
-                color: color,
-              ),
+              Icon(icon, size: 48.w, color: color),
               SizedBox(height: 12.h),
               Text(
                 label,
@@ -434,10 +430,7 @@ class _AlarmButton extends StatelessWidget {
               ),
               Text(
                 sublabel,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: Colors.white60,
-                ),
+                style: TextStyle(fontSize: 14.sp, color: Colors.white60),
               ),
             ],
           ),
@@ -446,4 +439,3 @@ class _AlarmButton extends StatelessWidget {
     );
   }
 }
-

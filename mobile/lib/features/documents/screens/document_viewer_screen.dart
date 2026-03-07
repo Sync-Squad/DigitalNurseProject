@@ -69,7 +69,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
       try {
         final authProvider = context.read<AuthProvider>();
         final user = authProvider.currentUser;
-        
+
         if (user == null) {
           return;
         }
@@ -91,12 +91,13 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
           widget.documentId,
           elderUserId: elderUserId,
         );
-        
+
         if (context.mounted) {
           if (success) {
             context.pop();
           } else {
-            final errorMessage = context.read<DocumentProvider>().error ?? 
+            final errorMessage =
+                context.read<DocumentProvider>().error ??
                 'Failed to delete document. Please try again.';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -131,7 +132,8 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
 
       // Get download directory
       final directory = await getApplicationDocumentsDirectory();
-      final fileName = '${document.title}_${document.id}.${_getFileExtension(document)}';
+      final fileName =
+          '${document.title}_${document.id}.${_getFileExtension(document)}';
       final savePath = '${directory.path}/$fileName';
 
       // Download the file
@@ -179,7 +181,8 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   Future<String?> _getFileUrl(DocumentModel document) async {
     if (document.fileUrl != null) {
       final baseUrl = await AppConfig.getBaseUrl();
-      if (document.fileUrl!.startsWith('http://') || document.fileUrl!.startsWith('https://')) {
+      if (document.fileUrl!.startsWith('http://') ||
+          document.fileUrl!.startsWith('https://')) {
         return document.fileUrl;
       }
       return '$baseUrl${document.fileUrl}';
@@ -201,9 +204,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
               context,
               accent: AppTheme.getDocumentColor(context, document.type.name),
             ),
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: const Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -252,7 +253,11 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: Colors.grey[600]),
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.grey[600],
+                    ),
                     SizedBox(height: 8.h),
                     Text(
                       'Failed to load image',
@@ -271,7 +276,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   Future<Map<String, String>> _getImageUrlWithHeaders(String imageUrl) async {
     final baseUrl = await AppConfig.getBaseUrl();
     final token = await _tokenService.getAccessToken();
-    
+
     // Construct full URL if needed
     String fullUrl;
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
@@ -280,10 +285,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
       fullUrl = '$baseUrl$imageUrl';
     }
 
-    return {
-      'url': fullUrl,
-      if (token != null) 'headers': 'Bearer $token',
-    };
+    return {'url': fullUrl, if (token != null) 'headers': 'Bearer $token'};
   }
 
   Widget _buildPdfViewer(String pdfUrl, DocumentModel document) {
@@ -345,11 +347,15 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
     );
   }
 
-  Future<String> _downloadPdfForViewing(String pdfUrl, DocumentModel document) async {
+  Future<String> _downloadPdfForViewing(
+    String pdfUrl,
+    DocumentModel document,
+  ) async {
     try {
       // Get temporary directory for caching
       final directory = await getTemporaryDirectory();
-      final fileName = 'pdf_${document.id}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final fileName =
+          'pdf_${document.id}_${DateTime.now().millisecondsSinceEpoch}.pdf';
       final localPath = '${directory.path}/$fileName';
 
       // Check if file already exists
@@ -362,18 +368,16 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
       final baseUrl = await AppConfig.getBaseUrl();
       final token = await _tokenService.getAccessToken();
 
-      final dio = Dio(BaseOptions(
-        baseUrl: baseUrl,
-        headers: {
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      ));
+      final dio = Dio(
+        BaseOptions(
+          baseUrl: baseUrl,
+          headers: {if (token != null) 'Authorization': 'Bearer $token'},
+        ),
+      );
 
       final response = await dio.get(
         pdfUrl.startsWith('http') ? pdfUrl : '$baseUrl$pdfUrl',
-        options: Options(
-          responseType: ResponseType.bytes,
-        ),
+        options: Options(responseType: ResponseType.bytes),
       );
 
       if (response.statusCode == 200) {
@@ -407,15 +411,15 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
           Text(
             document.fileType ?? 'Document',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
-                ),
+              color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
             'Preview not available',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: ModernSurfaceTheme.deepTeal.withOpacity(0.5),
-                ),
+              color: ModernSurfaceTheme.deepTeal.withOpacity(0.5),
+            ),
           ),
         ],
       ),
@@ -457,7 +461,10 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
                 )
               : IconButton(
                   onPressed: _isDeleting ? null : () => _handleDelete(context),
-                  icon: Icon(Icons.delete_outline, color: AppTheme.getErrorColor(context)),
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: AppTheme.getErrorColor(context),
+                  ),
                 ),
         ],
       ),
@@ -477,17 +484,18 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
                   Text(
                     document.title,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: ModernSurfaceTheme.deepTeal,
-                        ),
+                      fontWeight: FontWeight.w700,
+                      color: ModernSurfaceTheme.deepTeal,
+                    ),
                   ),
                   SizedBox(height: 16.h),
                   _InfoRow(label: 'Type', value: document.type.displayName),
                   SizedBox(height: 8.h),
                   _InfoRow(
                     label: 'Upload Date',
-                    value: DateFormat('MMM d, yyyy - h:mm a')
-                        .format(TimezoneUtil.toPakistanTime(document.uploadDate)),
+                    value: DateFormat(
+                      'MMM d, yyyy - h:mm a',
+                    ).format(TimezoneUtil.toPakistanTime(document.uploadDate)),
                   ),
                   SizedBox(height: 8.h),
                   _InfoRow(
@@ -584,17 +592,17 @@ class _InfoRow extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: ModernSurfaceTheme.deepTeal.withOpacity(0.6),
-                ),
+              color: ModernSurfaceTheme.deepTeal.withOpacity(0.6),
+            ),
           ),
         ),
         Expanded(
           child: Text(
             value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: ModernSurfaceTheme.deepTeal,
-                ),
+              fontWeight: FontWeight.w600,
+              color: ModernSurfaceTheme.deepTeal,
+            ),
           ),
         ),
       ],

@@ -25,16 +25,21 @@ class AuthService {
   /// This fetches the Gemini API key from the database and caches it locally
   void _fetchConfigInBackground() {
     // Run in background - don't await to avoid blocking login flow
-    _configService.fetchAndCacheGeminiApiKey().then((apiKey) {
-      if (apiKey != null) {
-        _log('✅ [AUTH] Gemini API key fetched from database');
-      } else {
-        _log('⚠️ [AUTH] Using fallback Gemini API key (database fetch failed or empty)');
-      }
-    }).catchError((e) {
-      _log('⚠️ [AUTH] Failed to fetch Gemini API key from database: $e');
-      // App will continue using fallback API key
-    });
+    _configService
+        .fetchAndCacheGeminiApiKey()
+        .then((apiKey) {
+          if (apiKey != null) {
+            _log('✅ [AUTH] Gemini API key fetched from database');
+          } else {
+            _log(
+              '⚠️ [AUTH] Using fallback Gemini API key (database fetch failed or empty)',
+            );
+          }
+        })
+        .catchError((e) {
+          _log('⚠️ [AUTH] Failed to fetch Gemini API key from database: $e');
+          // App will continue using fallback API key
+        });
   }
 
   // Login with email and password
@@ -128,13 +133,16 @@ class AuthService {
     String? phone,
     String? caregiverInviteCode,
   }) async {
-    final trimmedPhone =
-        phone != null && phone.trim().isNotEmpty ? phone.trim() : null;
+    final trimmedPhone = phone != null && phone.trim().isNotEmpty
+        ? phone.trim()
+        : null;
     _log('📝 [AUTH] Attempting registration for: $email');
 
     // Client-side validation
     if (name.isEmpty || password.isEmpty || email.trim().isEmpty) {
-      _log('❌ [AUTH] Registration validation failed: Name, email and password are required');
+      _log(
+        '❌ [AUTH] Registration validation failed: Name, email and password are required',
+      );
       throw Exception('Name, email and password are required');
     }
 
@@ -170,7 +178,8 @@ class AuthService {
         'name': name.trim(),
         'email': email.trim(),
         'roleCode': payloadRole,
-        if (trimmedPhone != null && trimmedPhone.isNotEmpty) 'phone': trimmedPhone,
+        if (trimmedPhone != null && trimmedPhone.isNotEmpty)
+          'phone': trimmedPhone,
         if (role == UserRole.caregiver && caregiverInviteCode != null)
           'caregiverInviteCode': caregiverInviteCode.trim(),
       };
@@ -187,10 +196,12 @@ class AuthService {
         // Registration successful - return a user model with the userId
         // Note: Backend returns { message, userId }, not full user object
         // User will need to verify email before logging in
-        final responseRole =
-            (data['role'] ?? payloadRole).toString().toLowerCase();
-        final userRole =
-            responseRole == 'caregiver' ? UserRole.caregiver : UserRole.patient;
+        final responseRole = (data['role'] ?? payloadRole)
+            .toString()
+            .toLowerCase();
+        final userRole = responseRole == 'caregiver'
+            ? UserRole.caregiver
+            : UserRole.patient;
 
         final user = UserModel(
           id: data['userId'].toString(),
@@ -249,7 +260,9 @@ class AuthService {
         _log('✅ [AUTH] Verification email resent successfully');
         return true;
       } else {
-        _log('❌ [AUTH] Failed to resend verification email: ${response.statusMessage}');
+        _log(
+          '❌ [AUTH] Failed to resend verification email: ${response.statusMessage}',
+        );
         throw Exception('Failed to resend verification email');
       }
     } catch (e) {
@@ -271,7 +284,9 @@ class AuthService {
         _log('✅ [AUTH] Password reset link sent successfully');
         return true;
       } else {
-        _log('❌ [AUTH] Failed to send password reset link: ${response.statusMessage}');
+        _log(
+          '❌ [AUTH] Failed to send password reset link: ${response.statusMessage}',
+        );
         throw Exception('Failed to send password reset link');
       }
     } catch (e) {
@@ -289,10 +304,7 @@ class AuthService {
     try {
       final response = await _apiService.post(
         '/auth/reset-password',
-        data: {
-          'token': token,
-          'newPassword': newPassword,
-        },
+        data: {'token': token, 'newPassword': newPassword},
       );
 
       if (response.statusCode == 200) {
@@ -571,10 +583,16 @@ class AuthService {
   }) async {
     _log('💾 [AUTH] Saving credentials for biometric login for user: $userId');
     try {
-      await _secureStorage.saveCredentials(userId: userId, phone: phone, password: password);
+      await _secureStorage.saveCredentials(
+        userId: userId,
+        phone: phone,
+        password: password,
+      );
       _log('✅ [AUTH] Credentials saved for biometric login for user: $userId');
     } catch (e) {
-      _log('❌ [AUTH] Error saving credentials for biometric for user $userId: $e');
+      _log(
+        '❌ [AUTH] Error saving credentials for biometric for user $userId: $e',
+      );
       rethrow;
     }
   }
@@ -587,8 +605,12 @@ class AuthService {
       // Check if biometric is enabled and credentials exist for this user
       final hasCredentials = await _secureStorage.hasSavedCredentials(userId);
       if (!hasCredentials) {
-        _log('❌ [AUTH] No saved credentials found for biometric login for user: $userId');
-        throw Exception('No saved credentials found for this account. Please login with phone and password first.');
+        _log(
+          '❌ [AUTH] No saved credentials found for biometric login for user: $userId',
+        );
+        throw Exception(
+          'No saved credentials found for this account. Please login with phone and password first.',
+        );
       }
 
       final isEnabled = await _secureStorage.isBiometricEnabled(userId);
@@ -601,12 +623,17 @@ class AuthService {
       final phone = await _secureStorage.getSavedPhone(userId);
       final password = await _secureStorage.getSavedPassword(userId);
 
-      if (phone == null || password == null || phone.isEmpty || password.isEmpty) {
+      if (phone == null ||
+          password == null ||
+          phone.isEmpty ||
+          password.isEmpty) {
         _log('❌ [AUTH] Invalid saved credentials for user: $userId');
         throw Exception('Invalid saved credentials for this account');
       }
 
-      _log('✅ [AUTH] Credentials retrieved for user $userId, attempting login...');
+      _log(
+        '✅ [AUTH] Credentials retrieved for user $userId, attempting login...',
+      );
 
       // Use existing login method with retrieved credentials
       return await login(phone, password);
@@ -623,7 +650,9 @@ class AuthService {
       await _secureStorage.clearCredentials(userId);
       _log('✅ [AUTH] Biometric credentials cleared for user: $userId');
     } catch (e) {
-      _log('❌ [AUTH] Error clearing biometric credentials for user $userId: $e');
+      _log(
+        '❌ [AUTH] Error clearing biometric credentials for user $userId: $e',
+      );
       rethrow;
     }
   }
@@ -633,10 +662,14 @@ class AuthService {
     try {
       final hasCredentials = await _secureStorage.hasSavedCredentials(userId);
       final isEnabled = await _secureStorage.isBiometricEnabled(userId);
-      _log('🔍 [AUTH] Biometric login status for user $userId - hasCredentials: $hasCredentials, isEnabled: $isEnabled');
+      _log(
+        '🔍 [AUTH] Biometric login status for user $userId - hasCredentials: $hasCredentials, isEnabled: $isEnabled',
+      );
       return hasCredentials && isEnabled;
     } catch (e) {
-      _log('❌ [AUTH] Error checking biometric login status for user $userId: $e');
+      _log(
+        '❌ [AUTH] Error checking biometric login status for user $userId: $e',
+      );
       return false;
     }
   }

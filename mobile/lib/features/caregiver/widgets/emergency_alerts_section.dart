@@ -13,11 +13,7 @@ class EmergencyAlertsSection extends StatelessWidget {
   final String? elderId;
   final String? patientName;
 
-  const EmergencyAlertsSection({
-    super.key,
-    this.elderId,
-    this.patientName,
-  });
+  const EmergencyAlertsSection({super.key, this.elderId, this.patientName});
 
   @override
   Widget build(BuildContext context) {
@@ -43,19 +39,25 @@ class EmergencyAlertsSection extends StatelessWidget {
     }
 
     // Get abnormal vitals as alerts
-    final abnormalVitals = healthProvider.vitals.where((v) => v.isAbnormal()).toList();
+    final abnormalVitals = healthProvider.vitals
+        .where((v) => v.isAbnormal())
+        .toList();
     for (final vital in abnormalVitals.take(5)) {
       alerts.add({
         'id': 'vital_${vital.id}',
         'type': AlertType.abnormalVital,
         'severity': _getSeverityFromVital(vital),
-        'message': '${vital.type.displayName}: ${vital.value} ${vital.type.unit}',
+        'message':
+            '${vital.type.displayName}: ${vital.value} ${vital.type.unit}',
         'timestamp': vital.timestamp,
       });
     }
 
     // Sort by timestamp (most recent first)
-    alerts.sort((a, b) => (b['timestamp'] as DateTime).compareTo(a['timestamp'] as DateTime));
+    alerts.sort(
+      (a, b) =>
+          (b['timestamp'] as DateTime).compareTo(a['timestamp'] as DateTime),
+    );
 
     return Container(
       padding: ModernSurfaceTheme.cardPadding(),
@@ -80,9 +82,9 @@ class EmergencyAlertsSection extends StatelessWidget {
                   child: Text(
                     '${alerts.length}',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Colors.red,
-                          fontWeight: FontWeight.w700,
-                        ),
+                      color: Colors.red,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
             ],
@@ -103,25 +105,29 @@ class EmergencyAlertsSection extends StatelessWidget {
                     Text(
                       'No alerts',
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
               ),
             )
           else
-            ...alerts.take(5).map((alert) => AlertCard(
-                  id: alert['id'] as String,
-                  patientName: patientName ?? 'Patient',
-                  type: alert['type'] as AlertType,
-                  severity: alert['severity'] as AlertSeverity,
-                  message: alert['message'] as String,
-                  timestamp: alert['timestamp'] as DateTime,
-                  onDismiss: () {
-                    // TODO: Dismiss alert
-                  },
-                )),
+            ...alerts
+                .take(5)
+                .map(
+                  (alert) => AlertCard(
+                    id: alert['id'] as String,
+                    patientName: patientName ?? 'Patient',
+                    type: alert['type'] as AlertType,
+                    severity: alert['severity'] as AlertSeverity,
+                    message: alert['message'] as String,
+                    timestamp: alert['timestamp'] as DateTime,
+                    onDismiss: () {
+                      // TODO: Dismiss alert
+                    },
+                  ),
+                ),
         ],
       ),
     );
@@ -166,4 +172,3 @@ class EmergencyAlertsSection extends StatelessWidget {
     }
   }
 }
-

@@ -12,6 +12,7 @@ import '../../../core/extensions/vital_status_extensions.dart';
 import '../../../core/models/vital_measurement_model.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/models/user_model.dart';
+import '../../../core/widgets/modern_scaffold.dart';
 import '../widgets/vital_status_badge.dart';
 
 class AbnormalVitalsScreen extends StatefulWidget {
@@ -81,8 +82,7 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
     }
 
     // Sort dates in descending order (most recent first)
-    final sortedDates = grouped.keys.toList()
-      ..sort((a, b) => b.compareTo(a));
+    final sortedDates = grouped.keys.toList()..sort((a, b) => b.compareTo(a));
 
     final sortedGrouped = <String, List<VitalMeasurementModel>>{};
     for (final date in sortedDates) {
@@ -139,17 +139,25 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
     final groupedVitals = _groupVitalsByDate(abnormalVitals);
     final error = healthProvider.error;
 
-    return FScaffold(
-      header: FHeader(
-        title: const Text('Abnormal Vitals'),
-        suffixes: [
-          FHeaderAction(
-            icon: const Icon(FIcons.arrowLeft),
-            onPress: () => context.pop(),
-          ),
-        ],
+    return ModernScaffold(
+      safeAreaTop: false,
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF66B2B2),
+        elevation: 0,
+        centerTitle: false,
+        leading: IconButton(
+          icon: const Icon(FIcons.arrowLeft, color: Colors.white),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          'Abnormal Vitals',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
       ),
-      child: _buildBody(
+      body: _buildBody(
         context,
         isCaregiver: isCaregiver,
         hasAssignments: hasAssignments,
@@ -225,40 +233,31 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
           ),
         // Stats header
         Container(
-          padding: EdgeInsets.all(16.w),
-          child: Row(
-            children: [
-              Expanded(
-                child: Container(
-                  padding: EdgeInsets.all(16.w),
-                  decoration: BoxDecoration(
-                    color: AppTheme.getErrorColor(context).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: AppTheme.getErrorColor(context).withOpacity(0.3),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.warning_amber_rounded,
-                        color: AppTheme.getErrorColor(context),
-                        size: 24,
-                      ),
-                      SizedBox(width: 12.w),
-                      Text(
-                        '${abnormalVitals.length} abnormal ${abnormalVitals.length == 1 ? 'vital' : 'vitals'}',
-                        style: context.theme.typography.lg.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.getErrorColor(context),
-                        ),
-                      ),
-                    ],
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+          child: Container(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: const Color(0xFF66B2B2),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.white,
+                  size: 24.sp,
+                ),
+                SizedBox(width: 12.w),
+                Text(
+                  '${abnormalVitals.length} abnormal ${abnormalVitals.length == 1 ? 'vital' : 'vitals'}',
+                  style: context.theme.typography.lg.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         // Vitals list or empty state
@@ -282,10 +281,11 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                             bottom: 12.h,
                           ),
                           child: Text(
-                            _formatDateHeader(dateKey),
-                            style: context.theme.typography.sm.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: context.theme.colors.mutedForeground,
+                            _formatDateHeader(dateKey).toUpperCase(),
+                            style: context.theme.typography.xs.copyWith(
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.2,
+                              color: Colors.white.withValues(alpha: 0.8),
                             ),
                           ),
                         ),
@@ -293,8 +293,12 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                         ...dateVitals.map((vital) {
                           final healthStatus = vital.getHealthStatus();
                           return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: FCard(
+                            padding: EdgeInsets.only(bottom: 16.h),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF66B2B2),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
                               child: Padding(
                                 padding: EdgeInsets.all(16.w),
                                 child: Column(
@@ -305,14 +309,16 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                                         Container(
                                           padding: const EdgeInsets.all(12),
                                           decoration: BoxDecoration(
-                                            color: _getStatusBackgroundColor(
-                                              healthStatus,
-                                            ),
-                                            borderRadius: BorderRadius.circular(8),
+                                            color: _getStatusColor(healthStatus)
+                                                .withOpacity(0.2),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
                                           child: Icon(
                                             FIcons.activity,
-                                            color: _getStatusColor(healthStatus),
+                                            color: _getStatusColor(
+                                              healthStatus,
+                                            ),
                                           ),
                                         ),
                                         const SizedBox(width: 16),
@@ -323,32 +329,41 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                                             children: [
                                               Text(
                                                 vital.type.displayName,
-                                                style: context.theme.typography.base
+                                                style: context
+                                                    .theme
+                                                    .typography
+                                                    .base
                                                     .copyWith(
-                                                      fontWeight: FontWeight.bold,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white,
                                                     ),
                                               ),
-                                              SizedBox(height: 4),
+                                              const SizedBox(height: 4),
                                               Text(
-                                                DateFormat('h:mm a').format(
-                                                  vital.timestamp,
+                                                DateFormat(
+                                                  'h:mm a',
+                                                ).format(vital.timestamp),
+                                                style: context
+                                                    .theme.typography.sm
+                                                    .copyWith(
+                                                  color: Colors.white70,
                                                 ),
-                                                style:
-                                                    context.theme.typography.sm,
                                               ),
                                               if (vital.notes != null) ...[
-                                                SizedBox(height: 4),
+                                                const SizedBox(height: 4),
                                                 Text(
                                                   vital.notes!,
-                                                  style: context.theme.typography.xs
+                                                  style: context
+                                                      .theme
+                                                      .typography
+                                                      .xs
                                                       .copyWith(
-                                                        color: context
-                                                            .theme
-                                                            .colors
-                                                            .mutedForeground,
+                                                        color: Colors.white60,
                                                       ),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ],
                                             ],
@@ -363,26 +378,33 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                                               style: context.theme.typography.lg
                                                   .copyWith(
                                                     fontWeight: FontWeight.bold,
-                                                    color:
-                                                        _getStatusColor(healthStatus),
+                                                    color: _getStatusColor(
+                                                      healthStatus,
+                                                    ),
                                                   ),
                                             ),
                                             Text(
                                               vital.type.unit,
-                                              style: context.theme.typography.xs,
+                                              style: context.theme.typography.xs
+                                                  .copyWith(
+                                                color: Colors.white70,
+                                              ),
                                             ),
                                           ],
                                         ),
                                       ],
                                     ),
                                     const SizedBox(height: 12),
-                                    VitalStatusBadge(status: healthStatus, vital: vital),
+                                    VitalStatusBadge(
+                                      status: healthStatus,
+                                      vital: vital,
+                                    ),
                                   ],
                                 ),
                               ),
                             ),
                           );
-                        }).toList(),
+                        }),
                       ],
                     );
                   },
@@ -426,10 +448,6 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
 
   Color _getStatusColor(VitalHealthStatus status) {
     return status.getStatusColor(context);
-  }
-
-  Color _getStatusBackgroundColor(VitalHealthStatus status) {
-    return status.getStatusColor(context).withValues(alpha: 0.1);
   }
 
   Widget _buildCaregiverNotice(
@@ -516,4 +534,3 @@ class _ErrorBanner extends StatelessWidget {
     );
   }
 }
-

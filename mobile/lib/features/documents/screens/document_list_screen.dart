@@ -288,7 +288,9 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                             const Spacer(),
                             Text(
                               DateFormat('MMM d, yyyy').format(
-                                TimezoneUtil.toPakistanTime(document.uploadDate),
+                                TimezoneUtil.toPakistanTime(
+                                  document.uploadDate,
+                                ),
                               ),
                               style: textTheme.bodySmall?.copyWith(
                                 color: muted,

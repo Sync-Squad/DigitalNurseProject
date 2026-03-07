@@ -46,14 +46,14 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       final authProvider = context.read<AuthProvider>();
       final medicationProvider = context.read<MedicationProvider>();
       final user = authProvider.currentUser;
-      
+
       String? elderUserId;
       if (user?.role == UserRole.caregiver) {
         final careContext = context.read<CareContextProvider>();
         await careContext.ensureLoaded();
         elderUserId = careContext.selectedElderId;
       }
-      
+
       final history = await medicationProvider.getIntakeHistory(
         widget.medicineId,
         elderUserId: elderUserId,
@@ -104,7 +104,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
           intakeDate.day == targetDate.day &&
           intakeHour == targetHour &&
           intakeMinute == targetMinute &&
-          (intake.status == IntakeStatus.taken || intake.status == IntakeStatus.missed)) {
+          (intake.status == IntakeStatus.taken ||
+              intake.status == IntakeStatus.missed)) {
         return intake;
       }
     }
@@ -132,8 +133,10 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
   Future<void> _handleLogIntake(IntakeStatus status) async {
     if (_loggingStatus != null) return; // Already logging
 
-    print('🔵 [MEDICINE_DETAIL] Starting _handleLogIntake with status: $status');
-    
+    print(
+      '🔵 [MEDICINE_DETAIL] Starting _handleLogIntake with status: $status',
+    );
+
     setState(() {
       _loggingStatus = status; // Track which status is being logged
     });
@@ -142,9 +145,9 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       final authProvider = context.read<AuthProvider>();
       final medicationProvider = context.read<MedicationProvider>();
       final user = authProvider.currentUser;
-      
+
       print('🔵 [MEDICINE_DETAIL] User: ${user?.id}, Role: ${user?.role}');
-      
+
       if (user == null) {
         print('❌ [MEDICINE_DETAIL] User is null');
         if (mounted) {
@@ -157,34 +160,40 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         }
         return;
       }
-      
+
       // Clear any existing error in the provider to prevent it from showing on list screen
       medicationProvider.clearError();
-      
+
       final medicine = medicationProvider.medicines.firstWhere(
         (m) => m.id == widget.medicineId,
       );
-      
-      print('🔵 [MEDICINE_DETAIL] Medicine found: ${medicine.name}, ID: ${medicine.id}');
+
+      print(
+        '🔵 [MEDICINE_DETAIL] Medicine found: ${medicine.name}, ID: ${medicine.id}',
+      );
       print('🔵 [MEDICINE_DETAIL] Selected date: ${widget.selectedDate}');
       print('🔵 [MEDICINE_DETAIL] Reminder time: ${widget.reminderTime}');
 
       // Use the selected date from calendar, or default to today
       final targetDate = widget.selectedDate ?? DateTime.now();
-      final targetDay = DateTime(targetDate.year, targetDate.month, targetDate.day);
-      
+      final targetDay = DateTime(
+        targetDate.year,
+        targetDate.month,
+        targetDate.day,
+      );
+
       print('🔵 [MEDICINE_DETAIL] Target date: $targetDay');
 
       // Find the scheduled time for the selected date
       // Use the specific reminder time if provided, otherwise use the first one
       DateTime? scheduledTime;
-      
+
       String? timeToUse = widget.reminderTime;
       if (timeToUse == null && medicine.reminderTimes.isNotEmpty) {
         // Fallback to first reminder time if no specific time provided
         timeToUse = medicine.reminderTimes.first;
       }
-      
+
       if (timeToUse != null) {
         final parts = timeToUse.split(':');
         if (parts.length == 2) {
@@ -198,33 +207,41 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
               hour,
               minute,
             );
-            print('🔵 [MEDICINE_DETAIL] Using reminder time: $timeToUse for date: $targetDay');
-            print('🔵 [MEDICINE_DETAIL] Calculated scheduledTime: $scheduledTime');
-            print('🔵 [MEDICINE_DETAIL] Scheduled time (UTC): ${scheduledTime.toUtc()}');
+            print(
+              '🔵 [MEDICINE_DETAIL] Using reminder time: $timeToUse for date: $targetDay',
+            );
+            print(
+              '🔵 [MEDICINE_DETAIL] Calculated scheduledTime: $scheduledTime',
+            );
+            print(
+              '🔵 [MEDICINE_DETAIL] Scheduled time (UTC): ${scheduledTime.toUtc()}',
+            );
           }
         }
       }
-      
+
       // Fallback to current time if no valid time found
       scheduledTime ??= DateTime.now();
-      
+
       print('🔵 [MEDICINE_DETAIL] Final scheduled time: $scheduledTime');
-      print('🔵 [MEDICINE_DETAIL] Final scheduled time (UTC): ${scheduledTime.toUtc()}');
+      print(
+        '🔵 [MEDICINE_DETAIL] Final scheduled time (UTC): ${scheduledTime.toUtc()}',
+      );
 
       // Check for existing intake record for this specific timing
       final existingIntake = _hasExistingIntakeForTime(scheduledTime);
       if (existingIntake != null) {
         // Determine time of day label
-        final timeLabel = timeToUse != null 
+        final timeLabel = timeToUse != null
             ? _getTimeOfDayLabel(timeToUse)
             : 'this time';
-        
+
         // Show toast message indicating duplicate
         if (mounted) {
-          final statusLabel = existingIntake.status == IntakeStatus.taken 
-              ? 'taken' 
+          final statusLabel = existingIntake.status == IntakeStatus.taken
+              ? 'taken'
               : 'missed';
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -235,7 +252,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
             ),
           );
         }
-        
+
         // Clear logging status and return early
         if (mounted) {
           setState(() {
@@ -257,8 +274,10 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         print('🔵 [MEDICINE_DETAIL] User is patient, elderUserId will be null');
       }
 
-      print('🔵 [MEDICINE_DETAIL] Calling logIntake with: medicineId=${widget.medicineId}, status=$status, elderUserId=$elderUserId');
-      
+      print(
+        '🔵 [MEDICINE_DETAIL] Calling logIntake with: medicineId=${widget.medicineId}, status=$status, elderUserId=$elderUserId',
+      );
+
       final success = await medicationProvider.logIntake(
         medicineId: widget.medicineId,
         scheduledTime: scheduledTime, // Use actual scheduled time
@@ -266,7 +285,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         userId: user.id,
         elderUserId: elderUserId,
       );
-      
+
       print('🔵 [MEDICINE_DETAIL] logIntake returned: $success');
 
       if (mounted) {
@@ -286,7 +305,9 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
           _loadIntakeHistory();
         } else {
           // If logIntake returned false, show error from provider
-          final errorMessage = medicationProvider.error ?? 'Failed to log intake. Please try again.';
+          final errorMessage =
+              medicationProvider.error ??
+              'Failed to log intake. Please try again.';
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
@@ -302,19 +323,19 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       // Catch any exceptions and display them locally
       print('❌ [MEDICINE_DETAIL] Exception in _handleLogIntake: $e');
       print('❌ [MEDICINE_DETAIL] Stack trace: $stackTrace');
-      
+
       if (mounted) {
         String errorMessage = 'An error occurred. Please try again later.';
         final errorString = e.toString();
-        
+
         if (errorString.contains('Exception: ')) {
           errorMessage = errorString.replaceAll('Exception: ', '');
         } else if (errorString.isNotEmpty) {
           errorMessage = errorString;
         }
-        
+
         print('❌ [MEDICINE_DETAIL] Displaying error: $errorMessage');
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
@@ -364,25 +385,25 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       });
 
       try {
-      final authProvider = context.read<AuthProvider>();
-      final user = authProvider.currentUser;
-      
-      if (user == null) {
-        return;
-      }
+        final authProvider = context.read<AuthProvider>();
+        final user = authProvider.currentUser;
 
-      // Handle caregiver context - get elderUserId if user is a caregiver
-      String? elderUserId;
-      if (user.role == UserRole.caregiver) {
-        final medicationProvider = context.read<MedicationProvider>();
-        final medicine = medicationProvider.medicines.firstWhere(
-          (m) => m.id == widget.medicineId,
-          orElse: () => throw Exception('Medicine not found'),
-        );
-        final careContext = context.read<CareContextProvider>();
-        await careContext.ensureLoaded();
-        elderUserId = careContext.selectedElderId ?? medicine.userId;
-      }
+        if (user == null) {
+          return;
+        }
+
+        // Handle caregiver context - get elderUserId if user is a caregiver
+        String? elderUserId;
+        if (user.role == UserRole.caregiver) {
+          final medicationProvider = context.read<MedicationProvider>();
+          final medicine = medicationProvider.medicines.firstWhere(
+            (m) => m.id == widget.medicineId,
+            orElse: () => throw Exception('Medicine not found'),
+          );
+          final careContext = context.read<CareContextProvider>();
+          await careContext.ensureLoaded();
+          elderUserId = careContext.selectedElderId ?? medicine.userId;
+        }
 
         final success = await context.read<MedicationProvider>().deleteMedicine(
           widget.medicineId,
@@ -394,7 +415,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
           if (success) {
             context.pop();
           } else {
-            final errorMessage = context.read<MedicationProvider>().error ?? 
+            final errorMessage =
+                context.read<MedicationProvider>().error ??
                 'Failed to delete medicine. Please try again.';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -448,7 +470,10 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                 )
               : IconButton(
                   onPressed: _isDeleting ? null : _handleDelete,
-                  icon: Icon(Icons.delete_outline, color: AppTheme.getErrorColor(context)),
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: AppTheme.getErrorColor(context),
+                  ),
                 ),
         ],
       ),
@@ -462,7 +487,10 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
               reminderTime: widget.reminderTime,
             ),
             SizedBox(height: 20.h),
-            _QuickActions(onLog: _handleLogIntake, loggingStatus: _loggingStatus),
+            _QuickActions(
+              onLog: _handleLogIntake,
+              loggingStatus: _loggingStatus,
+            ),
             SizedBox(height: 24.h),
             Text(
               'Intake History',
@@ -479,8 +507,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                   child: Text(
                     'No intake history yet',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
-                        ),
+                      color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
+                    ),
                   ),
                 ),
               )
@@ -496,8 +524,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                             accent: intake.status == IntakeStatus.taken
                                 ? AppTheme.getSuccessColor(context)
                                 : intake.status == IntakeStatus.missed
-                                    ? AppTheme.getErrorColor(context)
-                                    : ModernSurfaceTheme.accentBlue,
+                                ? AppTheme.getErrorColor(context)
+                                : ModernSurfaceTheme.accentBlue,
                           ),
                           padding: EdgeInsets.all(16.w),
                           child: Row(
@@ -506,13 +534,13 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                                 intake.status == IntakeStatus.taken
                                     ? FIcons.check
                                     : intake.status == IntakeStatus.missed
-                                        ? FIcons.x
-                                        : FIcons.circle,
+                                    ? FIcons.x
+                                    : FIcons.circle,
                                 color: intake.status == IntakeStatus.taken
                                     ? AppTheme.getSuccessColor(context)
                                     : intake.status == IntakeStatus.missed
-                                        ? AppTheme.getErrorColor(context)
-                                        : ModernSurfaceTheme.deepTeal,
+                                    ? AppTheme.getErrorColor(context)
+                                    : ModernSurfaceTheme.deepTeal,
                               ),
                               SizedBox(width: 12.w),
                               Expanded(
@@ -532,13 +560,19 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                                     Text(
                                       () {
                                         // Convert UTC time to Pakistan time for display
-                                        final timeToDisplay = intake.status == IntakeStatus.taken && intake.takenTime != null
+                                        final timeToDisplay =
+                                            intake.status ==
+                                                    IntakeStatus.taken &&
+                                                intake.takenTime != null
                                             ? intake.takenTime!
                                             : intake.scheduledTime;
-                                        
+
                                         // Convert UTC DateTime to Pakistan timezone
-                                        final pakistanTime = TimezoneUtil.toPakistanTime(timeToDisplay);
-                                        
+                                        final pakistanTime =
+                                            TimezoneUtil.toPakistanTime(
+                                              timeToDisplay,
+                                            );
+
                                         // Create a DateTime with Pakistan time components for formatting
                                         final displayDateTime = DateTime(
                                           pakistanTime.year,
@@ -547,8 +581,10 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                                           pakistanTime.hour,
                                           pakistanTime.minute,
                                         );
-                                        
-                                        return DateFormat('MMM d, yyyy • h:mm a').format(displayDateTime);
+
+                                        return DateFormat(
+                                          'MMM d, yyyy • h:mm a',
+                                        ).format(displayDateTime);
                                       }(),
                                       style: Theme.of(context)
                                           .textTheme
@@ -573,7 +609,6 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       ),
     );
   }
-
 }
 
 class _InfoRow extends StatelessWidget {
@@ -592,17 +627,17 @@ class _InfoRow extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: ModernSurfaceTheme.deepTeal.withOpacity(0.6),
-                ),
+              color: ModernSurfaceTheme.deepTeal.withOpacity(0.6),
+            ),
           ),
         ),
         Expanded(
           child: Text(
             value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: ModernSurfaceTheme.deepTeal,
-                ),
+              fontWeight: FontWeight.w600,
+              color: ModernSurfaceTheme.deepTeal,
+            ),
           ),
         ),
       ],
@@ -614,10 +649,7 @@ class _MedicineInfoCard extends StatelessWidget {
   final MedicineModel medicine;
   final String? reminderTime;
 
-  const _MedicineInfoCard({
-    required this.medicine,
-    this.reminderTime,
-  });
+  const _MedicineInfoCard({required this.medicine, this.reminderTime});
 
   /// Gets the time of day label (Morning, Afternoon, Evening) from a time string
   String _getTimeOfDayLabel(String timeStr) {
@@ -664,7 +696,8 @@ class _MedicineInfoCard extends StatelessWidget {
                   children: [
                     Text(
                       medicine.name,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: ModernSurfaceTheme.deepTeal,
                           ),
@@ -673,24 +706,32 @@ class _MedicineInfoCard extends StatelessWidget {
                     Text(
                       medicine.dosage,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
-                          ),
+                        color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
+                      ),
                     ),
                     if (reminderTime != null) ...[
                       SizedBox(height: 8.h),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 6.h,
+                        ),
                         decoration: BoxDecoration(
-                          color: ModernSurfaceTheme.primaryTeal.withOpacity(0.15),
+                          color: ModernSurfaceTheme.primaryTeal.withOpacity(
+                            0.15,
+                          ),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: ModernSurfaceTheme.primaryTeal.withOpacity(0.3),
+                            color: ModernSurfaceTheme.primaryTeal.withOpacity(
+                              0.3,
+                            ),
                             width: 1,
                           ),
                         ),
                         child: Text(
                           _getTimeOfDayLabel(reminderTime!),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
                                 color: ModernSurfaceTheme.primaryTeal,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 12.sp,
@@ -739,12 +780,10 @@ class _MedicineInfoCard extends StatelessWidget {
 
 class _QuickActions extends StatelessWidget {
   final Future<void> Function(IntakeStatus status) onLog;
-  final IntakeStatus? loggingStatus; // Track which specific status is being logged
+  final IntakeStatus?
+  loggingStatus; // Track which specific status is being logged
 
-  const _QuickActions({
-    required this.onLog,
-    this.loggingStatus,
-  });
+  const _QuickActions({required this.onLog, this.loggingStatus});
 
   @override
   Widget build(BuildContext context) {
@@ -783,7 +822,9 @@ class _QuickActions extends StatelessWidget {
             onPressed: isAnyLogging ? null : () => onLog(IntakeStatus.missed),
             style: OutlinedButton.styleFrom(
               padding: EdgeInsets.symmetric(vertical: 14.h),
-              side: BorderSide(color: ModernSurfaceTheme.deepTeal.withOpacity(0.4)),
+              side: BorderSide(
+                color: ModernSurfaceTheme.deepTeal.withOpacity(0.4),
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(28),
               ),

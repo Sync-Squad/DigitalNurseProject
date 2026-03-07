@@ -4,12 +4,7 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/theme/app_theme.dart';
 
-enum AlertSeverity {
-  low,
-  medium,
-  high,
-  critical,
-}
+enum AlertSeverity { low, medium, high, critical }
 
 enum AlertType {
   needHelp,
@@ -51,10 +46,7 @@ class AlertCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: severityColor.withOpacity(0.1),
         borderRadius: ModernSurfaceTheme.cardRadius(),
-        border: Border.all(
-          color: severityColor.withOpacity(0.3),
-          width: 2,
-        ),
+        border: Border.all(color: severityColor.withOpacity(0.3), width: 2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,11 +59,7 @@ class AlertCard extends StatelessWidget {
                   color: severityColor.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  typeIcon,
-                  size: 24,
-                  color: severityColor,
-                ),
+                child: Icon(typeIcon, size: 24, color: severityColor),
               ),
               SizedBox(width: 12.w),
               Expanded(
@@ -81,16 +69,16 @@ class AlertCard extends StatelessWidget {
                     Text(
                       typeLabel,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: severityColor,
-                          ),
+                        fontWeight: FontWeight.w700,
+                        color: severityColor,
+                      ),
                     ),
                     SizedBox(height: 4.h),
                     Text(
                       patientName,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),
@@ -104,10 +92,7 @@ class AlertCard extends StatelessWidget {
             ],
           ),
           SizedBox(height: 12.h),
-          Text(
-            message,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          Text(message, style: Theme.of(context).textTheme.bodyMedium),
           SizedBox(height: 12.h),
           Row(
             children: [
@@ -115,8 +100,8 @@ class AlertCard extends StatelessWidget {
                 child: Text(
                   DateFormat('MMM d, y • h:mm a').format(timestamp),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ),
             ],
@@ -169,4 +154,3 @@ class AlertCard extends StatelessWidget {
     }
   }
 }
-

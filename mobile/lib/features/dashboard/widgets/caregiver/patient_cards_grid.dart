@@ -39,7 +39,8 @@ class _PatientCardsGridState extends State<PatientCardsGrid> {
   @override
   void didUpdateWidget(PatientCardsGrid oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.careContext.careRecipients != widget.careContext.careRecipients) {
+    if (oldWidget.careContext.careRecipients !=
+        widget.careContext.careRecipients) {
       _enrichRecipients();
     }
   }
@@ -59,7 +60,7 @@ class _PatientCardsGridState extends State<PatientCardsGrid> {
       final lifestyleProvider = context.read<LifestyleProvider>();
 
       final enriched = <String, CareRecipientModel>{};
-      
+
       for (final recipient in widget.careContext.careRecipients) {
         try {
           final enrichedRecipient = await widget.careContext.enrichRecipient(
@@ -92,7 +93,8 @@ class _PatientCardsGridState extends State<PatientCardsGrid> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.careContext.isLoading && widget.careContext.careRecipients.isEmpty) {
+    if (widget.careContext.isLoading &&
+        widget.careContext.careRecipients.isEmpty) {
       return Center(
         child: Padding(
           padding: EdgeInsets.symmetric(vertical: 24.h),
@@ -130,10 +132,7 @@ class _PatientCardsGridState extends State<PatientCardsGrid> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              widget.careContext.error!,
-              style: context.theme.typography.xs,
-            ),
+            Text(widget.careContext.error!, style: context.theme.typography.xs),
           ],
         ),
       );
@@ -229,4 +228,3 @@ class _PatientCardsGridState extends State<PatientCardsGrid> {
     );
   }
 }
-
