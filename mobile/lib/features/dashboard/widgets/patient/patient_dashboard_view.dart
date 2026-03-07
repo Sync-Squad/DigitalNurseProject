@@ -229,7 +229,7 @@ class _HealthOverviewCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Ink(
           decoration: BoxDecoration(
-            color: const Color(0xFF66B2B2),
+            color: const Color(0xFF1FB9AA).withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(20),
           ),
           padding: EdgeInsets.all(20.w),
@@ -789,13 +789,34 @@ class _BeatingHeartState extends State<_BeatingHeart>
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final isMax = widget.adherencePercentage >= 100;
-    final progress = (widget.adherencePercentage / 100).clamp(0.0, 1.0);
+    final adherence = widget.adherencePercentage;
+    final isMax = adherence >= 100;
+    final progress = (adherence / 100).clamp(0.0, 1.0);
 
-    // 100% = Healthy Red/Pink, < 100% = Apple Green Fill
-    final fillColor = isMax ? const Color(0xFFFF4D6D) : AppTheme.appleGreen;
-    final secondaryColor =
-        isMax ? const Color(0xFFFF85A1) : AppTheme.appleGreen.withValues(alpha: 0.8);
+    // Dynamic Colors based on user thresholds:
+    // 100% -> Shining Red/Pink
+    // >= 70% -> Healthy Teal (Wellness)
+    // >= 30% -> Amber (Warning)
+    // < 30% -> Pure Red (Danger)
+    
+    final Color fillColor;
+    final Color secondaryColor;
+    
+    if (isMax) {
+      fillColor = const Color(0xFFFF4D6D); // Pink-Red
+      secondaryColor = const Color(0xFFFF85A1); // Lighter Pink
+    } else if (adherence >= 70) {
+      fillColor = const Color(0xFF1FB9AA); // Brand Teal
+      secondaryColor = const Color(0xFF64C7FF); // Light Blue
+    } else if (adherence >= 30) {
+      fillColor = const Color(0xFFFFD166); // Amber
+      secondaryColor = const Color(0xFFFFA500); // Orange
+    } else {
+      fillColor = const Color(0xFFFF0000); // Pure Red
+      secondaryColor = const Color(0xFFB30000); // Deep Dark Red
+    }
+
+    final bool isDangerLevel = adherence < 30;
     final emptyColor = Colors.white.withValues(alpha: 0.2);
 
     return Column(
@@ -814,11 +835,16 @@ class _BeatingHeartState extends State<_BeatingHeart>
                   stops: const [0.0, 0.4, 1.0],
                 ).createShader(bounds);
               } else {
-                // Vertical filler gradient
+                // Vertical filler gradient using the dynamic threshold color
                 return LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: [fillColor, fillColor, emptyColor, emptyColor],
+                  colors: [
+                    fillColor,
+                    isDangerLevel ? fillColor : secondaryColor,
+                    emptyColor,
+                    emptyColor,
+                  ],
                   stops: [0.0, progress, progress, 1.0],
                 ).createShader(bounds);
               }

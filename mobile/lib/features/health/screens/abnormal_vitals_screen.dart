@@ -11,6 +11,7 @@ import '../../../core/extensions/vital_type_extensions.dart';
 import '../../../core/extensions/vital_status_extensions.dart';
 import '../../../core/models/vital_measurement_model.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/widgets/modern_scaffold.dart';
 import '../widgets/vital_status_badge.dart';
@@ -233,19 +234,19 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
           ),
         // Stats header
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
           child: Container(
-            padding: EdgeInsets.all(16.w),
-            decoration: BoxDecoration(
-              color: const Color(0xFF66B2B2),
-              borderRadius: BorderRadius.circular(20),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            decoration: ModernSurfaceTheme.glassCard(
+              context,
+              highlighted: true,
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   Icons.warning_amber_rounded,
-                  color: Colors.white,
+                  color: const Color(0xFFFFB84D),
                   size: 24.sp,
                 ),
                 SizedBox(width: 12.w),
@@ -253,7 +254,7 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                   '${abnormalVitals.length} abnormal ${abnormalVitals.length == 1 ? 'vital' : 'vitals'}',
                   style: context.theme.typography.lg.copyWith(
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: const Color(0xFF1A1A1A),
                   ),
                 ),
               ],
@@ -277,15 +278,29 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                         // Date header
                         Padding(
                           padding: EdgeInsets.only(
-                            top: dateIndex > 0 ? 24.h : 8.h,
-                            bottom: 12.h,
+                            top: dateIndex > 0 ? 16.h : 4.h,
+                            bottom: 8.h,
                           ),
-                          child: Text(
-                            _formatDateHeader(dateKey).toUpperCase(),
-                            style: context.theme.typography.xs.copyWith(
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.2,
-                              color: Colors.white.withValues(alpha: 0.8),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 14.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              _formatDateHeader(dateKey).toUpperCase(),
+                              style: context.theme.typography.xs.copyWith(
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.2,
+                                color: const Color(0xFF1A1A1A),
+                              ),
                             ),
                           ),
                         ),
@@ -293,21 +308,18 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                         ...dateVitals.map((vital) {
                           final healthStatus = vital.getHealthStatus();
                           return Padding(
-                            padding: EdgeInsets.only(bottom: 16.h),
+                            padding: EdgeInsets.only(bottom: 12.h),
                             child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF66B2B2),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
+                              decoration: ModernSurfaceTheme.glassCard(context),
                               child: Padding(
-                                padding: EdgeInsets.all(16.w),
+                                padding: EdgeInsets.all(12.w),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       children: [
                                         Container(
-                                          padding: const EdgeInsets.all(12),
+                                          padding: const EdgeInsets.all(10),
                                           decoration: BoxDecoration(
                                             color: _getStatusColor(healthStatus)
                                                 .withOpacity(0.2),
@@ -321,7 +333,7 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                                             ),
                                           ),
                                         ),
-                                        const SizedBox(width: 16),
+                                        const SizedBox(width: 12),
                                         Expanded(
                                           child: Column(
                                             crossAxisAlignment:
@@ -336,7 +348,9 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                                                     .copyWith(
                                                       fontWeight:
                                                           FontWeight.bold,
-                                                      color: Colors.white,
+                                                      color: const Color(
+                                                        0xFF1A1A1A,
+                                                      ),
                                                     ),
                                               ),
                                               const SizedBox(height: 4),
@@ -347,7 +361,9 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                                                 style: context
                                                     .theme.typography.sm
                                                     .copyWith(
-                                                  color: Colors.white70,
+                                                  color: const Color(
+                                                    0xFF666666,
+                                                  ),
                                                 ),
                                               ),
                                               if (vital.notes != null) ...[
@@ -359,7 +375,9 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                                                       .typography
                                                       .xs
                                                       .copyWith(
-                                                        color: Colors.white60,
+                                                        color: const Color(
+                                                          0xFF999999,
+                                                        ),
                                                       ),
                                                   maxLines: 1,
                                                   overflow:
@@ -387,14 +405,14 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                                               vital.type.unit,
                                               style: context.theme.typography.xs
                                                   .copyWith(
-                                                color: Colors.white70,
+                                                color: const Color(0xFF666666),
                                               ),
                                             ),
                                           ],
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 12),
+                                    const SizedBox(height: 8),
                                     VitalStatusBadge(
                                       status: healthStatus,
                                       vital: vital,
