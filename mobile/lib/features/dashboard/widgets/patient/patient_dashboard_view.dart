@@ -790,33 +790,13 @@ class _BeatingHeartState extends State<_BeatingHeart>
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final adherence = widget.adherencePercentage;
-    final isMax = adherence >= 100;
     final progress = (adherence / 100).clamp(0.0, 1.0);
 
-    // Dynamic Colors based on user thresholds:
-    // 100% -> Shining Red/Pink
-    // >= 70% -> Healthy Teal (Wellness)
-    // >= 30% -> Amber (Warning)
-    // < 30% -> Pure Red (Danger)
-    
-    final Color fillColor;
-    final Color secondaryColor;
-    
-    if (isMax) {
-      fillColor = const Color(0xFFFF4D6D); // Pink-Red
-      secondaryColor = const Color(0xFFFF85A1); // Lighter Pink
-    } else if (adherence >= 70) {
-      fillColor = const Color(0xFF1FB9AA); // Brand Teal
-      secondaryColor = const Color(0xFF64C7FF); // Light Blue
-    } else if (adherence >= 30) {
-      fillColor = const Color(0xFFFFD166); // Amber
-      secondaryColor = const Color(0xFFFFA500); // Orange
-    } else {
-      fillColor = const Color(0xFFFF0000); // Pure Red
-      secondaryColor = const Color(0xFFB30000); // Deep Dark Red
-    }
+    // Permanent Shiny Red-Pink Gradient Colors
+    const Color fillColor = Color(0xFFFF4D6D); // Pink-Red
+    const Color secondaryColor = Color(0xFFFF85A1); // Lighter Pink
+    const Color shineColor = Colors.white; // Glossy highlight
 
-    final bool isDangerLevel = adherence < 30;
     final emptyColor = Colors.white.withValues(alpha: 0.2);
 
     return Column(
@@ -824,49 +804,48 @@ class _BeatingHeartState extends State<_BeatingHeart>
       children: [
         ScaleTransition(
           scale: _scaleAnimation,
-          child: ShaderMask(
-            shaderCallback: (Rect bounds) {
-              if (isMax) {
-                // Glossy healthy heart gradient
-                return LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.white, fillColor, secondaryColor],
-                  stops: const [0.0, 0.4, 1.0],
-                ).createShader(bounds);
-              } else {
-                // Vertical filler gradient using the dynamic threshold color
-                return LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    fillColor,
-                    isDangerLevel ? fillColor : secondaryColor,
-                    emptyColor,
-                    emptyColor,
-                  ],
-                  stops: [0.0, progress, progress, 1.0],
-                ).createShader(bounds);
-              }
-            },
-            child: Icon(
-              Icons.favorite,
-              color: Colors.white,
-              size: 38.w,
-              shadows: [
-                Shadow(
-                  color: Colors.black.withValues(alpha: 0.2),
-                  offset: const Offset(0, 2),
-                  blurRadius: 4,
-                ),
-                if (isMax)
-                  Shadow(
-                    color: fillColor.withValues(alpha: 0.5),
-                    offset: const Offset(0, 0),
-                    blurRadius: 12,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // 1. Background Layer: Empty Heart
+              Icon(
+                Icons.favorite,
+                color: emptyColor,
+                size: 38.w,
+              ),
+              // 2. Foreground Layer: Filled Shiny Heart (Clipped)
+              ClipRect(
+                clipper: _HeartClipper(progress: progress),
+                child: ShaderMask(
+                  blendMode: BlendMode.srcIn,
+                  shaderCallback: (Rect bounds) {
+                    return const LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        fillColor,
+                        secondaryColor,
+                        shineColor,
+                        secondaryColor,
+                      ],
+                      stops: [0.0, 0.4, 0.7, 1.0],
+                    ).createShader(bounds);
+                  },
+                  child: Icon(
+                    Icons.favorite,
+                    color: Colors.white,
+                    size: 38.w,
+                    shadows: [
+                      Shadow(
+                        color: fillColor.withValues(alpha: 0.3),
+                        offset: const Offset(0, 0),
+                        blurRadius: 10,
+                      ),
+                    ],
                   ),
-              ],
-            ),
+                ),
+              ),
+            ],
           ),
         ),
         SizedBox(height: 2.h),
@@ -881,6 +860,26 @@ class _BeatingHeartState extends State<_BeatingHeart>
       ],
     );
   }
+}
+
+class _HeartClipper extends CustomClipper<Rect> {
+  final double progress;
+
+  _HeartClipper({required this.progress});
+
+  @override
+  Rect getClip(Size size) {
+    return Rect.fromLTRB(
+      0,
+      size.height * (1.0 - progress),
+      size.width,
+      size.height,
+    );
+  }
+
+  @override
+  bool shouldReclip(_HeartClipper oldClipper) =>
+      oldClipper.progress != progress;
 }
 
 /// Set Reminder Button

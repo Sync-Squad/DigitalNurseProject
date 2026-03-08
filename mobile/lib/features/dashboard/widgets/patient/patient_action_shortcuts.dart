@@ -9,14 +9,6 @@ import '../dashboard_theme.dart';
 class PatientActionShortcuts extends StatelessWidget {
   const PatientActionShortcuts({super.key});
 
-  void _showComingSoon(BuildContext context, String action) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('patient.comingSoon'.tr(namedArgs: {'action': action})),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,20 +37,6 @@ class PatientActionShortcuts extends StatelessWidget {
         caption: 'patient.lifestyleCaption'.tr(),
         accent: CaregiverDashboardTheme.accentBlue,
         onTap: () => context.push('/lifestyle'),
-      ),
-      _ActionShortcut(
-        icon: Icons.calendar_month,
-        label: 'patient.viewSchedule'.tr(),
-        caption: 'patient.viewScheduleCaption'.tr(),
-        accent: const Color.fromARGB(255, 0, 162, 255),
-        onTap: () => context.push('/medications'),
-      ),
-      _ActionShortcut(
-        icon: Icons.people,
-        label: 'patient.contactCaregiver'.tr(),
-        caption: 'patient.contactCaregiverCaption'.tr(),
-        accent: const Color.fromARGB(255, 243, 173, 21),
-        onTap: () => _showComingSoon(context, 'patient.contactCaregiver'.tr()),
       ),
     ];
 

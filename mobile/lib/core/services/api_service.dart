@@ -331,8 +331,9 @@ class ApiService {
   }) async {
     await _ensureInitialized();
     try {
+      final sanitizedPath = path.startsWith('/') ? path.replaceFirst('/', '') : path;
       return await dio.get(
-        path,
+        sanitizedPath,
         queryParameters: queryParameters,
         options: options,
       );
@@ -350,8 +351,9 @@ class ApiService {
   }) async {
     await _ensureInitialized();
     try {
+      final sanitizedPath = path.startsWith('/') ? path.replaceFirst('/', '') : path;
       return await dio.post(
-        path,
+        sanitizedPath,
         data: data,
         queryParameters: queryParameters,
         options: options,
@@ -370,8 +372,9 @@ class ApiService {
   }) async {
     await _ensureInitialized();
     try {
+      final sanitizedPath = path.startsWith('/') ? path.replaceFirst('/', '') : path;
       return await dio.put(
-        path,
+        sanitizedPath,
         data: data,
         queryParameters: queryParameters,
         options: options,
@@ -390,8 +393,9 @@ class ApiService {
   }) async {
     await _ensureInitialized();
     try {
+      final sanitizedPath = path.startsWith('/') ? path.replaceFirst('/', '') : path;
       return await dio.patch(
-        path,
+        sanitizedPath,
         data: data,
         queryParameters: queryParameters,
         options: options,
@@ -410,8 +414,9 @@ class ApiService {
   }) async {
     await _ensureInitialized();
     try {
+      final sanitizedPath = path.startsWith('/') ? path.replaceFirst('/', '') : path;
       return await dio.delete(
-        path,
+        sanitizedPath,
         data: data,
         queryParameters: queryParameters,
         options: options,
