@@ -308,6 +308,37 @@ class CaregiverService {
     }
   }
 
+  // Toggle caregiver access status
+  Future<bool> toggleCaregiverStatus(
+    String assignmentId,
+    bool isActive,
+  ) async {
+    _log('🔄 Toggling caregiver status: $assignmentId to $isActive');
+    try {
+      final response = await _apiService.patch(
+        '/caregivers/$assignmentId/toggle-status',
+        data: {'isActive': isActive},
+      );
+
+      _log('📡 Toggle response: ${response.statusCode} - ${response.data}');
+
+      if (response.statusCode == 200) {
+        _log('✅ Caregiver status updated successfully');
+        return response.data['isActive'] ?? isActive;
+      } else {
+        _log('❌ Failed to update caregiver status: ${response.statusCode} ${response.statusMessage}');
+        _log('📦 Error response: ${response.data}');
+        throw Exception(
+          'Failed to update caregiver status: ${response.statusMessage}',
+        );
+      }
+    } catch (e) {
+      _log('❌ Error toggling caregiver status: $e');
+      if (e is Exception) rethrow;
+      throw Exception(e.toString());
+    }
+  }
+
   // Legacy methods for backward compatibility
   // Add caregiver and send invitation (deprecated - use sendInvitation instead)
   @Deprecated('Use sendInvitation instead')

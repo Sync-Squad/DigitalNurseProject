@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/providers/auth_provider.dart';
-import '../../../core/providers/theme_provider.dart';
+
 import '../../../core/models/user_model.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/theme/app_theme.dart';
@@ -244,10 +244,7 @@ class ProfileViewScreen extends StatelessWidget {
                         title: 'Manage Caregivers',
                         onTap: () => context.push('/caregivers'),
                       ),
-                      const Divider(height: 1),
                     ],
-                    _ThemeSelectorTile(),
-                    const Divider(height: 1),
                     _ModernListTile(
                       icon: FIcons.settings,
                       title: 'Settings',
@@ -368,70 +365,7 @@ class _ProfileInfoRow extends StatelessWidget {
   }
 }
 
-class _ThemeSelectorTile extends StatelessWidget {
-  const _ThemeSelectorTile();
 
-  @override
-  Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return ListTile(
-      leading: Icon(
-        FIcons.palette,
-        color: context.theme.colors.mutedForeground,
-      ),
-      title: Text(
-        'Theme',
-        style: context.theme.typography.sm.copyWith(
-          color: context.theme.colors.foreground,
-        ),
-      ),
-      subtitle: Text(
-        themeProvider.themeModeDisplayName,
-        style: context.theme.typography.xs.copyWith(
-          color: context.theme.colors.mutedForeground,
-        ),
-      ),
-      trailing: Icon(
-        FIcons.chevronsRight,
-        color: context.theme.colors.mutedForeground,
-      ),
-      onTap: () => _showThemeSelector(context, themeProvider),
-    );
-  }
-
-  void _showThemeSelector(BuildContext context, ThemeProvider themeProvider) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Choose Theme'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: themeProvider.themeModeOptions.map((option) {
-            return RadioListTile<ThemeMode>(
-              title: Text(option.name),
-              subtitle: Text(option.description),
-              value: option.mode,
-              groupValue: themeProvider.themeMode,
-              onChanged: (value) {
-                if (value != null) {
-                  themeProvider.setThemeMode(value);
-                  Navigator.of(context).pop();
-                }
-              },
-            );
-          }).toList(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _ModernListTile extends StatelessWidget {
   final IconData icon;

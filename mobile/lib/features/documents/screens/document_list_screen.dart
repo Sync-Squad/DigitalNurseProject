@@ -496,7 +496,7 @@ class _DocumentsHero extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final halfWidth = constraints.maxWidth * 0.25;
+          final halfWidth = constraints.maxWidth * 0.4;
           return Container(
             width: double.infinity,
             decoration: ModernSurfaceTheme.heroDecoration(context),
@@ -507,11 +507,11 @@ class _DocumentsHero extends StatelessWidget {
                   right: 0,
                   top: 0,
                   bottom: 0,
-                  width: halfWidth,
+                  width: halfWidth * 1.5,
                   child: Image.asset(
                     'assets/images/documentread.png',
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
+                    fit: BoxFit.contain,
+                    alignment: Alignment.bottomRight,
                   ),
                 ),
                 // ── Left side: text column drives card height ─────────

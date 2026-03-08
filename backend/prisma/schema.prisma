@@ -150,7 +150,8 @@ model ElderAssignment {
   relationshipCode   String   @map("relationshipCode")
   isPrimary          Boolean  @default(false) @map("isPrimary")
   notifyPrefs        Json?    @map("notifyPrefs")
-  createdAt          DateTime @default(now()) @map("createdAt") @db.Timestamptz(6)
+  isActive          Boolean  @default(true) @map("isActive")
+  createdAt         DateTime @default(now()) @map("createdAt") @db.Timestamptz(6)
   updatedAt          DateTime @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
 
   @@unique([elderUserId, caregiverUserId], map: "ux_elder_caregiver_pair")

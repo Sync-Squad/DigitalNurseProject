@@ -7,6 +7,7 @@ class CaregiverModel {
   final String linkedPatientId;
   final DateTime invitedAt;
   final DateTime? acceptedAt;
+  final bool isActive;
 
   CaregiverModel({
     required this.id,
@@ -17,6 +18,7 @@ class CaregiverModel {
     required this.linkedPatientId,
     required this.invitedAt,
     this.acceptedAt,
+    this.isActive = true,
   });
 
   CaregiverModel copyWith({
@@ -28,6 +30,7 @@ class CaregiverModel {
     String? linkedPatientId,
     DateTime? invitedAt,
     DateTime? acceptedAt,
+    bool? isActive,
   }) {
     return CaregiverModel(
       id: id ?? this.id,
@@ -38,6 +41,7 @@ class CaregiverModel {
       linkedPatientId: linkedPatientId ?? this.linkedPatientId,
       invitedAt: invitedAt ?? this.invitedAt,
       acceptedAt: acceptedAt ?? this.acceptedAt,
+      isActive: isActive ?? this.isActive,
     );
   }
 
@@ -51,6 +55,7 @@ class CaregiverModel {
       'linkedPatientId': linkedPatientId,
       'invitedAt': invitedAt.toIso8601String(),
       'acceptedAt': acceptedAt?.toIso8601String(),
+      'isActive': isActive,
     };
   }
 
@@ -68,6 +73,7 @@ class CaregiverModel {
       acceptedAt: json['acceptedAt'] != null
           ? DateTime.parse(json['acceptedAt'])
           : null,
+      isActive: json['isActive'] ?? true,
     );
   }
 }

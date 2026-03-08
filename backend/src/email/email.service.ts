@@ -4,6 +4,7 @@ import * as nodemailer from 'nodemailer';
 import { verificationEmailTemplate } from './templates/verification-email.template';
 import { caregiverInvitationEmailTemplate } from './templates/caregiver-invitation-email.template';
 import { forgotPasswordEmailTemplate } from './templates/forgot-password-email.template';
+import { caregiverStatusEmailTemplate } from './templates/caregiver-status-email.template';
 
 @Injectable()
 export class EmailService {
@@ -203,6 +204,43 @@ export class EmailService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Error sending password reset email: ${errorMessage}`);
+      return false;
+    }
+  }
+
+  async sendCaregiverStatusUpdateEmail(
+    email: string,
+    patientName: string,
+    status: 'enabled' | 'disabled',
+  ): Promise<boolean> {
+    try {
+      if (!this.transporter) {
+        this.logger.error('Nodemailer transporter not initialized. Cannot send email.');
+        return false;
+      }
+
+      const html = caregiverStatusEmailTemplate({
+        patientName,
+        status,
+        appName: this.appName,
+      });
+
+      const subject = status === 'enabled' 
+        ? `Caregiver Access Restored for ${patientName}`
+        : `Caregiver Access Revoked for ${patientName}`;
+
+      await this.transporter.sendMail({
+        from: this.fromEmail,
+        to: email,
+        subject,
+        html,
+      });
+
+      this.logger.log(`Caregiver status update email (${status}) sent to ${email}`);
+      return true;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error sending status update email: ${errorMessage}`);
       return false;
     }
   }

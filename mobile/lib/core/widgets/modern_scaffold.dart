@@ -38,32 +38,29 @@ class ModernScaffold extends StatelessWidget {
       extendBodyBehindAppBar: extendBodyBehindAppBar,
       appBar: appBar,
       floatingActionButton: floatingActionButton,
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/images/cardbackground1.jpeg'),
+      body: SafeArea(top: safeAreaTop, bottom: safeAreaBottom, child: body),
+    );
+
+    return Stack(
+      children: [
+        // 1. Permanent background covering the whole screen
+        Positioned.fill(
+          child: Image.asset(
+            'assets/images/cardbackground1.jpeg',
             fit: BoxFit.cover,
           ),
         ),
-        child: SafeArea(top: safeAreaTop, bottom: safeAreaBottom, child: body),
-      ),
-    );
-
-    if (appBar == null) return scaffold;
-
-    // Stack: teal block behind the appbar, then the scaffold on top.
-    // Because the scaffold has extendBodyBehindAppBar = true and
-    // the AppBar is transparent, the teal block shows through the AppBar.
-    return Stack(
-      children: [
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          height: appBarHeight,
-          child: ColoredBox(color: _kTeal),
-        ),
-        scaffold,
+        // 2. Teal block behind the app bar if it exists
+        if (appBar != null)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: appBarHeight,
+            child: const ColoredBox(color: _kTeal),
+          ),
+        // 3. The actual content on top
+        Positioned.fill(child: scaffold),
       ],
     );
   }

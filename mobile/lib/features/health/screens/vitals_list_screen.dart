@@ -302,55 +302,70 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
             },
           ),
           SizedBox(height: 16.h),
-          if (!isCaregiver) ...[
-            Container(
-              width: double.infinity,
-              decoration: ModernSurfaceTheme.glassCard(context),
-              padding: EdgeInsets.all(16.w),
-              child: ElevatedButton.icon(
-                onPressed: () => context.push('/vitals/add'),
-                icon: Icon(Icons.add_circle_outline, color: Colors.white),
-                label: Text(
-                  'Log Vital',
-                  style: textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 14.h),
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(height: 16.h),
-          ],
           Container(
             width: double.infinity,
             decoration: ModernSurfaceTheme.glassCard(context),
             padding: EdgeInsets.all(16.w),
-            child: ElevatedButton.icon(
-              onPressed: () => context.push('/health/trends'),
-              icon: Icon(FIcons.trendingUp, color: Colors.white),
-              label: Text(
-                'View Trends',
-                style: textTheme.titleSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+            child: Row(
+              children: [
+                if (!isCaregiver) ...[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.push('/vitals/add'),
+                      icon: const Icon(
+                        Icons.add_circle_outline,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      label: Text(
+                        'Log Vital',
+                        style: textTheme.titleSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                ],
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.push('/health/trends'),
+                    icon: const Icon(
+                      FIcons.trendingUp,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    label: Text(
+                      'View Trends',
+                      style: textTheme.titleSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      backgroundColor: AppTheme.appleGreen,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
                 ),
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 14.h),
-                backgroundColor: AppTheme.appleGreen,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
-                ),
-              ),
+              ],
             ),
           ),
           SizedBox(height: 16.h),
@@ -731,11 +746,11 @@ class _VitalsHero extends StatelessWidget {
                   right: 0,
                   top: 0,
                   bottom: 0,
-                  width: halfWidth,
+                  width: halfWidth * 1.8,
                   child: Image.asset(
                     'assets/images/health.png',
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
+                    fit: BoxFit.contain,
+                    alignment: Alignment.bottomRight,
                   ),
                 ),
                 // ── Left side: text column drives card height ─────────
