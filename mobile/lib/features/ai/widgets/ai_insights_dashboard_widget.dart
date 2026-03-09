@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -122,10 +123,10 @@ class _AIInsightsDashboardWidgetState extends State<AIInsightsDashboardWidget> {
   Widget build(BuildContext context) {
     return ExpandablePatientCard(
       icon: Icons.auto_awesome_outlined,
-      title: 'AI Insights',
+      title: 'ai.title'.tr(),
       subtitle: _insights.isEmpty
-          ? 'Analysis in progress'
-          : 'AI generated personalized health advice',
+          ? 'ai.subtitleEmpty'.tr()
+          : 'ai.subtitle'.tr(),
       count: '${_insights.length}',
       accentColor: ModernSurfaceTheme.primaryTeal,
       routeForViewDetails: '/ai/insights',
@@ -155,13 +156,16 @@ class _AIInsightsDashboardWidgetState extends State<AIInsightsDashboardWidget> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Failed to load insights',
+              'ai.failedToLoad'.tr(),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.error,
               ),
             ),
             const SizedBox(height: 8),
-            TextButton(onPressed: _loadInsights, child: const Text('Retry')),
+            TextButton(
+              onPressed: _loadInsights,
+              child: Text('ai.retry'.tr()),
+            ),
           ],
         ),
       );
@@ -179,12 +183,12 @@ class _AIInsightsDashboardWidgetState extends State<AIInsightsDashboardWidget> {
             ),
             const SizedBox(height: 8),
             Text(
-              'No insights yet',
+              'ai.noInsightsYet'.tr(),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 4),
             Text(
-              'AI insights will appear here as we analyze your health data',
+              'ai.noInsightsDescription'.tr(),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               ),
@@ -199,7 +203,7 @@ class _AIInsightsDashboardWidgetState extends State<AIInsightsDashboardWidget> {
                 TextButton.icon(
                   onPressed: _generateInsights,
                   icon: const Icon(Icons.auto_awesome, size: 16),
-                  label: const Text('Generate Insights'),
+                  label: Text('ai.generateInsights'.tr()),
                   style: TextButton.styleFrom(
                     backgroundColor: AppTheme.appleGreen,
                     foregroundColor: Colors.white,
@@ -230,7 +234,7 @@ class _AIInsightsDashboardWidgetState extends State<AIInsightsDashboardWidget> {
               padding: const EdgeInsets.only(bottom: 8),
               child: AIInsightCard(
                 id: insight['id']?.toString() ?? '',
-                title: insight['title'] ?? 'Insight',
+                title: insight['title'] ?? 'ai.defaultInsightTitle'.tr(),
                 content: insight['content'] ?? '',
                 priority: insight['priority'] ?? 'medium',
                 category: insight['category'],

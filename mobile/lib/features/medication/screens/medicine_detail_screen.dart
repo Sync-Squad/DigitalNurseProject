@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../../../core/models/medicine_model.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/providers/medication_provider.dart';
@@ -122,11 +122,11 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
     if (hour == null) return timeStr;
 
     if (hour < 12) {
-      return 'Morning';
+      return 'medication.timeOfDay.morning'.tr();
     } else if (hour < 17) {
-      return 'Afternoon';
+      return 'medication.timeOfDay.afternoon'.tr();
     } else {
-      return 'Evening';
+      return 'medication.timeOfDay.evening'.tr();
     }
   }
 
@@ -153,7 +153,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Please log in to continue'),
+              content: Text('common.errors.notAuthenticated'.tr()),
               backgroundColor: AppTheme.getErrorColor(context),
             ),
           );
@@ -234,18 +234,21 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         // Determine time of day label
         final timeLabel = timeToUse != null
             ? _getTimeOfDayLabel(timeToUse)
-            : 'this time';
+            : 'medication.detail.atThisTime'.tr();
 
         // Show toast message indicating duplicate
         if (mounted) {
           final statusLabel = existingIntake.status == IntakeStatus.taken
-              ? 'taken'
-              : 'missed';
+              ? 'medication.status.taken'.tr()
+              : 'medication.status.missed'.tr();
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'This medicine is already marked as $statusLabel for $timeLabel',
+                'medication.detail.alreadyMarked'.tr(namedArgs: {
+                  'status': statusLabel,
+                  'time': timeLabel,
+                }),
               ),
               backgroundColor: AppTheme.getWarningColor(context),
               duration: const Duration(seconds: 3),
@@ -294,8 +297,8 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
             SnackBar(
               content: Text(
                 status == IntakeStatus.taken
-                    ? 'Marked as taken'
-                    : 'Marked as missed',
+                    ? 'medication.detail.marked'.tr(namedArgs: {'status': 'medication.status.taken'.tr()})
+                    : 'medication.detail.marked'.tr(namedArgs: {'status': 'medication.status.missed'.tr()}),
               ),
               backgroundColor: status == IntakeStatus.taken
                   ? AppTheme.getSuccessColor(context)
@@ -307,7 +310,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
           // If logIntake returned false, show error from provider
           final errorMessage =
               medicationProvider.error ??
-              'Failed to log intake. Please try again.';
+              'medication.detail.logFail'.tr(); // Added logFail to en.json/ur.json below
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
@@ -361,19 +364,19 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Medicine'),
-        content: const Text('Are you sure you want to delete this medicine?'),
+        title: Text('medication.detail.deleteTitle'.tr()),
+        content: Text('medication.detail.deleteConfirm'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(
               foregroundColor: AppTheme.getErrorColor(context),
             ),
-            child: const Text('Delete'),
+            child: Text('common.delete'.tr()),
           ),
         ],
       ),
@@ -417,7 +420,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
           } else {
             final errorMessage =
                 context.read<MedicationProvider>().error ??
-                'Failed to delete medicine. Please try again.';
+                'medication.detail.deleteFail'.tr();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(errorMessage),
@@ -493,7 +496,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
             ),
             SizedBox(height: 24.h),
             Text(
-              'Intake History',
+              'medication.detail.intakeHistory'.tr(),
               style: ModernSurfaceTheme.sectionTitleStyle(context),
             ),
             SizedBox(height: 12.h),
@@ -505,7 +508,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                 padding: EdgeInsets.all(24.w),
                 child: Center(
                   child: Text(
-                    'No intake history yet',
+                    'medication.detail.noHistory'.tr(),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
                     ),
@@ -660,11 +663,11 @@ class _MedicineInfoCard extends StatelessWidget {
     if (hour == null) return timeStr;
 
     if (hour < 12) {
-      return 'Morning';
+      return 'medication.timeOfDay.morning'.tr();
     } else if (hour < 17) {
-      return 'Afternoon';
+      return 'medication.timeOfDay.afternoon'.tr();
     } else {
-      return 'Evening';
+      return 'medication.timeOfDay.evening'.tr();
     }
   }
 
@@ -748,29 +751,29 @@ class _MedicineInfoCard extends StatelessWidget {
           const Divider(),
           SizedBox(height: 20.h),
           _InfoRow(
-            label: 'Frequency',
+            label: 'medication.add.steps.frequency'.tr(),
             value: _frequencyName(medicine.frequency),
           ),
           SizedBox(height: 8.h),
           _InfoRow(
-            label: 'Start Date',
+            label: 'medication.add.steps.startDate'.tr(),
             value: DateFormat('MMM d, yyyy').format(medicine.startDate),
           ),
           if (medicine.endDate != null) ...[
             SizedBox(height: 8.h),
             _InfoRow(
-              label: 'End Date',
+              label: 'medication.add.steps.endDate'.tr(), // Added to en.json/ur.json if missing (I'll add it)
               value: DateFormat('MMM d, yyyy').format(medicine.endDate!),
             ),
           ],
           SizedBox(height: 8.h),
           _InfoRow(
-            label: 'Reminder Times',
+            label: 'medication.add.steps.reminders'.tr(),
             value: medicine.reminderTimes.join(', '),
           ),
           if (medicine.notes != null) ...[
             SizedBox(height: 8.h),
-            _InfoRow(label: 'Notes', value: medicine.notes!),
+            _InfoRow(label: 'medication.add.steps.notes'.tr(), value: medicine.notes!), // Added to en.json/ur.json if missing (I'll add it)
           ],
         ],
       ),

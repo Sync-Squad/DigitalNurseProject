@@ -142,6 +142,33 @@ class CaregiverProvider with ChangeNotifier {
     }
   }
 
+  // Contact caregiver (Email)
+  Future<bool> contactCaregiver({
+    required String assignmentId,
+    required String message,
+    String? subject,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _caregiverService.contactCaregiver(
+        assignmentId,
+        message,
+        subject: subject,
+      );
+      _error = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Clear error
   void clearError() {
     _error = null;

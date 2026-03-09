@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -115,7 +116,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Health Documents',
+          'documents.title'.tr(),
           style: textTheme.titleLarge?.copyWith(
             color: onPrimary,
             fontWeight: FontWeight.w600,
@@ -171,9 +172,8 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.users,
-          title: 'No patients assigned yet',
-          message:
-              'When a patient shares their records with you, their documents will be visible here.',
+          title: 'documents.caregiverNotice.noPatientsAssigned'.tr(),
+          message: 'documents.caregiverNotice.noPatientsAssignedDesc'.tr(),
         );
       }
 
@@ -181,7 +181,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.info,
-          title: 'Unable to load patients',
+          title: 'documents.caregiverNotice.unableToLoadPatients'.tr(),
           message: careContextError,
           onRetry: _loadData,
         );
@@ -191,9 +191,8 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.userSearch,
-          title: 'Select a patient to continue',
-          message:
-              'Choose a patient from the dashboard to review their shared documents.',
+          title: 'documents.caregiverNotice.selectPatientContinue'.tr(),
+          message: 'documents.caregiverNotice.selectPatientContinueDesc'.tr(),
         );
       }
     }
@@ -323,7 +322,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
           Icon(FIcons.fileText, size: 56, color: colorScheme.primary),
           SizedBox(height: 12.h),
           Text(
-            'No documents uploaded yet',
+            'documents.emptyState.noDocumentsUploadedYet'.tr(),
             style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: onSurface,
@@ -332,8 +331,8 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
           SizedBox(height: 8.h),
           Text(
             isCaregiver
-                ? 'This patient has not shared any records.'
-                : 'Upload prescriptions, lab reports, and more.',
+                ? 'documents.emptyState.patientNotShared'.tr()
+                : 'documents.emptyState.uploadPrescriptions'.tr(),
             textAlign: TextAlign.center,
             style: textTheme.bodySmall?.copyWith(color: muted),
           ),
@@ -350,7 +349,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                 ),
               ),
               child: Text(
-                'Upload Document',
+                'documents.actions.uploadDocument'.tr(),
                 style: textTheme.labelLarge?.copyWith(
                   color: onPrimary,
                   fontWeight: FontWeight.w600,
@@ -407,7 +406,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                 foregroundColor: onPrimary,
               ),
               child: Text(
-                'Retry',
+                'actions.retry'.tr(),
                 style: textTheme.labelLarge?.copyWith(
                   color: onPrimary,
                   fontWeight: FontWeight.w600,
@@ -467,7 +466,7 @@ class _ErrorBanner extends StatelessWidget {
           TextButton(
             onPressed: onRetry,
             style: TextButton.styleFrom(foregroundColor: color),
-            child: const Text('Retry'),
+            child: Text('actions.retry'.tr()),
           ),
         ],
       ),
@@ -528,7 +527,7 @@ class _DocumentsHero extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        isCaregiver ? 'Shared records' : 'Your Health Vault',
+                        isCaregiver ? 'documents.sharedRecords'.tr() : 'documents.yourHealthVault'.tr(),
                         style: textTheme.bodyMedium?.copyWith(
                           color: onPrimary.withValues(alpha: 0.85),
                         ),
@@ -556,7 +555,7 @@ class _DocumentsHero extends StatelessWidget {
                           SizedBox(width: 10.w),
                           Flexible(
                             child: Text(
-                              'Documents',
+                              'documents.documentsCount'.tr(),
                               style: textTheme.headlineSmall?.copyWith(
                                 color: onPrimary,
                                 fontWeight: FontWeight.w700,
@@ -570,7 +569,7 @@ class _DocumentsHero extends StatelessWidget {
                         SizedBox(height: 10.h),
                         _HeroChip(
                           icon: Icons.cloud_upload_outlined,
-                          label: 'Upload',
+                          label: 'documents.upload'.tr(),
                           onTap: () => context.push('/documents/upload'),
                         ),
                       ],

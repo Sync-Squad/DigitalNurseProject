@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -87,21 +88,19 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Vital Measurement'),
-        content: const Text(
-          'Are you sure you want to delete this vital measurement?',
-        ),
+        title: Text('vitals.delete.title'.tr()),
+        content: Text('vitals.delete.confirm'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text('vitals.delete.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(
               foregroundColor: AppTheme.getErrorColor(context),
             ),
-            child: const Text('Delete'),
+            child: Text('common.delete'.tr()),
           ),
         ],
       ),
@@ -123,7 +122,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
           if (success) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('Vital measurement deleted successfully'),
+                content: Text('vitals.delete.success'.tr()),
                 backgroundColor: AppTheme.getSuccessColor(context),
               ),
             );
@@ -131,7 +130,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
             await _reloadVitals();
           } else {
             final errorMessage =
-                healthProvider.error ?? 'Failed to delete vital measurement';
+                healthProvider.error ?? 'vitals.delete.failed'.tr();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(errorMessage),
@@ -183,7 +182,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         foregroundColor: onPrimary,
         iconTheme: IconThemeData(color: onPrimary),
         title: Text(
-          'Health Vitals',
+          'vitals.title'.tr(),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             color: onPrimary,
             fontWeight: FontWeight.w600,
@@ -239,9 +238,8 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.users,
-          title: 'No patients assigned yet',
-          message:
-              'Once you are added as a caregiver, you can review vitals for your patients here.',
+          title: 'vitals.caregiverNotice.noPatientsAssigned'.tr(),
+          message: 'vitals.caregiverNotice.noPatientsAssignedDesc'.tr(),
         );
       }
 
@@ -249,7 +247,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.info,
-          title: 'Unable to load patients',
+          title: 'vitals.caregiverNotice.unableToLoadPatients'.tr(),
           message: careContextError,
           onRetry: _reloadVitals,
         );
@@ -259,9 +257,8 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.userSearch,
-          title: 'Select a patient to continue',
-          message:
-              'Choose a patient from the dashboard to review their latest vitals.',
+          title: 'vitals.caregiverNotice.selectPatientContinue'.tr(),
+          message: 'vitals.caregiverNotice.selectPatientContinueDesc'.tr(),
         );
       }
     }
@@ -318,7 +315,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
                         size: 20,
                       ),
                       label: Text(
-                        'Log Vital',
+                        'vitals.actions.logVital'.tr(),
                         style: textTheme.titleSmall?.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -347,7 +344,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
                       size: 20,
                     ),
                     label: Text(
-                      'View Trends',
+                      'vitals.actions.viewTrends'.tr(),
                       style: textTheme.titleSmall?.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -527,7 +524,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
             Icon(FIcons.activity, size: 64.r, color: colorScheme.primary),
             SizedBox(height: 16.h),
             Text(
-              'No vitals logged yet',
+              'vitals.emptyState.noVitalsLoggedYet'.tr(),
               style: textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: onSurface,
@@ -536,8 +533,8 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
             SizedBox(height: 8.h),
             Text(
               isCaregiver
-                  ? 'This patient has no vitals recorded yet.'
-                  : 'Start tracking your health vitals',
+                  ? 'vitals.emptyState.patientNoVitalsRecorded'.tr()
+                  : 'vitals.emptyState.startTracking'.tr(),
               style: textTheme.bodySmall?.copyWith(color: muted),
             ),
             if (!isCaregiver) ...[
@@ -556,7 +553,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
                   ),
                 ),
                 child: Text(
-                  'Log Vitals',
+                  'vitals.actions.logVital'.tr(),
                   style: textTheme.labelLarge?.copyWith(
                     color: onPrimary,
                     fontWeight: FontWeight.w600,
@@ -575,7 +572,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
             Icon(FIcons.calendar, size: 64.r, color: colorScheme.primary),
             SizedBox(height: 16.h),
             Text(
-              'No vitals for ${_getFormattedDate(_selectedDate)}',
+              'vitals.emptyState.noVitalsForDate'.tr(namedArgs: {'date': _getFormattedDate(_selectedDate)}),
               style: textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: onSurface,
@@ -583,7 +580,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
             ),
             SizedBox(height: 8.h),
             Text(
-              'Select another date or add vitals',
+              'vitals.emptyState.selectAnotherDate'.tr(),
               style: textTheme.bodySmall?.copyWith(color: muted),
             ),
           ],
@@ -593,21 +590,25 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
   }
 
   String _getFormattedDate(DateTime date) {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    if (context.locale.languageCode == 'ur') {
+      final months = [
+        'medication.months.jan',
+        'medication.months.feb',
+        'medication.months.mar',
+        'medication.months.apr',
+        'medication.months.may',
+        'medication.months.jun',
+        'medication.months.jul',
+        'medication.months.aug',
+        'medication.months.sep',
+        'medication.months.oct',
+        'medication.months.nov',
+        'medication.months.dec',
+      ];
+      return '${months[date.month - 1].tr()} ${date.day}, ${date.year}';
+    } else {
+      return DateFormat('MMM d, yyyy').format(date);
+    }
   }
 
   Color _getStatusColor(VitalHealthStatus status) {
@@ -700,7 +701,7 @@ class _ErrorBanner extends StatelessWidget {
           TextButton(
             onPressed: onRetry,
             style: TextButton.styleFrom(foregroundColor: color),
-            child: const Text('Retry'),
+            child: Text('actions.retry'.tr()),
           ),
         ],
       ),
@@ -767,8 +768,8 @@ class _VitalsHero extends StatelessWidget {
                     children: [
                       Text(
                         isCaregiver
-                            ? 'Patient vitals overview'
-                            : 'Today\u2019s vitals snapshot',
+                            ? 'vitals.hero.patientVitalsOverview'.tr()
+                            : 'vitals.hero.todaysVitalsSnapshot'.tr(),
                         style: textTheme.bodyMedium?.copyWith(
                           color: onPrimary.withValues(alpha: 0.85),
                         ),
@@ -796,7 +797,7 @@ class _VitalsHero extends StatelessWidget {
                           SizedBox(width: 8.w),
                           Flexible(
                             child: Text(
-                              'Checks on $dateLabel',
+                              'vitals.hero.checksOn'.tr(namedArgs: {'date': dateLabel}),
                               style: textTheme.headlineSmall?.copyWith(
                                 color: onPrimary,
                                 fontWeight: FontWeight.w700,

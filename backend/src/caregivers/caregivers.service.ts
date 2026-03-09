@@ -3,6 +3,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
+import { ContactCaregiverDto } from './dto/contact-caregiver.dto';
 
 @Injectable()
 export class CaregiversService {
@@ -513,5 +514,53 @@ export class CaregiversService {
         caregiver.updatedAt.toISOString(),
       notes: caregiver.status || '',
     }));
+  }
+
+  /**
+   * Contact caregiver via email
+   */
+  async contactCaregiver(
+    userId: bigint,
+    assignmentId: bigint,
+    contactDto: ContactCaregiverDto,
+  ) {
+    const assignment = await this.prisma.elderAssignment.findUnique({
+      where: {
+        elderAssignmentId: assignmentId,
+      },
+      include: {
+        caregiverUser: true,
+        elderUser: true,
+      } as any,
+    });
+
+    if (!assignment) {
+      throw new NotFoundException('Caregiver assignment not found');
+    }
+
+    // Verify ownership (only the patient or the patient's admin can send)
+    if (assignment.elderUserId !== userId) {
+      throw new BadRequestException('You are not authorized to contact this caregiver');
+    }
+
+    const caregiver = (assignment as any).caregiverUser;
+    const patientName = (assignment as any).elderUser?.full_name || 'Your patient';
+
+    if (!caregiver.email) {
+      throw new BadRequestException('Caregiver does not have an email address');
+    }
+
+    const success = await this.emailService.sendCaregiverContactEmail(
+      caregiver.email,
+      patientName,
+      contactDto.message,
+      contactDto.subject,
+    );
+
+    if (!success) {
+      throw new BadRequestException('Failed to send email to caregiver');
+    }
+
+    return { success: true, message: 'Message sent to caregiver successfully' };
   }
 }

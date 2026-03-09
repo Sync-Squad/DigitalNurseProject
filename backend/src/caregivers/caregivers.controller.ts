@@ -9,12 +9,14 @@ import {
   Patch,
   UseGuards,
   ParseIntPipe,
+  Request,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { CaregiversService } from './caregivers.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { AcceptInvitationByCodeDto } from './dto/accept-invitation-by-code.dto';
 import { ToggleStatusDto } from './dto/toggle-status.dto';
+import { ContactCaregiverDto } from './dto/contact-caregiver.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
@@ -46,6 +48,27 @@ export class CaregiversController {
   getAssignments(@CurrentUser() user: any) {
     const userId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
     return this.caregiversService.findAssignmentsForCaregiver(userId);
+  }
+
+  @Post(':id/contact')
+  @ApiOperation({ summary: 'Contact a caregiver' })
+  @ApiResponse({ status: 200, description: 'Caregiver contacted successfully' })
+  @ApiResponse({ status: 404, description: 'Caregiver not found' })
+  contactCaregiver(
+    @CurrentUser() user: any,
+    @Param('id', ParseIntPipe) id: string,
+    @Body() contactDto: ContactCaregiverDto,
+  ) {
+    const userId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
+    console.log('📬 CONTACT CAREGIVER REQUEST');
+    console.log('  UserID:', userId);
+    console.log('  AssignmentID (raw):', id);
+    console.log('  Message Length:', contactDto.message.length);
+    return this.caregiversService.contactCaregiver(
+      userId,
+      BigInt(id),
+      contactDto,
+    );
   }
 
   @Post('invitations')
@@ -118,6 +141,7 @@ export class CaregiversController {
     const userId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
     return this.caregiversService.remove(userId, BigInt(id));
   }
+
 
   @Patch(':id/toggle-status')
   @ApiOperation({ summary: 'Toggle caregiver assignment activity status' })

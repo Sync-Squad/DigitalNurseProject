@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -138,7 +139,7 @@ class _MedicineListScreenState extends State<MedicineListScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Medications',
+              'medication.title'.tr(),
               style: textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: onPrimary,
@@ -146,7 +147,7 @@ class _MedicineListScreenState extends State<MedicineListScreen>
             ),
             if (isCaregiver && careContext?.selectedRecipient != null)
               Text(
-                'for ${careContext!.selectedRecipient!.name}',
+                'medication.forPatient'.tr(namedArgs: {'name': careContext!.selectedRecipient!.name}),
                 style: textTheme.bodySmall?.copyWith(
                   color: onPrimary.withValues(alpha: 0.7),
                 ),
@@ -198,9 +199,8 @@ class _MedicineListScreenState extends State<MedicineListScreen>
         return _buildCaregiverNotice(
           context,
           icon: FIcons.users,
-          title: 'No patients assigned yet',
-          message:
-              'Once a patient connects you as their caregiver, their medicines will appear here.',
+          title: 'medication.noPatientsAssigned'.tr(),
+          message: 'medication.noPatientsDesc'.tr(),
         );
       }
 
@@ -208,7 +208,7 @@ class _MedicineListScreenState extends State<MedicineListScreen>
         return _buildCaregiverNotice(
           context,
           icon: FIcons.info,
-          title: 'Unable to load patients',
+          title: 'medication.unableToLoadPatients'.tr(),
           message: careContextError,
           onRetry: _loadMedicines,
         );
@@ -218,9 +218,8 @@ class _MedicineListScreenState extends State<MedicineListScreen>
         return _buildCaregiverNotice(
           context,
           icon: FIcons.userSearch,
-          title: 'Select a patient to continue',
-          message:
-              'Choose a patient from the dashboard to review their medication schedule.',
+          title: 'medication.selectPatientContinue'.tr(),
+          message: 'medication.selectPatientDesc'.tr(),
         );
       }
     }
@@ -282,7 +281,7 @@ class _MedicineListScreenState extends State<MedicineListScreen>
           Icon(FIcons.pill, size: 48, color: colorScheme.primary),
           SizedBox(height: 12.h),
           Text(
-            'No medicines added yet',
+            'medication.noMedicinesAdded'.tr(),
             style: textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               color: onSurface,
@@ -291,8 +290,8 @@ class _MedicineListScreenState extends State<MedicineListScreen>
           SizedBox(height: 8.h),
           Text(
             isCaregiver
-                ? 'This patient has no medicines recorded yet.'
-                : 'Tap the button below to add your first medicine',
+                ? 'medication.patientNoMedicines'.tr()
+                : 'medication.addFirstMedicine'.tr(),
             textAlign: TextAlign.center,
             style: textTheme.bodySmall?.copyWith(color: muted),
           ),
@@ -311,7 +310,7 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                 ),
                 onPressed: () => context.push('/medicine/add'),
                 child: Text(
-                  'Add Medicine',
+                  'medication.addMedicine'.tr(),
                   style: textTheme.labelLarge?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -346,12 +345,12 @@ class _MedicineListScreenState extends State<MedicineListScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              'No medicines for ${_getFormattedDate(_selectedDate)}',
+              'medication.noMedicinesForDate'.tr(namedArgs: {'date': _getFormattedDate(_selectedDate)}),
               style: context.theme.typography.lg,
             ),
             const SizedBox(height: 8),
             Text(
-              'Select another date or add medicines',
+              'medication.selectAnotherDate'.tr(),
               style: context.theme.typography.sm.copyWith(
                 color: context.theme.colors.mutedForeground,
               ),
@@ -409,21 +408,26 @@ class _MedicineListScreenState extends State<MedicineListScreen>
   }
 
   String _getFormattedDate(DateTime date) {
+    final month = _monthLabel(date.month);
+    return '$month ${date.day}, ${date.year}';
+  }
+
+  String _monthLabel(int month) {
     final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'medication.months.jan'.tr(),
+      'medication.months.feb'.tr(),
+      'medication.months.mar'.tr(),
+      'medication.months.apr'.tr(),
+      'medication.months.may'.tr(),
+      'medication.months.jun'.tr(),
+      'medication.months.jul'.tr(),
+      'medication.months.aug'.tr(),
+      'medication.months.sep'.tr(),
+      'medication.months.oct'.tr(),
+      'medication.months.nov'.tr(),
+      'medication.months.dec'.tr(),
     ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    return months[month - 1];
   }
 
   Widget _buildCaregiverNotice(
@@ -474,7 +478,7 @@ class _MedicineListScreenState extends State<MedicineListScreen>
                 ),
               ),
               child: Text(
-                'Retry',
+                'medication.retry'.tr(),
                 style: textTheme.labelLarge?.copyWith(
                   color: onPrimary,
                   fontWeight: FontWeight.w600,
@@ -516,7 +520,7 @@ class _ErrorBanner extends StatelessWidget {
           TextButton(
             onPressed: onRetry,
             style: TextButton.styleFrom(foregroundColor: errorColor),
-            child: const Text('Retry'),
+            child: Text('medication.retry'.tr()),
           ),
         ],
       ),
@@ -582,7 +586,9 @@ class _HeroSummary extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        isCaregiver ? 'Care schedule' : 'Today\'s plan',
+                        isCaregiver 
+                            ? 'medication.hero.careSchedule'.tr() 
+                            : 'medication.hero.todaysPlan'.tr(),
                         style: textTheme.titleMedium?.copyWith(
                           color: onPrimary.withValues(alpha: 0.85),
                         ),
@@ -610,7 +616,7 @@ class _HeroSummary extends StatelessWidget {
                           SizedBox(width: 10.w),
                           Flexible(
                             child: Text(
-                              'Medicines on $dateLabel',
+                              'medication.hero.medicinesOnDate'.tr(namedArgs: {'date': dateLabel}),
                               style: textTheme.headlineSmall?.copyWith(
                                 color: onPrimary,
                                 fontWeight: FontWeight.w700,
@@ -624,7 +630,7 @@ class _HeroSummary extends StatelessWidget {
                         SizedBox(height: 10.h),
                         _HeroChip(
                           icon: Icons.add_circle_outline,
-                          label: 'Add medicine',
+                          label: 'medication.addMedicine'.tr(),
                           onTap: () => context.push('/medicine/add'),
                         ),
                       ],
@@ -640,19 +646,19 @@ class _HeroSummary extends StatelessWidget {
   }
 
   String _monthLabel(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+    final months = [
+      'medication.months.jan'.tr(),
+      'medication.months.feb'.tr(),
+      'medication.months.mar'.tr(),
+      'medication.months.apr'.tr(),
+      'medication.months.may'.tr(),
+      'medication.months.jun'.tr(),
+      'medication.months.jul'.tr(),
+      'medication.months.aug'.tr(),
+      'medication.months.sep'.tr(),
+      'medication.months.oct'.tr(),
+      'medication.months.nov'.tr(),
+      'medication.months.dec'.tr(),
     ];
     return months[month - 1];
   }

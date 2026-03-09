@@ -23,7 +23,7 @@
     <application
         android:label="digital_nurse"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config">
         <!-- COMMENTED OUT: Lock screen attributes (showWhenLocked and turnScreenOn) removed to fix alarm ringing issues -->
@@ -62,7 +62,7 @@
         <!-- FCM default notification icon -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@mipmap/ic_launcher" />
+            android:resource="@mipmap/launcher_icon" />
         <!-- FCM default notification color -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"

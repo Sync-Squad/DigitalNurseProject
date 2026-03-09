@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -43,19 +44,19 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Document'),
-        content: const Text('Are you sure you want to delete this document?'),
+        title: Text('documents.viewerScreen.deleteTitle'.tr()),
+        content: Text('documents.viewerScreen.deleteConfirm'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(
               foregroundColor: AppTheme.getErrorColor(context),
             ),
-            child: const Text('Delete'),
+            child: Text('common.delete'.tr()),
           ),
         ],
       ),
@@ -98,7 +99,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
           } else {
             final errorMessage =
                 context.read<DocumentProvider>().error ??
-                'Failed to delete document. Please try again.';
+                'documents.viewerScreen.deleteFail'.tr();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(errorMessage),
@@ -442,9 +443,9 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Document Details',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        title: Text(
+          'documents.viewerScreen.details'.tr(),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         actions: [
           _isDeleting
@@ -525,7 +526,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
                       ),
                     )
                   : const Icon(FIcons.download),
-              label: Text(_isDownloading ? 'Downloading...' : 'Download'),
+              label: Text(_isDownloading ? 'Downloading...' : 'documents.viewerScreen.download'.tr()),
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 14.h),
                 backgroundColor: ModernSurfaceTheme.primaryTeal,
@@ -546,7 +547,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
                 );
               },
               icon: const Icon(FIcons.share),
-              label: const Text('Share'),
+              label: Text('documents.viewerScreen.share'.tr()),
               style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 14.h),
                 side: BorderSide(
@@ -567,11 +568,11 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   String _getVisibilityText(DocumentVisibility visibility) {
     switch (visibility) {
       case DocumentVisibility.private:
-        return 'Private';
+        return 'documents.uploadScreen.private'.tr();
       case DocumentVisibility.sharedWithCaregiver:
-        return 'Shared with Caregivers';
+        return 'documents.uploadScreen.sharedWithCaregiver'.tr();
       case DocumentVisibility.public:
-        return 'Public';
+        return 'documents.uploadScreen.public'.tr();
     }
   }
 }

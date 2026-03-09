@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/providers/medication_provider.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -42,8 +43,8 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                 onPressed: () => _handleBack(context, formProvider),
                 color: Colors.white,
               ),
-              title: const Text(
-                'Add Medicine',
+              title: Text(
+                'medication.add.title'.tr(),
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -79,50 +80,50 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     switch (formProvider.currentStep) {
       case 0:
         return FormStepContainer(
-          title: 'Medicine Name',
-          description: 'Let\'s start with the basics',
+          title: 'medication.add.steps.name'.tr(),
+          description: 'medication.add.steps.nameDesc'.tr(),
           stepNumber: 0,
           child: const StepMedicineName(),
         );
       case 1:
         return FormStepContainer(
-          title: 'Medicine Form',
-          description: 'What form is your medicine in?',
+          title: 'medication.add.steps.form'.tr(),
+          description: 'medication.add.steps.formDesc'.tr(),
           stepNumber: 1,
           child: const StepMedicineForm(),
         );
       case 2:
         return FormStepContainer(
-          title: 'Frequency',
-          description: 'How often do you take it?',
+          title: 'medication.add.steps.frequency'.tr(),
+          description: 'medication.add.steps.frequencyDesc'.tr(),
           stepNumber: 2,
           child: const StepFrequency(),
         );
       case 3:
         return FormStepContainer(
-          title: 'Reminder Times',
-          description: 'Set your reminder times',
+          title: 'medication.add.steps.reminders'.tr(),
+          description: 'medication.add.steps.remindersDesc'.tr(),
           stepNumber: 3,
           child: const StepScheduleTimes(),
         );
       case 4:
         return FormStepContainer(
-          title: 'Start Date',
-          description: 'When do you start?',
+          title: 'medication.add.steps.startDate'.tr(),
+          description: 'medication.add.steps.startDateDesc'.tr(),
           stepNumber: 4,
           child: const StepStartDate(),
         );
       case 5:
         return FormStepContainer(
-          title: 'Dosage & Strength',
-          description: 'Dosage and strength details',
+          title: 'medication.add.steps.dose'.tr(),
+          description: 'medication.add.steps.doseDesc'.tr(),
           stepNumber: 5,
           child: const StepDoseStrength(),
         );
       case 6:
         return FormStepContainer(
-          title: 'Review',
-          description: 'Review before saving',
+          title: 'medication.add.steps.review'.tr(),
+          description: 'medication.add.steps.reviewDesc'.tr(),
           stepNumber: 6,
           child: const StepSummary(),
         );
@@ -154,7 +155,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
-                  child: const Text('Back'),
+                  child: Text('medication.add.back'.tr()),
                 ),
               ),
             if (!formProvider.isFirstStep) SizedBox(width: 12.w),
@@ -182,7 +183,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                           color: Colors.white,
                         ),
                       )
-                    : Text(formProvider.isLastStep ? 'Save Medicine' : 'Next'),
+                    : Text(formProvider.isLastStep ? 'medication.add.save'.tr() : 'medication.add.next'.tr()),
               ),
             ),
           ],
@@ -213,7 +214,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('User not authenticated'),
+          content: Text('common.errors.notAuthenticated'.tr()),
           backgroundColor: AppTheme.getErrorColor(context),
         ),
       );
@@ -224,7 +225,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     if (medicine == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please complete all required fields'),
+          content: Text('medication.add.validationError'.tr()),
           backgroundColor: AppTheme.getErrorColor(context),
         ),
       );
@@ -241,10 +242,11 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       );
 
       if (mounted) {
+        if (!mounted) return;
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Medicine added successfully!'),
+              content: Text('medication.add.success'.tr()),
               backgroundColor: AppTheme.getSuccessColor(context),
             ),
           );
@@ -252,7 +254,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Failed to add medicine'),
+              content: Text('medication.add.fail'.tr()),
               backgroundColor: AppTheme.getErrorColor(context),
             ),
           );
@@ -292,7 +294,10 @@ class _ProgressHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Step ${currentStep + 1} of $totalSteps',
+            'medication.add.step'.tr(namedArgs: {
+              'current': (currentStep + 1).toString(),
+              'total': totalSteps.toString(),
+            }),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               color: ModernSurfaceTheme.deepTeal,
               fontWeight: FontWeight.w600,

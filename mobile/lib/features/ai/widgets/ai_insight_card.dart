@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
+import '../../../core/theme/modern_surface_theme.dart';
 
 class AIInsightCard extends StatelessWidget {
   final String id;
@@ -30,171 +33,308 @@ class AIInsightCard extends StatelessWidget {
     this.onMarkRead,
   });
 
-  Color _getPriorityColor(BuildContext context) {
+  Color _getPriorityColor() {
     switch (priority.toLowerCase()) {
       case 'critical':
-        return Colors.red;
+        return const Color(0xFFFF6B6B);
       case 'high':
-        return Colors.orange;
+        return const Color(0xFFFF9F43);
       case 'medium':
-        return Colors.blue;
+        return ModernSurfaceTheme.accentBlue;
       case 'low':
-        return Colors.grey;
+        return ModernSurfaceTheme.primaryTeal;
       default:
-        return Colors.grey;
+        return ModernSurfaceTheme.primaryTeal;
     }
   }
 
   IconData _getPriorityIcon() {
     switch (priority.toLowerCase()) {
       case 'critical':
-        return Icons.error;
+        return Icons.error_rounded;
       case 'high':
-        return Icons.warning;
+        return Icons.warning_amber_rounded;
       case 'medium':
-        return Icons.info;
+        return Icons.info_rounded;
       case 'low':
-        return Icons.check_circle;
+        return Icons.check_circle_rounded;
       default:
-        return Icons.info;
+        return Icons.info_rounded;
+    }
+  }
+
+  String _priorityLabel() {
+    switch (priority.toLowerCase()) {
+      case 'critical':
+        return 'ai.priority.critical'.tr();
+      case 'high':
+        return 'ai.priority.high'.tr();
+      case 'medium':
+        return 'ai.priority.medium'.tr();
+      case 'low':
+        return 'ai.priority.low'.tr();
+      default:
+        return priority.toUpperCase();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: _getPriorityColor(context).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+    final accent = _getPriorityColor();
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: 14.h),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: ModernSurfaceTheme.cardRadius(),
+          child: Container(
+            padding: EdgeInsets.all(18.w),
+            decoration: ModernSurfaceTheme.glassCard(
+              context,
+              accent: accent,
+              highlighted: !isRead,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header row: icon + title + unread dot
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: 44.w,
+                      height: 44.w,
+                      decoration: ModernSurfaceTheme.iconBadge(context, accent),
+                      child: Icon(
+                        _getPriorityIcon(),
+                        size: 22.w,
+                        color: Colors.white,
+                      ),
                     ),
-                    child: Icon(
-                      _getPriorityIcon(),
-                      size: 20,
-                      color: _getPriorityColor(context),
+                    SizedBox(width: 14.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: TextStyle(
+                              color: ModernSurfaceTheme.deepTeal,
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w700,
+                              height: 1.3,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          SizedBox(height: 4.h),
+                          Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 8.w,
+                                  vertical: 2.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: accent.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  _priorityLabel(),
+                                  style: TextStyle(
+                                    color: accent,
+                                    fontSize: 10.sp,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.6,
+                                  ),
+                                ),
+                              ),
+                              if (category != null) ...[
+                                SizedBox(width: 8.w),
+                                Flexible(
+                                  child: Text(
+                                    category!,
+                                    style: TextStyle(
+                                      color: ModernSurfaceTheme.deepTeal
+                                          .withValues(alpha: 0.6),
+                                      fontSize: 11.sp,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
+                    if (!isRead)
+                      Container(
+                        width: 10.w,
+                        height: 10.w,
+                        margin: EdgeInsets.only(top: 4.h, left: 6.w),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: ModernSurfaceTheme.primaryTeal,
+                          boxShadow: [
+                            BoxShadow(
+                              color: ModernSurfaceTheme.primaryTeal.withValues(
+                                alpha: 0.4,
+                              ),
+                              blurRadius: 6,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+
+                SizedBox(height: 14.h),
+
+                // Content preview
+                Text(
+                  content,
+                  style: TextStyle(
+                    color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.8),
+                    fontSize: 13.sp,
+                    height: 1.5,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                // Recommendations preview
+                if (recommendations != null && recommendations!.isNotEmpty) ...[
+                  SizedBox(height: 12.h),
+                  Container(
+                    padding: EdgeInsets.all(12.w),
+                    decoration: BoxDecoration(
+                      color: ModernSurfaceTheme.primaryTeal.withValues(
+                        alpha: 0.06,
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: ModernSurfaceTheme.primaryTeal.withValues(
+                          alpha: 0.12,
+                        ),
+                      ),
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          title,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.lightbulb_rounded,
+                              size: 16.w,
+                              color: ModernSurfaceTheme.accentYellow,
+                            ),
+                            SizedBox(width: 6.w),
+                            Text(
+                              'ai.recommendations'.tr(),
+                              style: TextStyle(
+                                color: ModernSurfaceTheme.deepTeal,
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
                         ),
-                        if (category != null)
-                          Text(
-                            category!,
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall?.copyWith(color: Colors.grey),
-                          ),
+                        SizedBox(height: 8.h),
+                        ...recommendations!
+                            .take(2)
+                            .map(
+                              (rec) => Padding(
+                                padding: EdgeInsets.only(bottom: 4.h),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '•  ',
+                                      style: TextStyle(
+                                        color: ModernSurfaceTheme.primaryTeal,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        rec is String ? rec : rec.toString(),
+                                        style: TextStyle(
+                                          color: ModernSurfaceTheme.deepTeal
+                                              .withValues(alpha: 0.75),
+                                          fontSize: 12.sp,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                       ],
                     ),
                   ),
-                  if (!isRead)
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.blue,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
                 ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                content,
-                style: Theme.of(context).textTheme.bodyMedium,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-              ),
-              if (recommendations != null && recommendations!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.primaryContainer.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Recommendations:',
-                        style: Theme.of(context).textTheme.labelMedium
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      ...recommendations!
-                          .take(2)
-                          .map(
-                            (rec) => Padding(
-                              padding: const EdgeInsets.only(bottom: 4),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text('• '),
-                                  Expanded(
-                                    child: Text(
-                                      rec is String ? rec : rec.toString(),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+
+                SizedBox(height: 12.h),
+
+                // Footer: time + actions
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time_rounded,
+                          size: 14.w,
+                          color: ModernSurfaceTheme.deepTeal.withValues(
+                            alpha: 0.45,
                           ),
-                    ],
-                  ),
+                        ),
+                        SizedBox(width: 4.w),
+                        Text(
+                          _formatDate(generatedAt),
+                          style: TextStyle(
+                            color: ModernSurfaceTheme.deepTeal.withValues(
+                              alpha: 0.5,
+                            ),
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        if (!isRead && onMarkRead != null)
+                          _ActionChip(
+                            label: 'ai.markRead'.tr(),
+                            icon: Icons.done_rounded,
+                            color: ModernSurfaceTheme.primaryTeal,
+                            onTap: onMarkRead!,
+                          ),
+                        if (onArchive != null) ...[
+                          SizedBox(width: 8.w),
+                          _ActionChip(
+                            label: 'ai.archive'.tr(),
+                            icon: Icons.archive_rounded,
+                            color: ModernSurfaceTheme.deepTeal.withValues(
+                              alpha: 0.6,
+                            ),
+                            onTap: onArchive!,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ],
                 ),
               ],
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _formatDate(generatedAt),
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: Colors.grey),
-                  ),
-                  Row(
-                    children: [
-                      if (!isRead && onMarkRead != null)
-                        TextButton(
-                          onPressed: onMarkRead,
-                          child: const Text('Mark Read'),
-                        ),
-                      if (onArchive != null)
-                        IconButton(
-                          icon: const Icon(Icons.archive),
-                          onPressed: onArchive,
-                          tooltip: 'Archive',
-                        ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -207,15 +347,60 @@ class AIInsightCard extends StatelessWidget {
 
     if (difference.inDays == 0) {
       if (difference.inHours == 0) {
-        return '${difference.inMinutes} minutes ago';
+        return 'ai.time.minutesAgo'.tr(namedArgs: {'count': '${difference.inMinutes}'});
       }
-      return '${difference.inHours} hours ago';
+      return 'ai.time.hoursAgo'.tr(namedArgs: {'count': '${difference.inHours}'});
     } else if (difference.inDays == 1) {
-      return 'Yesterday';
+      return 'ai.time.yesterday'.tr();
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
+      return 'ai.time.daysAgo'.tr(namedArgs: {'count': '${difference.inDays}'});
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }
+  }
+}
+
+class _ActionChip extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionChip({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14.w, color: color),
+            SizedBox(width: 4.w),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 11.sp,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

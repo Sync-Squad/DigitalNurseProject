@@ -163,7 +163,7 @@ class _WelcomeHeroCard extends StatelessWidget {
                       Padding(
                         padding: EdgeInsets.only(top: 16.h),
                         child: Text(
-                          "Let's take care of your health today—one step at a time.",
+                          'patient.heroHealthSubtitle'.tr(),
                           style: textTheme.bodyMedium?.copyWith(
                             color: onPrimary.withValues(alpha: 0.75),
                             height: 1.4,
@@ -232,18 +232,18 @@ class _HealthOverviewCard extends StatelessWidget {
             color: const Color(0xFF1FB9AA).withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(20),
           ),
-          padding: EdgeInsets.all(20.w),
+          padding: EdgeInsets.all(16.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Health Overview',
+                'patient.healthOverview'.tr(),
                 style: textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: 12.h),
               Row(
                 children: [
                   // Left side - Adherence info
@@ -254,8 +254,8 @@ class _HealthOverviewCard extends StatelessWidget {
                         Row(
                           children: [
                             Container(
-                              width: 36.w,
-                              height: 36.w,
+                              width: 32.w,
+                              height: 32.w,
                               decoration: BoxDecoration(
                                 color: Colors.tealAccent.withValues(alpha: 0.5),
                                 borderRadius: BorderRadius.circular(10),
@@ -263,32 +263,37 @@ class _HealthOverviewCard extends StatelessWidget {
                               child: Center(
                                 child: Text(
                                   '😊',
-                                  style: TextStyle(fontSize: 20.sp),
+                                  style: TextStyle(fontSize: 18.sp),
                                 ),
                               ),
                             ),
                             SizedBox(width: 10.w),
-                            Text(
-                              '${adherencePercentage.toInt()}% Adherence',
-                              style: textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
+                            Flexible(
+                              child: Text(
+                                'patient.adherencePercentLabel'.tr(namedArgs: {
+                                  'percent': adherencePercentage.toInt().toString()
+                                }),
+                                style: textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(height: 8.h),
+                        SizedBox(height: 4.h),
                         Text(
                           adherencePercentage >= 80
-                              ? 'Great job this week!'
-                              : 'You missed some doses this week.',
+                              ? 'patient.adherenceGreat'.tr()
+                              : 'patient.adherenceMissed'.tr(),
                           style: textTheme.bodySmall?.copyWith(
                             color: Colors.white.withValues(alpha: 0.8),
                           ),
                         ),
-                        SizedBox(height: 4.h),
+                        SizedBox(height: 2.h),
                         Text(
-                          "let's improve together",
+                          'patient.improveTogether'.tr(),
                           style: textTheme.bodySmall?.copyWith(
                             color: Colors.white.withValues(alpha: 0.6),
                             fontSize: 10.sp,
@@ -298,11 +303,11 @@ class _HealthOverviewCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  SizedBox(width: 15.w),
+                  SizedBox(width: 12.w),
                   // Right side - Circular progress
                   _CircularProgressWidget(
                     percentage: adherencePercentage,
-                    size: 90.w,
+                    size: 75.w,
                   ),
                 ],
               ),
@@ -493,7 +498,7 @@ class _AlertsCard extends StatelessWidget {
                         ),
                         SizedBox(width: 8.w),
                         Text(
-                          'Alerts',
+                          'patient.alertsTitle'.tr(),
                           style: textTheme.titleSmall?.copyWith(
                             fontWeight: FontWeight.w700,
                             color: const Color(0xFF1A1A1A),
@@ -504,8 +509,10 @@ class _AlertsCard extends StatelessWidget {
                     SizedBox(height: 12.h),
                     Text(
                       alertCount > 0
-                          ? '$alertCount vitals need a quick check'
-                          : 'All vitals look good!',
+                          ? 'patient.vitalsNeedCheck'.tr(namedArgs: {
+                              'count': alertCount.toString(),
+                            })
+                          : 'patient.allVitalsGood'.tr(),
                       style: textTheme.bodySmall?.copyWith(
                         color: const Color(0xFF666666),
                         fontWeight: FontWeight.w600,
@@ -514,8 +521,8 @@ class _AlertsCard extends StatelessWidget {
                     SizedBox(height: 4.h),
                     Text(
                       alertCount > 0
-                          ? 'Tap to review your abnormal vitals safely.'
-                          : 'Keep up the great work!',
+                          ? 'patient.tapToReviewAbnormal'.tr()
+                          : 'patient.keepUpGreatWork'.tr(),
                       style: textTheme.bodySmall?.copyWith(
                         color: const Color(0xFF999999),
                         fontSize: 10.sp,
@@ -556,7 +563,7 @@ class _BloodPressureCard extends StatelessWidget {
     final hasData = vital != null;
     final systolicStr = hasData ? (vital.value as String).split('/')[0] : '--';
     final diastolicStr = hasData ? (vital.value as String).split('/')[1] : '--';
-    final status = hasData ? vital.getStatusLabel(context) : 'No records yet';
+    final status = hasData ? vital.getStatusLabel(context) : 'patient.noRecordsYet'.tr();
     final statusColor = hasData
         ? vital.getHealthStatus().getStatusColor(context)
         : const Color(0xFF999999);
@@ -604,7 +611,7 @@ class _BloodPressureCard extends StatelessWidget {
                   ),
                   SizedBox(width: 8.w),
                   Text(
-                    'Blood Pressure',
+                    'patient.bloodPressureTitle'.tr(),
                     style: textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                       color: const Color(0xFF1A1A1A),
@@ -626,7 +633,7 @@ class _BloodPressureCard extends StatelessWidget {
                       ),
                     ),
                     TextSpan(
-                      text: 'mmHg',
+                      text: 'patient.mmHg'.tr(),
                       style: textTheme.bodySmall?.copyWith(
                         color: const Color(0xFF666666),
                       ),
@@ -811,7 +818,7 @@ class _BeatingHeartState extends State<_BeatingHeart>
               Icon(
                 Icons.favorite,
                 color: emptyColor,
-                size: 38.w,
+                size: 30.w,
               ),
               // 2. Foreground Layer: Filled Shiny Heart (Clipped)
               ClipRect(
@@ -834,7 +841,7 @@ class _BeatingHeartState extends State<_BeatingHeart>
                   child: Icon(
                     Icons.favorite,
                     color: Colors.white,
-                    size: 38.w,
+                    size: 30.w,
                     shadows: [
                       Shadow(
                         color: fillColor.withValues(alpha: 0.3),

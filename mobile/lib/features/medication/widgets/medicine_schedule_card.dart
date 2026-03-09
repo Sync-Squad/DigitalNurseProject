@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/medicine_model.dart';
@@ -332,7 +333,7 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
 
   String _getStatusText(BuildContext context) {
     if (_medicineStatuses.isEmpty) {
-      return 'No medicines';
+      return 'medication.status.noMedicines'.tr();
     }
 
     final statusList = _medicineStatuses.values.toList();
@@ -347,12 +348,12 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
 
     // If all taken, show "Taken"
     if (takenCount == total) {
-      return 'Taken';
+      return 'medication.status.taken'.tr();
     }
 
     // If any explicitly marked as missed, show "Missed"
     if (missedCount > 0) {
-      return 'Missed';
+      return 'medication.status.missed'.tr();
     }
 
     // Check if we're looking at today's date to determine if pending items are overdue
@@ -389,21 +390,24 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
 
       // If any are overdue, show "Missed"
       if (overdueCount > 0) {
-        return 'Missed';
+        return 'medication.status.missed'.tr();
       }
     }
 
     // If any pending (not overdue), show "Upcoming"
     if (pendingCount > 0) {
-      return 'Upcoming';
+      return 'medication.status.upcoming'.tr();
     }
 
     // If any taken but not all
     if (takenCount > 0) {
-      return '$takenCount of $total taken';
+      return 'medication.status.partialTaken'.tr(namedArgs: {
+        'taken': takenCount.toString(),
+        'total': total.toString(),
+      });
     }
 
-    return 'Upcoming';
+    return 'medication.status.upcoming'.tr();
   }
 
   ({String label, IconData icon, Color color}) _getTimeInfo(
@@ -412,7 +416,7 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
     switch (widget.timeOfDay) {
       case MedicineTimeOfDay.morning:
         return (
-          label: 'Morning',
+          label: 'medication.timeOfDay.morning'.tr(),
           icon: FIcons.sunrise,
           color: ModernSurfaceTheme.accentYellow,
         );
@@ -420,13 +424,13 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
         // Use a more vibrant teal for better visibility in the chip
         // Using a brighter, more saturated teal (similar vibrancy to accentYellow/accentBlue)
         return (
-          label: 'Afternoon',
+          label: 'medication.timeOfDay.afternoon'.tr(),
           icon: FIcons.sun,
           color: const Color(0xFF14C4B3),
         );
       case MedicineTimeOfDay.evening:
         return (
-          label: 'Evening',
+          label: 'medication.timeOfDay.evening'.tr(),
           icon: FIcons.moon,
           color: ModernSurfaceTheme.accentBlue,
         );

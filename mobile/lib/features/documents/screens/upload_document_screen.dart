@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -135,7 +136,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Document uploaded successfully'),
+            content: Text('documents.uploadScreen.success'.tr()),
             backgroundColor: AppTheme.getSuccessColor(context),
           ),
         );
@@ -143,7 +144,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('Failed to upload document'),
+            content: Text('documents.uploadScreen.fail'.tr()),
             backgroundColor: AppTheme.getErrorColor(context),
           ),
         );
@@ -177,15 +178,14 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
         caregiverNotice = _buildCaregiverNotice(
           context,
           icon: FIcons.users,
-          title: 'No patients assigned yet',
-          message:
-              'You can upload documents once a patient has granted you access to their records.',
+          title: 'documents.caregiverNotice.noPatientsAssigned'.tr(),
+          message: 'documents.caregiverNotice.noPatientsAssignedDesc'.tr(),
         );
       } else if (careContextError != null && !hasSelectedRecipient) {
         caregiverNotice = _buildCaregiverNotice(
           context,
           icon: FIcons.info,
-          title: 'Unable to load patients',
+          title: 'documents.caregiverNotice.unableToLoadPatients'.tr(),
           message: careContextError,
           onRetry: () => context.read<CareContextProvider>().ensureLoaded(),
         );
@@ -193,9 +193,8 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
         caregiverNotice = _buildCaregiverNotice(
           context,
           icon: FIcons.userSearch,
-          title: 'Select a patient to continue',
-          message:
-              'Choose a patient from the dashboard to upload documents on their behalf.',
+          title: 'documents.caregiverNotice.selectPatientContinue'.tr(),
+          message: 'documents.caregiverNotice.selectPatientContinueDesc'.tr(),
         );
       }
     }
@@ -215,9 +214,9 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () => context.pop(),
           ),
-          title: const Text(
-            'Upload Document',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          title: Text(
+            'documents.uploadScreen.title'.tr(),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
           ),
         ),
         body: caregiverNotice != null
@@ -241,12 +240,12 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                       SizedBox(height: 24.h),
                       _CustomTextField(
                         controller: _titleController,
-                        label: 'Document Title',
-                        hint: 'e.g., Blood Test Results',
+                        label: 'documents.uploadScreen.documentTitle'.tr(),
+                        hint: 'documents.uploadScreen.documentTitleHint'.tr(),
                       ),
                       SizedBox(height: 16.h),
                       _GlassFormSection(
-                        title: 'Document Type',
+                        title: 'documents.uploadScreen.documentType'.tr(),
                         child: DropdownButton<DocumentType>(
                           value: _documentType,
                           isExpanded: true,
@@ -357,13 +356,13 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                       SizedBox(height: 16.h),
                       _CustomTextField(
                         controller: _descriptionController,
-                        label: 'Description (Optional)',
-                        hint: 'Additional details',
+                        label: 'documents.uploadScreen.notesOptional'.tr(),
+                        hint: 'documents.uploadScreen.notesHint'.tr(),
                         maxLines: 3,
                       ),
                       SizedBox(height: 16.h),
                       _GlassFormSection(
-                        title: 'Visibility',
+                        title: 'documents.uploadScreen.visibility'.tr(),
                         child: Column(
                           children: DocumentVisibility.values
                               .map(
@@ -478,11 +477,11 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
   String _visibilityLabel(DocumentVisibility visibility) {
     switch (visibility) {
       case DocumentVisibility.private:
-        return 'Private (Only me)';
+        return 'documents.uploadScreen.private'.tr();
       case DocumentVisibility.sharedWithCaregiver:
-        return 'Shared with caregivers';
+        return 'documents.uploadScreen.sharedWithCaregiver'.tr();
       case DocumentVisibility.public:
-        return 'Public (Admin visible)';
+        return 'documents.uploadScreen.public'.tr();
     }
   }
 
@@ -556,9 +555,9 @@ class _FileSelector extends StatelessWidget {
         child: ElevatedButton.icon(
           onPressed: isUploading ? null : onSelect,
           icon: Icon(FIcons.upload, size: 20),
-          label: const Text(
-            'Select Document or Photo',
-            style: TextStyle(fontWeight: FontWeight.w600),
+          label: Text(
+            'documents.uploadScreen.selectFileOrImage'.tr(),
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           style: ElevatedButton.styleFrom(
             padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 24.w),
@@ -644,7 +643,7 @@ class _FileSelector extends StatelessWidget {
             return OutlinedButton.icon(
               onPressed: isUploading ? null : onSelect,
               icon: const Icon(FIcons.upload),
-              label: const Text('Change File'),
+              label: Text('documents.uploadScreen.changeFile'.tr()),
               style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 14.h),
                 side: BorderSide(color: onSurface.withOpacity(0.3)),

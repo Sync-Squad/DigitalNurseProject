@@ -1,67 +1,105 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/modern_surface_theme.dart';
 
 class AIFeaturesNavigation extends StatelessWidget {
   const AIFeaturesNavigation({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final features = [
+      _AIFeature(
+        icon: Icons.chat_bubble_rounded,
+        title: 'ai.nav.chatTitle'.tr(),
+        description: 'ai.nav.chatDesc'.tr(),
+        route: '/ai/assistant',
+        accent: ModernSurfaceTheme.primaryTeal,
+      ),
+      _AIFeature(
+        icon: Icons.analytics_rounded,
+        title: 'ai.nav.analysisTitle'.tr(),
+        description: 'ai.nav.analysisDesc'.tr(),
+        route: '/ai/analysis',
+        accent: ModernSurfaceTheme.accentCoral,
+      ),
+      _AIFeature(
+        icon: Icons.search_rounded,
+        title: 'ai.nav.searchTitle'.tr(),
+        description: 'ai.nav.searchDesc'.tr(),
+        route: '/ai/search',
+        accent: ModernSurfaceTheme.accentBlue,
+      ),
+      _AIFeature(
+        icon: Icons.description_rounded,
+        title: 'ai.nav.docQaTitle'.tr(),
+        description: 'ai.nav.docQaDesc'.tr(),
+        route: '/ai/document-qa',
+        accent: ModernSurfaceTheme.accentYellow,
+      ),
+    ];
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: EdgeInsets.all(18.w),
+      decoration: ModernSurfaceTheme.glassCard(context),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'AI Features',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+          Row(
+            children: [
+              Container(
+                width: 36.w,
+                height: 36.w,
+                decoration: ModernSurfaceTheme.iconBadge(
+                  context,
+                  ModernSurfaceTheme.accentBlue,
+                ),
+                child: Icon(
+                  Icons.auto_awesome_rounded,
+                  color: Colors.white,
+                  size: 18.w,
+                ),
               ),
-            ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ai.nav.title'.tr(),
+                      style: TextStyle(
+                        color: ModernSurfaceTheme.deepTeal,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      'ai.nav.subtitle'.tr(),
+                      style: TextStyle(
+                        color: ModernSurfaceTheme.deepTeal.withValues(
+                          alpha: 0.55,
+                        ),
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 16.h),
           SizedBox(
-            height: 140,
-            child: ListView(
+            height: 100.h,
+            child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              children: [
-                _AIFeatureCard(
-                  icon: Icons.chat_bubble_outline,
-                  title: 'AI Assistant',
-                  description: 'Chat with AI about health questions',
-                  route: '/ai/assistant',
-                  color: AppTheme.teal,
-                ),
-                const SizedBox(width: 12),
-                _AIFeatureCard(
-                  icon: Icons.analytics_outlined,
-                  title: 'Health Analysis',
-                  description: 'Get comprehensive health analysis',
-                  route: '/ai/analysis',
-                  color: AppTheme.appleGreen,
-                ),
-                const SizedBox(width: 12),
-                _AIFeatureCard(
-                  icon: Icons.search,
-                  title: 'Semantic Search',
-                  description: 'Search health data semantically',
-                  route: '/ai/search',
-                  color: AppTheme.blueTertiary,
-                ),
-                const SizedBox(width: 12),
-                _AIFeatureCard(
-                  icon: Icons.description_outlined,
-                  title: 'Document QA',
-                  description: 'Ask questions about uploaded documents',
-                  route: '/ai/document-qa',
-                  color: AppTheme.tealLight,
-                ),
-              ],
+              itemCount: features.length,
+              separatorBuilder: (_, __) => SizedBox(width: 10.w),
+              itemBuilder: (context, index) {
+                final f = features[index];
+                return _FeatureChip(feature: f);
+              },
             ),
           ),
         ],
@@ -70,74 +108,100 @@ class AIFeaturesNavigation extends StatelessWidget {
   }
 }
 
-class _AIFeatureCard extends StatelessWidget {
+class _AIFeature {
   final IconData icon;
   final String title;
   final String description;
   final String route;
-  final Color color;
+  final Color accent;
 
-  const _AIFeatureCard({
+  const _AIFeature({
     required this.icon,
     required this.title,
     required this.description,
     required this.route,
-    required this.color,
+    required this.accent,
   });
+}
+
+class _FeatureChip extends StatefulWidget {
+  final _AIFeature feature;
+
+  const _FeatureChip({required this.feature});
+
+  @override
+  State<_FeatureChip> createState() => _FeatureChipState();
+}
+
+class _FeatureChipState extends State<_FeatureChip> {
+  bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: () => context.push(route),
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 160,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppTheme.appleGreen,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(8),
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) {
+        setState(() => _isPressed = false);
+        context.push(widget.feature.route);
+      },
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedScale(
+        scale: _isPressed ? 0.95 : 1.0,
+        duration: const Duration(milliseconds: 120),
+        child: Container(
+          width: 110.w,
+          padding: EdgeInsets.all(12.w),
+          decoration: ModernSurfaceTheme.tintedCard(
+            context,
+            widget.feature.accent,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 34.w,
+                height: 34.w,
+                decoration: ModernSurfaceTheme.iconBadge(
+                  context,
+                  widget.feature.accent,
+                ),
+                child: Icon(
+                  widget.feature.icon,
+                  color: Colors.white,
+                  size: 18.w,
+                ),
               ),
-              child: Icon(icon, color: AppTheme.buttonTextColor, size: 24),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: AppTheme.buttonTextColor,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.feature.title,
+                    style: TextStyle(
+                      color: ModernSurfaceTheme.deepTeal,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 2.h),
+                  Text(
+                    widget.feature.description,
+                    style: TextStyle(
+                      color: ModernSurfaceTheme.deepTeal.withValues(
+                        alpha: 0.55,
+                      ),
+                      fontSize: 9.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              description,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: AppTheme.buttonTextColor.withOpacity(0.9),
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

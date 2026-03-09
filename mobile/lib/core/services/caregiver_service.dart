@@ -339,6 +339,31 @@ class CaregiverService {
     }
   }
 
+  // Contact caregiver via email
+  Future<void> contactCaregiver(String assignmentId, String message,
+      {String? subject}) async {
+    _log('📧 Sending message to caregiver for assignment: $assignmentId');
+    try {
+      final response = await _apiService.post(
+        '/caregivers/$assignmentId/contact',
+        data: {
+          'message': message,
+          if (subject != null) 'subject': subject,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _log('✅ Message sent to caregiver successfully');
+      } else {
+        _log('❌ Failed to send message: ${response.statusMessage}');
+        throw Exception('Failed to send message: ${response.statusMessage}');
+      }
+    } catch (e) {
+      _log('❌ Error sending message to caregiver: $e');
+      rethrow;
+    }
+  }
+
   // Legacy methods for backward compatibility
   // Add caregiver and send invitation (deprecated - use sendInvitation instead)
   @Deprecated('Use sendInvitation instead')

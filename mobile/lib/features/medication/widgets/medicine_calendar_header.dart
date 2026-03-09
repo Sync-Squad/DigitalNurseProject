@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 
 import '../../../core/theme/modern_surface_theme.dart';
@@ -26,7 +27,7 @@ class MedicineCalendarHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Schedule Overview',
+            'medication.scheduleOverview'.tr(),
             style: ModernSurfaceTheme.sectionTitleStyle(context),
           ),
           SizedBox(height: 8.h),

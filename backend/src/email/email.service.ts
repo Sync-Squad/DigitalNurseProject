@@ -5,6 +5,7 @@ import { verificationEmailTemplate } from './templates/verification-email.templa
 import { caregiverInvitationEmailTemplate } from './templates/caregiver-invitation-email.template';
 import { forgotPasswordEmailTemplate } from './templates/forgot-password-email.template';
 import { caregiverStatusEmailTemplate } from './templates/caregiver-status-email.template';
+import { caregiverContactEmailTemplate } from './templates/caregiver-contact.template';
 
 @Injectable()
 export class EmailService {
@@ -241,6 +242,40 @@ export class EmailService {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error(`Error sending status update email: ${errorMessage}`);
+      return false;
+    }
+  }
+
+  async sendCaregiverContactEmail(
+    email: string,
+    patientName: string,
+    message: string,
+    subject?: string,
+  ): Promise<boolean> {
+    try {
+      if (!this.transporter) {
+        this.logger.error('Nodemailer transporter not initialized. Cannot send email.');
+        return false;
+      }
+
+      const html = caregiverContactEmailTemplate({
+        patientName,
+        message,
+        appName: this.appName,
+      });
+
+      await this.transporter.sendMail({
+        from: this.fromEmail,
+        to: email,
+        subject: subject || `Message from ${patientName} via ${this.appName}`,
+        html,
+      });
+
+      this.logger.log(`Caregiver contact email sent to ${email} from ${patientName}`);
+      return true;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(`Error sending caregiver contact email: ${errorMessage}`);
       return false;
     }
   }
