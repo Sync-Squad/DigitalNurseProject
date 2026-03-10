@@ -736,22 +736,22 @@ class _VitalsHero extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final halfWidth = constraints.maxWidth * 0.45;
+          final halfWidth = constraints.maxWidth * 0.40;
           return Container(
             width: double.infinity,
             decoration: ModernSurfaceTheme.heroDecoration(context),
             child: Stack(
               children: [
-                // ── Right 50%: image pinned to right edge ─────────────
+                // ── Right 50%: image pinned to right edge with padding ─────────────
                 Positioned(
                   right: 0,
                   top: 0,
                   bottom: 0,
-                  width: halfWidth * 1.8,
+                  width: halfWidth,
                   child: Image.asset(
                     'assets/images/health.png',
-                    fit: BoxFit.contain,
-                    alignment: Alignment.bottomRight,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
                   ),
                 ),
                 // ── Left side: text column drives card height ─────────
@@ -800,9 +800,11 @@ class _VitalsHero extends StatelessWidget {
                               'vitals.hero.checksOn'.tr(namedArgs: {'date': dateLabel}),
                               style: textTheme.headlineSmall?.copyWith(
                                 color: onPrimary,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15.sp,
                               ),
-                              softWrap: true,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],

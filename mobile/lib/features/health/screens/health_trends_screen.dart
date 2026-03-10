@@ -821,7 +821,7 @@ class _TrendsHero extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final halfWidth = constraints.maxWidth * 0.45;
+          final halfWidth = constraints.maxWidth * 0.40;
           return Container(
             width: double.infinity,
             decoration: ModernSurfaceTheme.heroDecoration(context),
@@ -832,11 +832,11 @@ class _TrendsHero extends StatelessWidget {
                   right: 0,
                   top: 0,
                   bottom: 0,
-                  width: halfWidth * 1.9,
+                  width: halfWidth,
                   child: Image.asset(
                     'assets/images/health.png',
-                    fit: BoxFit.contain,
-                    alignment: Alignment.bottomRight,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
                   ),
                 ),
                 // ── Left side: text column drives card height ─────────
@@ -862,7 +862,8 @@ class _TrendsHero extends StatelessWidget {
                         '${selectedType.displayName} Trends',
                         style: textTheme.headlineSmall?.copyWith(
                           color: onPrimary,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15.sp,
                         ),
                       ),
                       SizedBox(height: 8.h),

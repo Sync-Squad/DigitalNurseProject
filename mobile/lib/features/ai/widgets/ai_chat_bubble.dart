@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../core/theme/modern_surface_theme.dart';
 
 class AIChatBubble extends StatelessWidget {
   final String message;
@@ -19,49 +21,70 @@ class AIChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: EdgeInsets.only(bottom: 20.h),
       child: Row(
-        mainAxisAlignment: isUser
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
+        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser) ...[
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              child: const Icon(Icons.smart_toy, size: 18, color: Colors.white),
+            Container(
+              decoration: ModernSurfaceTheme.iconBadge(
+                context,
+                Theme.of(context).colorScheme.primary,
+              ),
+              padding: EdgeInsets.all(8.w),
+              child: Icon(Icons.smart_toy_rounded, size: 18.w, color: Colors.white),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 10.w),
           ],
           Flexible(
             child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: isUser
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: hasError
-                    ? Border.all(
-                        color: Theme.of(context).colorScheme.error,
-                        width: 1,
-                      )
-                    : null,
-              ),
+              padding: EdgeInsets.all(14.w),
+              decoration: isUser
+                  ? BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20.r),
+                        topRight: Radius.circular(4.r),
+                        bottomLeft: Radius.circular(20.r),
+                        bottomRight: Radius.circular(20.r),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    )
+                  : ModernSurfaceTheme.glassCard(context).copyWith(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(4.r),
+                        topRight: Radius.circular(20.r),
+                        bottomLeft: Radius.circular(20.r),
+                        bottomRight: Radius.circular(20.r),
+                      ),
+                    ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (isLoading)
-                    const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                    SizedBox(
+                      width: 20.w,
+                      height: 20.w,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.w,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isUser ? Colors.white : Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
                     )
                   else
                     Text(
                       message,
                       style: TextStyle(
+                        fontSize: 15.sp,
+                        height: 1.4,
                         color: isUser
                             ? Colors.white
                             : Theme.of(context).colorScheme.onSurface,
@@ -115,11 +138,14 @@ class AIChatBubble extends StatelessWidget {
             ),
           ),
           if (isUser) ...[
-            const SizedBox(width: 8),
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: Theme.of(context).colorScheme.secondary,
-              child: const Icon(Icons.person, size: 18, color: Colors.white),
+            SizedBox(width: 10.w),
+            Container(
+              decoration: ModernSurfaceTheme.iconBadge(
+                context,
+                Theme.of(context).colorScheme.secondary,
+              ),
+              padding: EdgeInsets.all(8.w),
+              child: Icon(Icons.person_rounded, size: 18.w, color: Colors.white),
             ),
           ],
         ],

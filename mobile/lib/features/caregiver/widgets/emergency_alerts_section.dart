@@ -123,9 +123,6 @@ class EmergencyAlertsSection extends StatelessWidget {
                     severity: alert['severity'] as AlertSeverity,
                     message: alert['message'] as String,
                     timestamp: alert['timestamp'] as DateTime,
-                    onDismiss: () {
-                      // TODO: Dismiss alert
-                    },
                   ),
                 ),
         ],

@@ -5,6 +5,8 @@ import '../../../core/services/ai_service.dart';
 import '../../../core/providers/care_context_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../widgets/ai_chat_bubble.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../core/theme/modern_surface_theme.dart';
 
 class AIAssistantScreen extends StatefulWidget {
   const AIAssistantScreen({super.key});
@@ -113,9 +115,12 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
     return ModernScaffold(
       appBar: AppBar(
         title: const Text('AI Assistant'),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.help_outline),
+            icon: const Icon(Icons.help_outline_rounded),
             onPressed: () {
               // Show help dialog
             },
@@ -126,32 +131,32 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
         children: [
           // Quick action buttons
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
                   _QuickActionButton(
                     label: 'Analyze Health',
-                    icon: Icons.analytics,
+                    icon: Icons.analytics_rounded,
                     onTap: () {
                       _messageController.text = 'Analyze my health data';
                       _sendMessage();
                     },
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 10.w),
                   _QuickActionButton(
                     label: 'Medications',
-                    icon: Icons.medication,
+                    icon: Icons.medication_rounded,
                     onTap: () {
                       _messageController.text = 'Tell me about my medications';
                       _sendMessage();
                     },
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 10.w),
                   _QuickActionButton(
                     label: 'Vitals',
-                    icon: Icons.favorite,
+                    icon: Icons.favorite_rounded,
                     onTap: () {
                       _messageController.text = 'How are my vital signs?';
                       _sendMessage();
@@ -168,36 +173,46 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.smart_toy,
-                          size: 64,
-                          color: Theme.of(context).colorScheme.primary,
+                        Container(
+                          padding: EdgeInsets.all(24.w),
+                          decoration: ModernSurfaceTheme.iconBadge(
+                            context,
+                            Theme.of(context).colorScheme.primary,
+                          ),
+                          child: Icon(
+                            Icons.smart_toy_rounded,
+                            size: 48.w,
+                            color: Colors.white,
+                          ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 24.h),
                         Text(
                           'Ask me anything about your health',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.onSurface,
-                              ),
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'I can help you understand your medications, vitals, and health trends',
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.onSurfaceVariant,
-                              ),
-                          textAlign: TextAlign.center,
+                        SizedBox(height: 12.h),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 40.w),
+                          child: Text(
+                            'I can help you understand your medications, vitals, and health trends',
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              height: 1.5,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
                         ),
                       ],
                     ),
                   )
                 : ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(16.w),
                     itemCount: _messages.length + (_isLoading ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index == _messages.length) {
@@ -219,53 +234,50 @@ class _AIAssistantScreenState extends State<AIAssistantScreen> {
           ),
           // Input field
           Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).scaffoldBackgroundColor,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, -2),
-                ),
-              ],
+            padding: EdgeInsets.fromLTRB(16.w, 10.h, 16.w, 16.h),
+            decoration: ModernSurfaceTheme.glassCard(context).copyWith(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
             ),
             child: SafeArea(
               child: Row(
                 children: [
                   Expanded(
-                    child: TextField(
-                      controller: _messageController,
-                      decoration: const InputDecoration(
-                        hintText: 'Type your message...',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
+                    child: Container(
+                      decoration: ModernSurfaceTheme.frostedChip(context),
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: TextField(
+                        controller: _messageController,
+                        style: TextStyle(fontSize: 15.sp),
+                        decoration: const InputDecoration(
+                          hintText: 'Type your message...',
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(vertical: 12),
                         ),
+                        maxLines: null,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: (_) => _sendMessage(),
                       ),
-                      maxLines: null,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: _isLoading ? null : _sendMessage,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppTheme.appleGreen,
-                      foregroundColor: AppTheme.buttonTextColor,
+                  SizedBox(width: 10.w),
+                  Container(
+                    decoration: ModernSurfaceTheme.iconBadge(
+                      context,
+                      AppTheme.appleGreen,
                     ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppTheme.buttonTextColor,
-                            ),
-                          )
-                        : const Icon(Icons.send),
+                    child: IconButton(
+                      onPressed: _isLoading ? null : _sendMessage,
+                      icon: _isLoading
+                          ? SizedBox(
+                              width: 20.w,
+                              height: 20.w,
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.send_rounded, color: Colors.white),
+                    ),
                   ),
                 ],
               ),
@@ -290,14 +302,26 @@ class _QuickActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-      style: FilledButton.styleFrom(
-        backgroundColor: AppTheme.appleGreen,
-        foregroundColor: AppTheme.buttonTextColor,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+        decoration: ModernSurfaceTheme.frostedChip(context),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 18.w, color: Theme.of(context).colorScheme.primary),
+            SizedBox(width: 8.w),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

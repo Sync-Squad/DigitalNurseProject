@@ -59,8 +59,17 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          foregroundColor: onPrimary,
-          title: const Text('My Caregivers'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => context.pop(),
+          ),
+          title: Text(
+            'My Caregivers',
+            style: textTheme.titleLarge?.copyWith(
+              color: onPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -72,39 +81,63 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          foregroundColor: onPrimary,
-          title: const Text('My Caregivers'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => context.pop(),
+          ),
+          title: Text(
+            'My Caregivers',
+            style: textTheme.titleLarge?.copyWith(
+              color: onPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                FIcons.info,
-                size: 64.r,
-                color: AppTheme.getErrorColor(context),
-              ),
-              SizedBox(height: 16.h),
-              Text(
-                'Error loading caregivers',
-                style: textTheme.titleLarge?.copyWith(color: onSurface),
-              ),
-              SizedBox(height: 8.h),
-              Text(
-                error,
-                style: textTheme.bodySmall?.copyWith(color: muted),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 24.h),
-              ElevatedButton(
-                onPressed: _loadCaregivers,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorScheme.primary,
-                  foregroundColor: onPrimary,
+        body: Padding(
+          padding: ModernSurfaceTheme.screenPadding(),
+          child: Container(
+            decoration: ModernSurfaceTheme.glassCard(context,
+                accent: AppTheme.getErrorColor(context)),
+            padding: EdgeInsets.all(32.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: ModernSurfaceTheme.iconBadge(
+                      context, AppTheme.getErrorColor(context)),
+                  child: Icon(FIcons.info, size: 32.r, color: Colors.white),
                 ),
-                child: const Text('Retry'),
-              ),
-            ],
+                SizedBox(height: 24.h),
+                Text(
+                  'Error loading caregivers',
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: onSurface,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  error,
+                  style: textTheme.bodySmall?.copyWith(color: muted),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: 24.h),
+                ElevatedButton(
+                  onPressed: _loadCaregivers,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
+                  ),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -114,7 +147,10 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: onPrimary,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => context.pop(),
+        ),
         title: Text(
           'My Caregivers',
           style: textTheme.titleLarge?.copyWith(
@@ -124,10 +160,9 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(FIcons.plus),
+            icon: const Icon(FIcons.plus, color: Colors.white),
             onPressed: () async {
               await context.push('/caregiver/add');
-              // Reload caregivers after returning from add screen
               if (mounted && currentUser != null) {
                 await _loadCaregivers();
               }
@@ -138,7 +173,7 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
       body: RefreshIndicator(
         onRefresh: _loadCaregivers,
         child: caregiverProvider.caregivers.isEmpty
-            ? _buildEmptyState(context, colorScheme, textTheme, muted)
+            ? _buildEmptyState(context, colorScheme, textTheme, muted, onPrimary, onSurface)
             : CustomScrollView(
                 slivers: [
                   SliverPadding(
@@ -163,12 +198,13 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
                   if (inactiveCaregivers.isNotEmpty) ...[
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 8.h),
+                        padding: ModernSurfaceTheme.screenPadding()
+                            .copyWith(bottom: 8.h, top: 24.h),
                         child: Text(
                           'Caregiver History',
                           style: textTheme.titleMedium?.copyWith(
                             color: onPrimary,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
@@ -201,26 +237,29 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
   }
 
   Widget _buildEmptyState(BuildContext context, ColorScheme colorScheme,
-      TextTheme textTheme, Color muted) {
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height - 200,
-        child: Center(
+      TextTheme textTheme, Color muted, Color onPrimary, Color onSurface) {
+    return Padding(
+      padding: ModernSurfaceTheme.screenPadding(),
+      child: Center(
+        child: Container(
+          decoration: ModernSurfaceTheme.glassCard(context),
+          padding: EdgeInsets.all(32.w),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                FIcons.users,
-                size: 64.r,
-                color: colorScheme.primary,
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: ModernSurfaceTheme.iconBadge(
+                    context, colorScheme.primary),
+                child: Icon(FIcons.users, size: 32.r, color: Colors.white),
               ),
-              SizedBox(height: 16.h),
+              SizedBox(height: 24.h),
               Text(
                 'No caregivers added yet',
                 style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.w700,
+                  color: onSurface,
                 ),
               ),
               SizedBox(height: 8.h),
@@ -234,9 +273,9 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
                 onPressed: () => context.push('/caregiver/add'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
-                  foregroundColor: colorScheme.onPrimary,
+                  foregroundColor: onPrimary,
                   padding:
-                      EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                      EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),

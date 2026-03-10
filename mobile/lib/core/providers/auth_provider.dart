@@ -203,6 +203,27 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  /// Upload profile picture
+  Future<bool> uploadProfilePicture(String filePath) async {
+    if (_currentUser == null) return false;
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _currentUser = await _authService.uploadAvatar(filePath);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = _extractErrorMessage(e);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Update subscription
   Future<bool> updateSubscription(SubscriptionTier tier) async {
     if (_currentUser == null) return false;

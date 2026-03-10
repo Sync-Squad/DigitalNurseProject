@@ -3,6 +3,9 @@ import '../../../core/widgets/modern_scaffold.dart';
 import '../../../core/services/ai_service.dart';
 import '../../../core/providers/care_context_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/modern_surface_theme.dart';
 
 class SemanticSearchScreen extends StatefulWidget {
   const SemanticSearchScreen({super.key});
@@ -41,11 +44,22 @@ class _SemanticSearchScreenState extends State<SemanticSearchScreen> {
         _isSearching = false;
       });
     } catch (e) {
-      setState(() => _isSearching = false);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Search failed: $e')));
+        setState(() => _isSearching = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: AppTheme.getErrorColor(context),
+            content: Text(
+              'Search failed: $e',
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.darkBackground
+                    : Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        );
       }
     }
   }
@@ -53,30 +67,56 @@ class _SemanticSearchScreenState extends State<SemanticSearchScreen> {
   @override
   Widget build(BuildContext context) {
     return ModernScaffold(
-      appBar: AppBar(title: const Text('Semantic Search')),
+      appBar: AppBar(
+        title: const Text('Semantic Search'),
+        centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search your health data...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _isSearching
-                    ? const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : IconButton(
-                        icon: const Icon(Icons.send),
-                        onPressed: _performSearch,
-                      ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+            child: Container(
+              decoration: ModernSurfaceTheme.frostedChip(context),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
+              child: TextField(
+                controller: _searchController,
+                style: TextStyle(height: 1.2, fontSize: 16.sp),
+                decoration: InputDecoration(
+                  hintText: 'Search your health data...',
+                  hintStyle: TextStyle(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.5),
+                  ),
+                  prefixIcon: Icon(
+                    Icons.search,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  suffixIcon: _isSearching
+                      ? Padding(
+                          padding: EdgeInsets.all(12.w),
+                          child: SizedBox(
+                            width: 20.w,
+                            height: 20.w,
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        )
+                      : IconButton(
+                          icon: Icon(
+                            Icons.send,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          onPressed: _performSearch,
+                        ),
+                  border: InputBorder.none,
                 ),
+                onSubmitted: (_) => _performSearch(),
               ),
-              onSubmitted: (_) => _performSearch(),
             ),
           ),
           Expanded(
@@ -85,45 +125,78 @@ class _SemanticSearchScreenState extends State<SemanticSearchScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.search,
-                          size: 64,
-                          color: Theme.of(context).colorScheme.primary,
+                        Container(
+                          padding: EdgeInsets.all(20.w),
+                          decoration: ModernSurfaceTheme.iconBadge(
+                            context,
+                            Theme.of(context).colorScheme.primary,
+                          ),
+                          child: Icon(
+                            Icons.search_rounded,
+                            size: 48.w,
+                            color: Colors.white,
+                          ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 24.h),
                         Text(
                           'Search your health data',
-                          style: Theme.of(context).textTheme.titleLarge,
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.w700,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8.h),
                         Text(
                           'Ask questions in natural language',
-                          style: Theme.of(context).textTheme.bodyMedium,
+                          style: TextStyle(
+                            fontSize: 14.sp,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.7),
+                          ),
                         ),
                       ],
                     ),
                   )
                 : ListView.builder(
+                    padding: ModernSurfaceTheme.screenPadding(),
                     itemCount: _results.length,
                     itemBuilder: (context, index) {
                       final result = _results[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
+                      return Container(
+                        margin: EdgeInsets.only(bottom: 12.h),
+                        decoration: ModernSurfaceTheme.glassCard(context),
                         child: ListTile(
-                          leading: Icon(_getEntityIcon(result['entityType'])),
-                          title: Text(result['content'] ?? ''),
-                          subtitle: Text(
-                            '${result['entityType']} • ${(result['similarity'] * 100).toStringAsFixed(0)}% match',
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 8.h,
                           ),
-                          trailing: Chip(
-                            label: Text(
-                              '${(result['similarity'] * 100).toStringAsFixed(0)}%',
+                          leading: Container(
+                            padding: EdgeInsets.all(8.w),
+                            decoration: ModernSurfaceTheme.iconBadge(
+                              context,
+                              _getSimilarityColor(result['similarity']),
                             ),
-                            backgroundColor: _getSimilarityColor(
-                              result['similarity'],
+                            child: Icon(
+                              _getEntityIcon(result['entityType']),
+                              color: Colors.white,
+                              size: 20.w,
+                            ),
+                          ),
+                          title: Text(
+                            result['content'] ?? '',
+                            style: TextStyle(
+                              fontSize: 15.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: EdgeInsets.only(top: 4.h),
+                            child: Text(
+                              '${result['entityType'].toString().replaceAll('_', ' ')} • ${(result['similarity'] * 100).toStringAsFixed(0)}% match',
+                              style: TextStyle(fontSize: 13.sp),
                             ),
                           ),
                           onTap: () {

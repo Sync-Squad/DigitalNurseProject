@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../core/theme/modern_surface_theme.dart';
 
 class RecommendationCard extends StatelessWidget {
   final String recommendation;
@@ -14,42 +16,57 @@ class RecommendationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Icon(
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 8.h),
+      decoration: ModernSurfaceTheme.glassCard(context),
+      padding: EdgeInsets.all(16.w),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(8.w),
+            decoration: ModernSurfaceTheme.iconBadge(
+              context,
+              Theme.of(context).colorScheme.primary,
+            ),
+            child: const Icon(
               Icons.lightbulb_outline,
-              color: Theme.of(context).colorScheme.primary,
+              color: Colors.white,
+              size: 20,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (category != null)
-                    Text(
-                      category!,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.labelSmall?.copyWith(color: Colors.grey),
+          ),
+          SizedBox(width: 14.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (category != null)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 4.h),
+                    child: Text(
+                      category!.toUpperCase(),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
                     ),
-                  Text(
-                    recommendation,
-                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                ],
-              ),
+                Text(
+                  recommendation,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
-            if (onAction != null)
-              IconButton(
-                icon: const Icon(Icons.arrow_forward),
-                onPressed: onAction,
-              ),
-          ],
-        ),
+          ),
+          if (onAction != null)
+            IconButton(
+              icon: const Icon(Icons.arrow_forward_ios, size: 16),
+              onPressed: onAction,
+            ),
+        ],
       ),
     );
   }

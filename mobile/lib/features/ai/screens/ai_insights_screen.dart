@@ -6,6 +6,7 @@ import '../../../core/widgets/modern_scaffold.dart';
 import '../../../core/services/ai_service.dart';
 import '../../../core/providers/care_context_provider.dart';
 import '../../../core/theme/modern_surface_theme.dart';
+import '../../../core/theme/app_theme.dart';
 import 'package:provider/provider.dart';
 import '../widgets/ai_insight_card.dart';
 import '../widgets/ai_features_navigation.dart';
@@ -57,8 +58,16 @@ class _AIInsightsScreenState extends State<AIInsightsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('ai.errors.loadFailed'.tr(namedArgs: {'error': e.toString()})),
-            backgroundColor: const Color(0xFFFF6B6B),
+            backgroundColor: AppTheme.getErrorColor(context),
+            content: Text(
+              'ai.errors.loadFailed'.tr(namedArgs: {'error': e.toString()}),
+              style: TextStyle(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppTheme.darkBackground
+                    : Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         );
       }

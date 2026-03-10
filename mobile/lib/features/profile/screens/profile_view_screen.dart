@@ -4,15 +4,72 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/providers/auth_provider.dart';
-
 import '../../../core/models/user_model.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
 import '../../../core/widgets/professional_avatar.dart';
+import '../../../core/services/document_picker_service.dart';
+import '../widgets/profile_image_picker_bottom_sheet.dart';
 
-class ProfileViewScreen extends StatelessWidget {
+class ProfileViewScreen extends StatefulWidget {
   const ProfileViewScreen({super.key});
+
+  @override
+  State<ProfileViewScreen> createState() => _ProfileViewScreenState();
+}
+
+class _ProfileViewScreenState extends State<ProfileViewScreen> {
+  bool _isUploading = false;
+
+  Future<void> _handleImageSelection(BuildContext context) async {
+    ProfileImagePickerBottomSheet.show(context, (option) async {
+      DocumentPickerResult? result;
+
+      if (option == ProfileImageOption.camera) {
+        result = await DocumentPickerService.pickImageFromCamera(context);
+      } else {
+        result = await DocumentPickerService.pickImageFromGallery(context);
+      }
+
+      if (result != null && mounted) {
+        await _uploadImage(result.filePath);
+      }
+    });
+  }
+
+  Future<void> _uploadImage(String filePath) async {
+    setState(() {
+      _isUploading = true;
+    });
+
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.uploadProfilePicture(filePath);
+
+    if (mounted) {
+      setState(() {
+        _isUploading = false;
+      });
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Profile picture updated successfully'),
+            backgroundColor: AppTheme.getSuccessColor(context),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              authProvider.error ?? 'Failed to update profile picture',
+            ),
+            backgroundColor: AppTheme.getErrorColor(context),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,11 +119,80 @@ class ProfileViewScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  ProfessionalAvatar(
-                    name: user.name,
-                    userId: user.id.isNotEmpty ? user.id : null,
-                    avatarUrl: user.avatarUrl,
-                    size: 96,
+                  Stack(
+                    children: [
+                      GestureDetector(
+                        onTap:
+                            _isUploading
+                                ? null
+                                : () => _handleImageSelection(context),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: onPrimary.withValues(alpha: 0.2),
+                              width: 3,
+                            ),
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              ProfessionalAvatar(
+                                name: user.name,
+                                userId: user.id.isNotEmpty ? user.id : null,
+                                avatarUrl: user.avatarUrl,
+                                size: 96,
+                              ),
+                              if (_isUploading)
+                                Container(
+                                  width: 96,
+                                  height: 96,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.3),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 3,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap:
+                              _isUploading
+                                  ? null
+                                  : () => _handleImageSelection(context),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.appleGreen,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 16.h),
                   Text(
@@ -92,21 +218,22 @@ class ProfileViewScreen extends StatelessWidget {
                     ),
                     decoration:
                         user.subscriptionTier == SubscriptionTier.premium
-                        ? ModernSurfaceTheme.frostedChip(context)
-                        : BoxDecoration(
-                            color: AppTheme.appleGreen,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                            ? ModernSurfaceTheme.frostedChip(context)
+                            : BoxDecoration(
+                              color: AppTheme.appleGreen,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                     child: Text(
                       user.subscriptionTier == SubscriptionTier.premium
                           ? 'Premium Member'
                           : 'Free Plan',
                       style: TextStyle(
-                        color: user.subscriptionTier == SubscriptionTier.premium
-                            ? ModernSurfaceTheme.chipForegroundColor(
-                                Colors.white,
-                              )
-                            : Colors.white,
+                        color:
+                            user.subscriptionTier == SubscriptionTier.premium
+                                ? ModernSurfaceTheme.chipForegroundColor(
+                                  Colors.white,
+                                )
+                                : Colors.white,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -234,8 +361,8 @@ class ProfileViewScreen extends StatelessWidget {
                         title: 'Subscription',
                         subtitle:
                             user.subscriptionTier == SubscriptionTier.premium
-                            ? 'Manage your premium subscription'
-                            : 'Upgrade to Premium',
+                                ? 'Manage your premium subscription'
+                                : 'Upgrade to Premium',
                         onTap: () => context.push('/subscription-plans'),
                       ),
                       const Divider(height: 1),
@@ -260,34 +387,41 @@ class ProfileViewScreen extends StatelessWidget {
               onPressed: () async {
                 final confirm = await showDialog<bool>(
                   context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text(
-                      'Logout',
-                      style: TextStyle(color: context.theme.colors.foreground),
-                    ),
-                    content: Text(
-                      'Are you sure you want to logout?',
-                      style: TextStyle(color: context.theme.colors.foreground),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: Text(
-                          'Cancel',
+                  builder:
+                      (context) => AlertDialog(
+                        title: Text(
+                          'Logout',
                           style: TextStyle(
                             color: context.theme.colors.foreground,
                           ),
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: Text(
-                          'Logout',
-                          style: TextStyle(color: context.theme.colors.primary),
+                        content: Text(
+                          'Are you sure you want to logout?',
+                          style: TextStyle(
+                            color: context.theme.colors.foreground,
+                          ),
                         ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                color: context.theme.colors.foreground,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: Text(
+                              'Logout',
+                              style: TextStyle(
+                                color: context.theme.colors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
                 );
 
                 if (confirm == true && context.mounted) {
@@ -365,8 +499,6 @@ class _ProfileInfoRow extends StatelessWidget {
   }
 }
 
-
-
 class _ModernListTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -392,14 +524,15 @@ class _ModernListTile extends StatelessWidget {
           fontWeight: FontWeight.w600,
         ),
       ),
-      subtitle: subtitle == null
-          ? null
-          : Text(
-              subtitle!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: onSurface.withValues(alpha: 0.65),
+      subtitle:
+          subtitle == null
+              ? null
+              : Text(
+                subtitle!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: onSurface.withValues(alpha: 0.65),
+                ),
               ),
-            ),
       trailing: Icon(
         FIcons.chevronsRight,
         color: onSurface.withValues(alpha: 0.4),

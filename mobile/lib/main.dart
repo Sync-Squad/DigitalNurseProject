@@ -114,7 +114,7 @@ class DigitalNurseApp extends StatelessWidget {
 
           return ScaffoldMessenger(
             child: MaterialApp.router(
-              title: 'Digital Nurse',
+              title: 'My Digital Nurse',
               debugShowCheckedModeBanner: false,
               supportedLocales: context.supportedLocales,
               localizationsDelegates: context.localizationDelegates,

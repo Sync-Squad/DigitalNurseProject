@@ -24,6 +24,7 @@ class DocumentListScreen extends StatefulWidget {
 
 class _DocumentListScreenState extends State<DocumentListScreen> {
   String? _lastContextKey;
+  DocumentType? _selectedCategory;
 
   @override
   void initState() {
@@ -131,7 +132,10 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         ],
       ),
       body: Padding(
-        padding: ModernSurfaceTheme.screenPadding(),
+        padding: ModernSurfaceTheme.screenPadding().copyWith(
+          top: 32.h,
+          right: 28.w,
+        ),
         child: _buildBody(
           context,
           isCaregiver: isCaregiver,
@@ -201,6 +205,10 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    final filteredDocuments = _selectedCategory == null
+        ? documents
+        : documents.where((d) => d.type == _selectedCategory).toList();
+
     return Column(
       children: [
         _DocumentsHero(
@@ -208,35 +216,58 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
           isCaregiver: isCaregiver,
         ),
         if (error != null) ...[
-          SizedBox(height: 16.h),
+          SizedBox(height: 12.h),
           _ErrorBanner(message: error, onRetry: _loadData),
         ],
+        SizedBox(height: 12.h),
+        // Compact Category Tabs
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _CategoryTab(
+                label: 'All',
+                isSelected: _selectedCategory == null,
+                onTap: () => setState(() => _selectedCategory = null),
+              ),
+              ...DocumentType.values.map(
+                (type) => Padding(
+                  padding: EdgeInsets.only(left: 8.w),
+                  child: _CategoryTab(
+                    label: 'documents.types.${type.name}'.tr(),
+                    isSelected: _selectedCategory == type,
+                    onTap: () => setState(() => _selectedCategory = type),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         SizedBox(height: 16.h),
         Expanded(
-          child: documents.isEmpty
+          child: filteredDocuments.isEmpty
               ? _buildEmptyState(context, isCaregiver: isCaregiver)
               : GridView.builder(
                   padding: EdgeInsets.zero,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: ScreenUtil().screenWidth > 600 ? 3 : 2,
-                    crossAxisSpacing: 16.w,
-                    mainAxisSpacing: 16.h,
-                    childAspectRatio: 0.72,
+                    crossAxisSpacing: 10.w,
+                    mainAxisSpacing: 12.h,
+                    childAspectRatio: 1.15,
                   ),
-                  itemCount: documents.length,
+                  itemCount: filteredDocuments.length,
                   itemBuilder: (context, index) {
-                    final document = documents[index];
-                    // Use green color (labReport color) for all cards
+                    final document = filteredDocuments[index];
                     final accent = AppTheme.getDocumentColor(
                       context,
-                      'labreport',
+                      document.type.name.toLowerCase(),
                     );
                     return Container(
                       decoration: ModernSurfaceTheme.glassCard(
                         context,
                         accent: accent,
                       ),
-                      padding: EdgeInsets.all(16.w),
+                      padding: EdgeInsets.all(10.w),
                       child: InkWell(
                         onTap: () => context.push('/documents/${document.id}'),
                         borderRadius: ModernSurfaceTheme.cardRadius(),
@@ -245,54 +276,50 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                           children: [
                             Container(
                               width: double.infinity,
-                              height: 90,
-                              decoration: ModernSurfaceTheme.tintedCard(
-                                context,
-                                accent,
-                              ),
+                              height: 40.h,
+                              decoration:
+                                  ModernSurfaceTheme.tintedCard(
+                                    context,
+                                    accent,
+                                  ).copyWith(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
                               child: Icon(
                                 _getDocumentIcon(document.type),
-                                size: 36,
+                                size: 24.r,
                                 color: accent,
                               ),
                             ),
-                            SizedBox(height: 12.h),
+                            SizedBox(height: 6.h),
                             Text(
                               document.title,
-                              style: textTheme.bodyMedium?.copyWith(
+                              style: textTheme.bodySmall?.copyWith(
                                 fontWeight: FontWeight.w700,
                                 color: onSurface,
+                                fontSize: 13.sp,
                               ),
-                              maxLines: 2,
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            SizedBox(height: 8.h),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12.w,
-                                vertical: 6.h,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(22),
+                            SizedBox(height: 2.h),
+                            Text(
+                              'documents.types.${document.type.name}'.tr(),
+                              style: textTheme.labelSmall?.copyWith(
                                 color: AppTheme.appleGreen,
-                              ),
-                              child: Text(
-                                document.type.name,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 11.sp,
                               ),
                             ),
-                            const Spacer(),
+                            SizedBox(height: 6.h),
                             Text(
                               DateFormat('MMM d, yyyy').format(
                                 TimezoneUtil.toPakistanTime(
                                   document.uploadDate,
                                 ),
                               ),
-                              style: textTheme.bodySmall?.copyWith(
+                              style: textTheme.labelSmall?.copyWith(
                                 color: muted,
+                                fontSize: 10.sp,
                               ),
                             ),
                           ],
@@ -501,16 +528,16 @@ class _DocumentsHero extends StatelessWidget {
             decoration: ModernSurfaceTheme.heroDecoration(context),
             child: Stack(
               children: [
-                // ── Right 50%: image pinned to right edge ─────────────
+                // ── Right 40%: image pinned to right edge ─────────────
                 Positioned(
                   right: 0,
                   top: 0,
                   bottom: 0,
-                  width: halfWidth * 1.5,
+                  width: halfWidth,
                   child: Image.asset(
                     'assets/images/documentread.png',
                     fit: BoxFit.contain,
-                    alignment: Alignment.bottomRight,
+                    alignment: Alignment.bottomCenter,
                   ),
                 ),
                 // ── Left side: text column drives card height ─────────
@@ -519,7 +546,6 @@ class _DocumentsHero extends StatelessWidget {
                     left: h.left,
                     top: h.top,
                     bottom: h.bottom,
-                    // reserve exactly the right half + gutter
                     right: halfWidth + h.right,
                   ),
                   child: Column(
@@ -527,7 +553,9 @@ class _DocumentsHero extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        isCaregiver ? 'documents.sharedRecords'.tr() : 'documents.yourHealthVault'.tr(),
+                        isCaregiver
+                            ? 'documents.sharedRecords'.tr()
+                            : 'documents.yourHealthVault'.tr(),
                         style: textTheme.bodyMedium?.copyWith(
                           color: onPrimary.withValues(alpha: 0.85),
                         ),
@@ -625,5 +653,42 @@ class _HeroChip extends StatelessWidget {
     }
 
     return chip;
+  }
+}
+
+class _CategoryTab extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CategoryTab({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        decoration: isSelected
+            ? BoxDecoration(
+                color: AppTheme.appleGreen,
+                borderRadius: BorderRadius.circular(22),
+              )
+            : ModernSurfaceTheme.frostedChip(context),
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: isSelected
+                ? Colors.white
+                : Theme.of(context).colorScheme.onSurface,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
   }
 }

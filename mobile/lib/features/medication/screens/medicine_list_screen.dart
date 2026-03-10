@@ -561,16 +561,16 @@ class _HeroSummary extends StatelessWidget {
             decoration: ModernSurfaceTheme.heroDecoration(context),
             child: Stack(
               children: [
-                // ── Right 50%: image pinned to right edge ─────────────
+                // ── Right 50%: image pinned to right edge with padding ─────────────
                 Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: halfWidth,
+                  right: 12.w,
+                  top: 12.h,
+                  bottom: 12.h,
+                  width: halfWidth - 12.w,
                   child: Image.asset(
                     'assets/images/medicine.png',
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
+                    fit: BoxFit.contain,
+                    alignment: Alignment.centerRight,
                   ),
                 ),
                 // ── Left side: text column drives card height ─────────
@@ -583,7 +583,7 @@ class _HeroSummary extends StatelessWidget {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisSize: MainAxisSize.min, // Keep column compact
                     children: [
                       Text(
                         isCaregiver 
@@ -591,43 +591,48 @@ class _HeroSummary extends StatelessWidget {
                             : 'medication.hero.todaysPlan'.tr(),
                         style: textTheme.titleMedium?.copyWith(
                           color: onPrimary.withValues(alpha: 0.85),
+                          fontSize: 14.sp,
                         ),
                       ),
-                      SizedBox(height: 8.h),
+                      SizedBox(height: 4.h), // Reduced spacing
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Container(
                             padding: EdgeInsets.symmetric(
-                              horizontal: 12.w,
-                              vertical: 6.h,
+                              horizontal: 10.w,
+                              vertical: 4.h,
                             ),
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(22),
+                              borderRadius: BorderRadius.circular(18),
                               color: AppTheme.appleGreen,
                             ),
                             child: Text(
                               '$medicinesCount',
                               style: textTheme.titleLarge?.copyWith(
                                 color: Colors.white,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18.sp,
                               ),
                             ),
                           ),
-                          SizedBox(width: 10.w),
-                          Flexible(
+                          SizedBox(width: 8.w),
+                          Expanded( // Use Expanded inside Row for better wrapping
                             child: Text(
                               'medication.hero.medicinesOnDate'.tr(namedArgs: {'date': dateLabel}),
-                              style: textTheme.headlineSmall?.copyWith(
+                                style: textTheme.headlineSmall?.copyWith(
                                 color: onPrimary,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15.sp,
                               ),
-                              softWrap: true,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
                       ),
                       if (!isCaregiver) ...[
-                        SizedBox(height: 10.h),
+                        SizedBox(height: 8.h),
                         _HeroChip(
                           icon: Icons.add_circle_outline,
                           label: 'medication.addMedicine'.tr(),

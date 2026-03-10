@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/app_config.dart';
 import '../models/user_model.dart';
 import 'api_service.dart';
 import 'token_service.dart';
@@ -475,6 +478,84 @@ class AuthService {
       }
     } catch (e) {
       _log('❌ [AUTH] Profile update error: $e');
+      throw Exception(e.toString());
+    }
+  }
+
+  /// Upload profile picture avatar
+  Future<UserModel> uploadAvatar(String filePath) async {
+    _log('📤 [AUTH] Uploading avatar: $filePath');
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        throw Exception('File does not exist: $filePath');
+      }
+
+      // Prepare form data
+      final formData = FormData.fromMap({
+        'avatar': await MultipartFile.fromFile(
+          filePath,
+          filename: file.path.split('/').last,
+        ),
+      });
+
+      // Use Dio directly for multipart upload to ensure correct headers
+      final baseUrl = await AppConfig.getBaseUrl();
+      // Actually, ApiService already has the logic, but for multipart we often need direct Dio
+      // Let's check how DocumentService did it.
+      
+      final token = await _tokenService.getAccessToken();
+
+      final dio = Dio(
+        BaseOptions(
+          baseUrl: baseUrl,
+          headers: {
+            if (token != null) 'Authorization': 'Bearer $token',
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      final response = await dio.post(
+        '/users/profile/avatar',
+        data: formData,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _log('✅ [AUTH] Avatar uploaded successfully');
+        final userData = response.data;
+
+        // Create updated user model
+        // Re-using the logic from updateProfile/getProfile
+        UserRole role = UserRole.patient;
+        final roleStr = (userData['role'] ?? 'patient').toString().toLowerCase();
+        if (roleStr == 'caregiver') role = UserRole.caregiver;
+
+        SubscriptionTier subscriptionTier = SubscriptionTier.free;
+        final tierStr = (userData['subscriptionTier'] ?? 'free').toString().toLowerCase();
+        if (tierStr == 'premium') subscriptionTier = SubscriptionTier.premium;
+
+        final updatedUser = UserModel(
+          id: userData['id']?.toString() ?? '',
+          email: userData['email']?.toString() ?? '',
+          name: userData['name']?.toString() ?? '',
+          role: role,
+          subscriptionTier: subscriptionTier,
+          age: userData['age']?.toString(),
+          medicalConditions: userData['medicalConditions']?.toString(),
+          emergencyContact: userData['emergencyContact']?.toString(),
+          phone: userData['phone']?.toString(),
+          avatarUrl: userData['avatarUrl']?.toString().trim(),
+        );
+
+        await _saveUser(updatedUser);
+        return updatedUser;
+      } else {
+        _log('❌ [AUTH] Avatar upload failed: ${response.statusMessage}');
+        throw Exception('Avatar upload failed: ${response.statusMessage}');
+      }
+    } catch (e) {
+      _log('❌ [AUTH] Avatar upload error: $e');
       throw Exception(e.toString());
     }
   }

@@ -43,10 +43,11 @@ class AlertCard extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: ModernSurfaceTheme.cardPadding(),
-      decoration: BoxDecoration(
-        color: severityColor.withOpacity(0.1),
-        borderRadius: ModernSurfaceTheme.cardRadius(),
-        border: Border.all(color: severityColor.withOpacity(0.3), width: 2),
+      decoration: ModernSurfaceTheme.glassCard(
+        context,
+        accent: severityColor.withOpacity(0.5),
+      ).copyWith(
+        border: Border.all(color: severityColor.withOpacity(0.3), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,11 +56,11 @@ class AlertCard extends StatelessWidget {
             children: [
               Container(
                 padding: EdgeInsets.all(8.w),
-                decoration: BoxDecoration(
-                  color: severityColor.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
+                decoration: ModernSurfaceTheme.iconBadge(
+                  context,
+                  severityColor,
                 ),
-                child: Icon(typeIcon, size: 24, color: severityColor),
+                child: Icon(typeIcon, size: 20.r, color: Colors.white),
               ),
               SizedBox(width: 12.w),
               Expanded(
@@ -69,42 +70,40 @@ class AlertCard extends StatelessWidget {
                     Text(
                       typeLabel,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: severityColor,
-                      ),
+                            fontWeight: FontWeight.w700,
+                            color: severityColor,
+                          ),
                     ),
-                    SizedBox(height: 4.h),
+                    SizedBox(height: 2.h),
                     Text(
                       patientName,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w500,
+                          ),
                     ),
                   ],
                 ),
               ),
-              if (onDismiss != null)
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  onPressed: onDismiss,
-                  tooltip: 'Dismiss',
-                ),
             ],
           ),
           SizedBox(height: 12.h),
-          Text(message, style: Theme.of(context).textTheme.bodyMedium),
-          SizedBox(height: 12.h),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  DateFormat('MMM d, y • h:mm a').format(timestamp),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+          Text(
+            message,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-              ),
-            ],
+          ),
+          SizedBox(height: 10.h),
+          Text(
+            DateFormat('MMM d, yyyy • h:mm a').format(timestamp),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurfaceVariant
+                      .withOpacity(0.7),
+                ),
           ),
         ],
       ),
