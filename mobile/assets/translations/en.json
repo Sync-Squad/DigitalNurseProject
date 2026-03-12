@@ -22,7 +22,20 @@
       "forgotPassword": "Forgot Password?",
       "emailSent": "Verification email sent",
       "failed": "Login Failed",
-      "ok": "OK"
+      "ok": "OK",
+      "forgotPasswordTitle": "Forgot Password",
+      "forgotPasswordDesc": "Enter your email to receive a password reset link.",
+      "sendResetLink": "Send Reset Link",
+      "resetPasswordTitle": "Reset Password",
+      "resetPasswordDesc": "Enter your new password below.",
+      "newPassword": "New Password",
+      "newPasswordHint": "Enter new password",
+      "confirmNewPassword": "Confirm New Password",
+      "confirmNewPasswordHint": "Confirm new password",
+      "passwordResetSuccess": "Password reset successful!",
+      "passwordResetFailed": "Failed to reset password",
+      "passwordsDoNotMatch": "Passwords do not match",
+      "returnToLogin": "Return to Login"
     },
     "register": {
       "title": "Create Account",

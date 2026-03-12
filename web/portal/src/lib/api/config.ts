@@ -17,6 +17,8 @@ export const API_ENDPOINTS = {
     register: "/auth/register",
     refreshToken: "/auth/refresh-token",
     logout: "/auth/logout",
+    forgotPassword: "/auth/forgot-password",
+    resetPassword: "/auth/reset-password",
   },
   // User endpoints
   users: {

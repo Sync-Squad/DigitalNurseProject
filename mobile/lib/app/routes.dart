@@ -6,6 +6,8 @@ import '../core/services/auth_service.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
 import '../features/auth/screens/email_verification_screen.dart';
+import '../features/auth/screens/forgot_password_screen.dart';
+import '../features/auth/screens/reset_password_screen.dart';
 import '../features/onboarding/screens/welcome_screen.dart';
 import '../features/onboarding/screens/profile_setup_screen.dart';
 import '../features/onboarding/screens/subscription_plans_screen.dart';
@@ -55,37 +57,33 @@ final goRouter = GoRouter(
       '/register',
       '/email-verification',
       '/invitation-accept',
+      '/forgot-password',
+      '/reset-password',
     ];
 
+    final location = state.uri.path;
     final isPublicRoute = publicRoutes.any(
-      (route) => state.matchedLocation.startsWith(route),
+      (route) => location == route || location.startsWith('$route/'),
     );
 
     // If user is logged in and on a public route, redirect to dashboard
     // BUT allow access to /register even when logged in (for registering new accounts)
-    if (isLoggedIn && isPublicRoute && state.matchedLocation != '/register') {
+    if (isLoggedIn && isPublicRoute && location != '/register') {
       return '/home';
     }
 
     // If user is not logged in
     if (!isLoggedIn) {
+      if (isPublicRoute) return null;
+
       // Check if user has seen welcome screen
       final hasSeenWelcome = await authService.hasSeenWelcomeScreen();
 
-      // If user has seen welcome screen and trying to access /welcome, redirect to login
-      if (hasSeenWelcome && state.matchedLocation == '/welcome') {
-        return '/login';
-      }
+      // If user hasn't seen welcome screen, redirect to welcome
+      if (!hasSeenWelcome) return '/welcome';
 
-      // If user hasn't seen welcome screen and trying to access a private route, redirect to welcome
-      if (!hasSeenWelcome && !isPublicRoute) {
-        return '/welcome';
-      }
-
-      // If user has seen welcome and trying to access a private route, redirect to login
-      if (hasSeenWelcome && !isPublicRoute) {
-        return '/login';
-      }
+      // Otherwise redirect to login
+      return '/login';
     }
 
     return null;
@@ -118,6 +116,17 @@ final goRouter = GoRouter(
         final email = state.uri.queryParameters['email'] ?? '';
         final token = state.uri.queryParameters['token'];
         return EmailVerificationScreen(email: email, token: token);
+      },
+    ),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/reset-password',
+      builder: (context, state) {
+        final token = state.uri.queryParameters['token'];
+        return ResetPasswordScreen(token: token);
       },
     ),
 

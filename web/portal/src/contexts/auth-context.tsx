@@ -21,6 +21,8 @@ export interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (token: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -109,12 +111,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setIsAuthenticated(false);
   }, []);
 
+  /**
+   * Forgot password request
+   */
+  const forgotPassword = useCallback(async (email: string): Promise<void> => {
+    try {
+      await api.post(API_ENDPOINTS.auth.forgotPassword, { email }, { requireAuth: false });
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred while requesting password reset');
+    }
+  }, []);
+
+  /**
+   * Reset password with token
+   */
+  const resetPassword = useCallback(async (token: string, newPassword: string): Promise<void> => {
+    try {
+      await api.post(API_ENDPOINTS.auth.resetPassword, { token, newPassword }, { requireAuth: false });
+    } catch (error) {
+      if (error instanceof ApiClientError) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred while resetting password');
+    }
+  }, []);
+
   const value: AuthContextType = {
     user,
     isAuthenticated,
     isLoading,
     login,
     logout,
+    forgotPassword,
+    resetPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

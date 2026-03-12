@@ -167,7 +167,7 @@ export default function LoginPage() {
                 <span>Remember this device</span>
               </label>
               <Link
-                to="/reset-password"
+                to="/forgot-password"
                 className="font-medium text-primary hover:underline"
               >
                 Forgot password?

@@ -398,27 +398,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () async {
-                            final email = _emailController.text.trim();
-                            if (email.isEmpty) {
-                              _showErrorSnackBar(
-                                'auth.login.emailRequired'.tr(),
-                              );
-                              return;
-                            }
-
-                            final success = await context
-                                .read<AuthProvider>()
-                                .forgotPassword(email);
-                            if (mounted && success) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('auth.login.emailSent'.tr()),
-                                  backgroundColor: AppTheme.getSuccessColor(
-                                    context,
-                                  ),
-                                ),
-                              );
-                            }
+                            context.push('/forgot-password');
                           },
                           child: Text(
                             'auth.login.forgotPassword'.tr(),

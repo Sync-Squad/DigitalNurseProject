@@ -14,6 +14,8 @@ import ReportsPage from "@/pages/reports"
 import SettingsPage from "@/pages/settings"
 import AuditTrailPage from "@/pages/audit"
 import LoginPage from "@/pages/auth/login"
+import ForgotPasswordPage from "@/pages/auth/forgot-password"
+import ResetPasswordPage from "@/pages/auth/reset-password"
 
 function App() {
   return (
@@ -22,6 +24,8 @@ function App() {
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route element={<ProtectedLayout />}>
               <Route index element={<DashboardPage />} />
               <Route path="patients" element={<PatientsPage />} />
