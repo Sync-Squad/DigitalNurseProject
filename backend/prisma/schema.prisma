@@ -383,7 +383,7 @@ model Notification {
   userId           BigInt    @map("userId")
   title            String    @map("title")
   message          String    @map("message")
-  type             String?   @map("notificationType") @db.VarChar(50)
+  notificationType String?   @map("notificationType") @db.VarChar(50)
   scheduledTime    DateTime? @map("scheduledTime") @db.Timestamptz(6)
   sentTime         DateTime? @map("sentTime") @db.Timestamptz(6)
   isRead           Boolean?  @default(false) @map("isRead")

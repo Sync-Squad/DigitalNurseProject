@@ -17,7 +17,7 @@ export class NotificationsService {
         userId: context.elderUserId,
         title: createDto.title,
         message: createDto.body,
-        type: createDto.type,
+        notificationType: createDto.type,
         scheduledTime: createDto.scheduledTime ? getPKTDate(createDto.scheduledTime) : null,
         metadata: createDto.actionData ? (createDto.actionData as any) : null,
         status: 'pending',
@@ -46,7 +46,7 @@ export class NotificationsService {
       where.isRead = isRead;
     }
     if (type) {
-      where.type = type;
+      where.notificationType = type;
     }
     if (startDate || endDate) {
       where.createdAt = {};
@@ -172,7 +172,7 @@ export class NotificationsService {
       id: notification.notificationId.toString(),
       title: notification.title,
       body: notification.message,
-      type: notification.type,
+      type: notification.notificationType,
       timestamp: (notification.scheduledTime || notification.sentTime || notification.createdAt).toISOString(),
       isRead: notification.isRead,
       actionData: notification.metadata ? JSON.stringify(notification.metadata) : null,
