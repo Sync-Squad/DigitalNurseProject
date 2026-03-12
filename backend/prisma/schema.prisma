@@ -8,33 +8,33 @@ datasource db {
 }
 
 model User {
-  userId                      BigInt         @id @default(autoincrement()) @map("userId")
-  authProvider                String         @default("password") @map("authProvider")
-  email                       String?        @unique @map("email")
-  phone                       String?        @unique(map: "users_phone_unique") @map("phone")
-  passwordHash                String?        @map("passwordHash")
-  full_name                   String         @map("full_name")
-  dob                         DateTime?      @map("dob") @db.Date
-  gender                      String?        @map("gender")
-  address                     String?        @map("address")
-  avatarUrl                   String?        @map("avatarUrl")
-  localeCode                  String         @default("en") @map("localeCode")
-  timezone                    String         @default("Asia/Karachi") @map("timezone")
-  status                      String         @default("active") @map("status")
-  createdAt                   DateTime       @default(now()) @map("createdAt") @db.Timestamptz(6)
-  updatedAt                   DateTime       @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
-  username                    String?        @map("username")
-  medicalConditions           String?        @map("medicalConditions")
-  emergencyContact            String?        @map("emergencyContact")
-  emailVerified               Boolean?       @default(false) @map("emailVerified")
-  verificationToken           String?        @unique @map("verificationToken")
-  googleId                    String?        @unique
-  profileCompleted            Boolean?       @default(false)
+  userId                      BigInt    @id @default(autoincrement()) @map("userId")
+  authProvider                String    @default("password") @map("authProvider")
+  email                       String?   @unique @map("email")
+  phone                       String?   @unique(map: "users_phone_unique") @map("phone")
+  passwordHash                String?   @map("passwordHash")
+  full_name                   String    @map("full_name")
+  dob                         DateTime? @map("dob") @db.Date
+  gender                      String?   @map("gender")
+  address                     String?   @map("address")
+  avatarUrl                   String?   @map("avatarUrl")
+  localeCode                  String    @default("en") @map("localeCode")
+  timezone                    String    @default("Asia/Karachi") @map("timezone")
+  status                      String    @default("active") @map("status")
+  createdAt                   DateTime  @default(now()) @map("createdAt") @db.Timestamptz(6)
+  updatedAt                   DateTime  @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
+  username                    String?   @map("username")
+  medicalConditions           String?   @map("medicalConditions")
+  emergencyContact            String?   @map("emergencyContact")
+  emailVerified               Boolean?  @default(false) @map("emailVerified")
+  verificationToken           String?   @unique @map("verificationToken")
+  googleId                    String?   @unique
+  profileCompleted            Boolean?  @default(false)
   city                        String?
   country                     String?
-  verificationTokenExpiresAt  DateTime?      @map("verificationTokenExpiresAt") @db.Timestamptz(6)
-  resetPasswordToken          String?        @unique @map("resetPasswordToken")
-  resetPasswordTokenExpiresAt DateTime?      @map("resetPasswordTokenExpiresAt") @db.Timestamptz(6)
+  verificationTokenExpiresAt  DateTime? @map("verificationTokenExpiresAt") @db.Timestamptz(6)
+  resetPasswordToken          String?   @unique @map("resetPasswordToken")
+  resetPasswordTokenExpiresAt DateTime? @map("resetPasswordTokenExpiresAt") @db.Timestamptz(6)
 
   // Relations
   notifications               Notification[]
@@ -44,12 +44,12 @@ model User {
   exerciseLogs                ExerciseLog[]
   medications                 Medication[]
   vitalMeasurements           VitalMeasurement[]
-  elderAssignmentsAsElder     ElderAssignment[]   @relation("ElderAssignments_Elder")
-  elderAssignmentsAsCaregiver ElderAssignment[]   @relation("ElderAssignments_Caregiver")
-  caregiverNotesAsElder       CaregiverNote[]     @relation("CaregiverNotes_Elder")
-  caregiverNotesAsCaregiver   CaregiverNote[]     @relation("CaregiverNotes_Caregiver")
-  invitationsAsInviter        UserInvitation[]    @relation("Invitations_Inviter")
-  invitationsAsElder          UserInvitation[]    @relation("Invitations_Elder")
+  elderAssignmentsAsElder     ElderAssignment[]  @relation("ElderAssignments_Elder")
+  elderAssignmentsAsCaregiver ElderAssignment[]  @relation("ElderAssignments_Caregiver")
+  caregiverNotesAsElder       CaregiverNote[]    @relation("CaregiverNotes_Elder")
+  caregiverNotesAsCaregiver   CaregiverNote[]    @relation("CaregiverNotes_Caregiver")
+  invitationsAsInviter        UserInvitation[]   @relation("Invitations_Inviter")
+  invitationsAsElder          UserInvitation[]   @relation("Invitations_Elder")
   loginEvents                 UserLoginEvent[]
   subscriptions               Subscription[]
   dietPlans                   DietPlan[]
@@ -118,7 +118,7 @@ model MedSchedule {
   createdAt            DateTime  @default(now()) @map("createdAt") @db.Timestamptz(6)
   updatedAt            DateTime  @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
 
-  medication Medication @relation(fields: [medicationId], references: [medicationId], onDelete: Cascade)
+  medication Medication  @relation(fields: [medicationId], references: [medicationId], onDelete: Cascade)
   intakes    MedIntake[]
 
   @@index([medicationId], map: "ix_med_schedules_medication")
@@ -248,7 +248,7 @@ model DietLog {
   food_items_embedding Unsupported("vector")?
   notes_embedding      Unsupported("vector")?
   sourcePlanId         BigInt?                @map("source_plan_id")
-  
+
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@index([sourcePlanId], map: "idx_diet_logs_source_plan_id")
@@ -391,7 +391,7 @@ model Notification {
   status           String?   @default("pending") @map("status") @db.VarChar(20)
   createdAt        DateTime? @default(now()) @map("createdAt") @db.Timestamptz(6)
   updatedAt        DateTime? @default(now()) @updatedAt @map("updatedAt") @db.Timestamptz(6)
-  metadata         Json?     @map("actionData")
+  actionData       Json?     @map("actionData")
 
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade, map: "fk_notifications_user")
 
@@ -554,8 +554,8 @@ model ai_conversations {
 
 model ai_insights {
   insight_id      BigInt                 @id @default(autoincrement())
-  user_id          BigInt
-  elder_user_id    BigInt?
+  user_id         BigInt
+  elder_user_id   BigInt?
   insight_type    String                 @db.VarChar(100)
   title           String                 @db.VarChar(500)
   content         String

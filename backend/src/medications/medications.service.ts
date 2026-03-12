@@ -50,7 +50,10 @@ export class MedicationsService {
    * Process reminder times for storage
    */
   private processReminderTimes(times: any[]): any[] {
-    return times || [];
+    if (!Array.isArray(times)) return [];
+    return times.map((t) =>
+      typeof t === 'object' && t !== null && 'time' in t ? t.time : t,
+    );
   }
 
   /**
@@ -565,7 +568,9 @@ export class MedicationsService {
         status: 'upcoming',
       };
 
-      for (const timeStr of times) {
+      for (let timeVal of times) {
+        const timeStr = typeof timeVal === 'object' && timeVal !== null && 'time' in timeVal ? (timeVal as any).time : timeVal;
+        if (typeof timeStr !== 'string') continue;
         const [hours, minutes] = timeStr.split(':').map(Number);
         const scheduledTime = new Date(targetDate);
         scheduledTime.setHours(hours, minutes, 0, 0);
@@ -646,7 +651,9 @@ export class MedicationsService {
       // Map medication once per medication, not once per reminder time
       const mappedMedicine = await this.mapToResponse(context, medication);
 
-      for (const timeStr of times) {
+      for (let timeVal of times) {
+        const timeStr = typeof timeVal === 'object' && timeVal !== null && 'time' in timeVal ? (timeVal as any).time : timeVal;
+        if (typeof timeStr !== 'string') continue;
         const [hours, minutes] = timeStr.split(':').map(Number);
         const reminderTime = new Date(now.getTime());
         reminderTime.setHours(hours, minutes, 0, 0);

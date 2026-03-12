@@ -6,7 +6,7 @@ import { getPKTDate } from '../common/utils/date-utils';
 
 @Injectable()
 export class NotificationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   /**
    * Create notification
@@ -19,7 +19,8 @@ export class NotificationsService {
         message: createDto.body,
         notificationType: createDto.type,
         scheduledTime: createDto.scheduledTime ? getPKTDate(createDto.scheduledTime) : null,
-        metadata: createDto.actionData ? (createDto.actionData as any) : null,
+        // Use actionData from DTO
+        actionData: createDto.actionData ? (createDto.actionData as any) : null,
         status: 'pending',
         isRead: false,
         isSent: false,
@@ -175,7 +176,7 @@ export class NotificationsService {
       type: notification.notificationType,
       timestamp: (notification.scheduledTime || notification.sentTime || notification.createdAt).toISOString(),
       isRead: notification.isRead,
-      actionData: notification.metadata ? JSON.stringify(notification.metadata) : null,
+      actionData: notification.actionData ? JSON.stringify(notification.actionData) : null,
     };
   }
 }
