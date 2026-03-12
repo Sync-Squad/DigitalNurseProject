@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { ActorContext } from '../common/services/access-control.service';
+import { getPKTDate } from '../common/utils/date-utils';
 
 @Injectable()
 export class NotificationsService {
@@ -16,12 +17,14 @@ export class NotificationsService {
         userId: context.elderUserId,
         title: createDto.title,
         message: createDto.body,
-        notificationType: createDto.type,
-        scheduledTime: createDto.scheduledTime ? new Date(createDto.scheduledTime) : null,
-        actionData: createDto.actionData ? (createDto.actionData as any) : null,
+        type: createDto.type,
+        scheduledTime: createDto.scheduledTime ? getPKTDate(createDto.scheduledTime) : null,
+        metadata: createDto.actionData ? (createDto.actionData as any) : null,
         status: 'pending',
         isRead: false,
         isSent: false,
+        createdAt: getPKTDate(),
+        updatedAt: getPKTDate(),
       },
     });
 
@@ -43,7 +46,7 @@ export class NotificationsService {
       where.isRead = isRead;
     }
     if (type) {
-      where.notificationType = type;
+      where.type = type;
     }
     if (startDate || endDate) {
       where.createdAt = {};
@@ -52,7 +55,7 @@ export class NotificationsService {
       }
       if (endDate) {
         // Set endDate to end of day
-        const endOfDay = new Date(endDate);
+        const endOfDay = getPKTDate(endDate);
         endOfDay.setHours(23, 59, 59, 999);
         where.createdAt.lte = endOfDay;
       }
@@ -169,10 +172,10 @@ export class NotificationsService {
       id: notification.notificationId.toString(),
       title: notification.title,
       body: notification.message,
-      type: notification.notificationType,
+      type: notification.type,
       timestamp: (notification.scheduledTime || notification.sentTime || notification.createdAt).toISOString(),
       isRead: notification.isRead,
-      actionData: notification.actionData ? JSON.stringify(notification.actionData) : null,
+      actionData: notification.metadata ? JSON.stringify(notification.metadata) : null,
     };
   }
 }

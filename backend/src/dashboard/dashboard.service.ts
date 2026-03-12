@@ -2,6 +2,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { SUBSCRIPTION_PLANS } from '../subscriptions/constants/plans.constant';
+import { getPKTDate } from '../common/utils/date-utils';
 
 type SubscriptionPlanCode = keyof typeof SUBSCRIPTION_PLANS;
 
@@ -210,13 +211,13 @@ export class DashboardService {
     patients: Array<{ createdAt: Date }>,
     days: number,
   ): GrowthPoint[] {
-    const today = new Date();
-    const startDate = new Date(today);
+    const today = getPKTDate();
+    const startDate = getPKTDate(today);
     startDate.setDate(startDate.getDate() - (days - 1));
 
     const dailyCounts = new Array(days).fill(0);
     for (const patient of patients) {
-      const created = new Date(patient.createdAt);
+      const created = getPKTDate(patient.createdAt);
       const diffDays = Math.floor(
         (created.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24),
       );
@@ -226,7 +227,7 @@ export class DashboardService {
     }
 
     let runningTotal =
-      patients.filter((p) => new Date(p.createdAt) < startDate).length;
+      patients.filter((p) => getPKTDate(p.createdAt) < startDate).length;
 
     const series: GrowthPoint[] = [];
     for (let i = 0; i < days; i++) {

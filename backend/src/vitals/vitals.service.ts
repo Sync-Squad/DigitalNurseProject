@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateVitalDto, VitalType } from './dto/create-vital.dto';
 import { UpdateVitalDto } from './dto/update-vital.dto';
 import { ActorContext } from '../common/services/access-control.service';
+import { getPKTDate } from '../common/utils/date-utils';
 
 @Injectable()
 export class VitalsService {
@@ -113,10 +114,12 @@ export class VitalsService {
           value1: value1,
           value2: value2,
           valueText: valueText,
-          recordedAt: new Date(timestamp),
+          recordedAt: getPKTDate(timestamp),
           source: 'manual',
           notes: notes || null,
           recordedByUserId: context.actorUserId,
+          createdAt: getPKTDate(),
+          updatedAt: getPKTDate(),
         },
       });
 

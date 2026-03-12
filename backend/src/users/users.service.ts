@@ -3,6 +3,7 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
+import { getPKTDate } from '../common/utils/date-utils';
 
 @Injectable()
 export class UsersService {
@@ -53,6 +54,7 @@ export class UsersService {
     const data: any = {};
     if (updateDto.fullName) data.full_name = updateDto.fullName;
     if (updateDto.profilePicture) data.profile_picture = updateDto.profilePicture;
+    data.updatedAt = getPKTDate();
 
     const user = await this.prisma.user.update({
       where: { userId },
@@ -91,6 +93,7 @@ export class UsersService {
       data: {
         full_name: completeDto.fullName,
         is_profile_complete: true,
+        updatedAt: getPKTDate(),
       },
     });
 
@@ -125,14 +128,14 @@ export class UsersService {
       const patient = assignment.elderUser;
       
       // Get recent health score (vitals average)
-      const vitals = await this.prisma.vitalsLog.findMany({
+      const vitals = await this.prisma.vitalMeasurement.findMany({
         where: {
-          userId: patient.userId,
-          createdAt: {
+          elderUserId: patient.userId,
+          recordedAt: {
             gte: new Date(Date.now() - 24 * 60 * 60 * 1000) // Last 24 hours
           }
-        } as any,
-        orderBy: { createdAt: 'desc' }
+        },
+        orderBy: { recordedAt: 'desc' }
       });
 
       // Get recent medication count
@@ -144,8 +147,8 @@ export class UsersService {
             }
           },
           dueAt: {
-            gte: new Date(new Date().setHours(0, 0, 0, 0)),
-            lte: new Date(new Date().setHours(23, 59, 59, 999))
+            gte: getPKTDate(getPKTDate().setHours(0, 0, 0, 0)),
+            lte: getPKTDate(getPKTDate().setHours(23, 59, 59, 999))
           }
         } as any
       });

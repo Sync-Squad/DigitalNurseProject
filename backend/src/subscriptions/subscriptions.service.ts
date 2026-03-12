@@ -10,6 +10,7 @@ import Stripe from 'stripe';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { UpgradeSubscriptionDto } from './dto/upgrade-subscription.dto';
 import { SUBSCRIPTION_PLANS } from './constants/plans.constant';
+import { getPKTDate } from '../common/utils/date-utils';
 
 @Injectable()
 export class SubscriptionsService {
@@ -86,7 +87,7 @@ export class SubscriptionsService {
 
       const renewalDate =
         sub.endDate ??
-        new Date(sub.startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+        getPKTDate(sub.startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
 
       const daysUntilRenewal = Math.ceil(
         (renewalDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24),
@@ -355,6 +356,7 @@ export class SubscriptionsService {
       where: { subscriptionId: currentSubscription.subscriptionId },
       data: {
         planId: newPlanId,
+        updatedAt: getPKTDate(),
       },
     });
 
@@ -400,7 +402,8 @@ export class SubscriptionsService {
       where: { subscriptionId: subscription.subscriptionId },
       data: {
         status: 'cancelled',
-        endDate: new Date(),
+        endDate: getPKTDate(),
+        updatedAt: getPKTDate(),
       },
     });
 

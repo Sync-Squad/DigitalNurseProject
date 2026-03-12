@@ -8,6 +8,7 @@ export class PrismaService
   async onModuleInit() {
     try {
       await this.$connect();
+      await this.$executeRawUnsafe("SET TIME ZONE 'Asia/Karachi';");
     } catch (error) {
       console.warn(
         '⚠️  Database connection failed. Some features may not work without proper database setup.',

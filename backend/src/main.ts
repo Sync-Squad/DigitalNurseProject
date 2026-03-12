@@ -6,6 +6,11 @@ import { AppModule } from './app.module';
 import { AuthService } from './auth/auth.service';
 import { CaregiversService } from './caregivers/caregivers.service';
 
+// BigInt serialization patch
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     rawBody: true, // Required for Stripe webhooks

@@ -5,6 +5,7 @@ import { CreateMedicationDto, MedicineFrequency } from './dto/create-medication.
 import { UpdateMedicationDto } from './dto/update-medication.dto';
 import { LogIntakeDto, IntakeStatus } from './dto/log-intake.dto';
 import { ActorContext } from '../common/services/access-control.service';
+import { getPKTDate } from '../common/utils/date-utils';
 
 @Injectable()
 export class MedicationsService {
@@ -46,10 +47,10 @@ export class MedicationsService {
   }
 
   /**
-   * Convert reminder times to JSON string for local storage
+   * Process reminder times for storage
    */
-  private reminderTimesToJson(times: string[]): string {
-    return JSON.stringify(times);
+  private processReminderTimes(times: any[]): any[] {
+    return times || [];
   }
 
   /**
@@ -73,22 +74,26 @@ export class MedicationsService {
         doseValue: doseValueParsed,
         doseUnitCode:
           createDto.strength && String(createDto.strength).trim() ? 'mg' : null,
+        createdAt: getPKTDate(),
+        updatedAt: getPKTDate(),
         schedules: {
           create: [
             {
               timezone: 'Asia/Karachi',
               startDate: createDto.startDate
-                ? new Date(createDto.startDate)
-                : new Date(),
-              endDate: createDto.endDate ? new Date(createDto.endDate) : null,
+                ? getPKTDate(createDto.startDate)
+                : getPKTDate(),
+              endDate: createDto.endDate ? getPKTDate(createDto.endDate) : null,
               daysMask: this.frequencyToDaysMask(
                 createDto.frequency,
                 createDto.periodicDays,
               ),
-              timesLocal: this.reminderTimesToJson(
+              timesLocal: this.processReminderTimes(
                 createDto.reminderTimes || [],
-              ) as any,
+              ),
               isPrn: createDto.frequency === MedicineFrequency.AS_NEEDED,
+              createdAt: getPKTDate(),
+              updatedAt: getPKTDate(),
             },
           ],
         },
@@ -172,6 +177,7 @@ export class MedicationsService {
     if (updateDto.name) updateData.medicationName = updateDto.name;
     if (updateDto.dosage) updateData.instructions = updateDto.dosage;
     if (updateDto.notes !== undefined) updateData.notes = updateDto.notes;
+    updateData.updatedAt = getPKTDate();
 
     if (Object.keys(updateData).length > 0) {
       await this.prisma.medication.update({
@@ -193,7 +199,7 @@ export class MedicationsService {
           where: { medScheduleId: (latestSchedule as any).medScheduleId },
           data: {
             startDate: updateDto.startDate
-              ? new Date(updateDto.startDate)
+              ? getPKTDate(updateDto.startDate)
               : undefined,
             daysMask:
               updateDto.frequency || updateDto.periodicDays
@@ -203,8 +209,9 @@ export class MedicationsService {
                 )
                 : undefined,
             timesLocal: updateDto.reminderTimes
-              ? (this.reminderTimesToJson(updateDto.reminderTimes) as any)
+              ? this.processReminderTimes(updateDto.reminderTimes)
               : undefined,
+            updatedAt: getPKTDate(),
           },
         });
       }
@@ -273,7 +280,7 @@ export class MedicationsService {
     const scheduleIds = (medication as any).schedules.map((s: any) => s.medScheduleId);
 
     // Find if an intake record already exists for this time
-    const dueAt = new Date(logIntakeDto.scheduledTime);
+    const dueAt = getPKTDate(logIntakeDto.scheduledTime);
     const existingIntake = await this.prisma.medIntake.findFirst({
       where: {
         medScheduleId: {
@@ -292,8 +299,9 @@ export class MedicationsService {
         data: {
           status: logIntakeDto.status,
           takenAt:
-            logIntakeDto.status === IntakeStatus.TAKEN ? new Date() : null,
-          remarks: logIntakeDto.remarks,
+            logIntakeDto.status === IntakeStatus.TAKEN ? getPKTDate() : null,
+          remarks: logIntakeDto.notes,
+          updatedAt: getPKTDate(),
         },
       });
     } else {
@@ -306,8 +314,10 @@ export class MedicationsService {
           dueAt,
           status: logIntakeDto.status,
           takenAt:
-            logIntakeDto.status === IntakeStatus.TAKEN ? new Date() : null,
-          remarks: logIntakeDto.remarks,
+            logIntakeDto.status === IntakeStatus.TAKEN ? getPKTDate() : null,
+          remarks: logIntakeDto.notes,
+          createdAt: getPKTDate(),
+          updatedAt: getPKTDate(),
         },
       });
     }
@@ -374,10 +384,10 @@ export class MedicationsService {
     const latestSchedule = schedules[0];
 
     // Get today's intake for this medication
-    const startOfDay = new Date();
+    const startOfDay = getPKTDate();
     startOfDay.setHours(0, 0, 0, 0);
 
-    const endOfDay = new Date();
+    const endOfDay = getPKTDate();
     endOfDay.setHours(23, 59, 59, 999);
 
     const scheduleIds = schedules.map((s: any) => s.medScheduleId);
@@ -444,7 +454,7 @@ export class MedicationsService {
    * Calculate adherence for a period
    */
   async calculateAdherence(context: ActorContext, days: number = 7) {
-    const cutoffDate = new Date();
+    const cutoffDate = getPKTDate();
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
     const medications = await this.prisma.medication.findMany({
@@ -484,7 +494,7 @@ export class MedicationsService {
 
     intakes.forEach((intake: any) => {
       const dateStr = intake.dueAt.toISOString().split('T')[0];
-      const stats = dailyStats.get(dateStr) || { taken: number = 0, total: 0 };
+      const stats = dailyStats.get(dateStr) || { taken: 0, total: 0 };
       stats.total++;
       if (intake.status === IntakeStatus.TAKEN) stats.taken++;
       dailyStats.set(dateStr, stats);
@@ -573,7 +583,7 @@ export class MedicationsService {
           status = intake.status;
           if (status === IntakeStatus.TAKEN) takenCount++;
           else if (status === IntakeStatus.MISSED) missedCount++;
-        } else if (scheduledTime < new Date()) {
+        } else if (scheduledTime < getPKTDate()) {
           status = 'missed';
           missedCount++;
         } else {
@@ -623,7 +633,7 @@ export class MedicationsService {
     });
 
     const reminders: any[] = [];
-    const now = new Date();
+    const now = getPKTDate();
 
     for (const medication of medications) {
       if ((medication as any).schedules.length === 0) continue;
@@ -638,7 +648,7 @@ export class MedicationsService {
 
       for (const timeStr of times) {
         const [hours, minutes] = timeStr.split(':').map(Number);
-        const reminderTime = new Date(now);
+        const reminderTime = new Date(now.getTime());
         reminderTime.setHours(hours, minutes, 0, 0);
 
         if (reminderTime < now) {

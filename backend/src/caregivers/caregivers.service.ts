@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EmailService } from '../email/email.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { ContactCaregiverDto } from './dto/contact-caregiver.dto';
+import { getPKTDate } from '../common/utils/date-utils';
 
 @Injectable()
 export class CaregiversService {
@@ -158,6 +159,8 @@ export class CaregiversService {
             data: {
               userId: existingUser.userId,
               roleId: caregiverRole.roleId,
+              createdAt: getPKTDate(),
+              updatedAt: getPKTDate(),
             },
           });
         }
@@ -170,6 +173,8 @@ export class CaregiversService {
           caregiverUserId: existingUser.userId,
           relationshipCode: createDto.relationship || 'other',
           isActive: true,
+          createdAt: getPKTDate(),
+          updatedAt: getPKTDate(),
         },
       });
 
@@ -187,6 +192,8 @@ export class CaregiversService {
           isRead: false,
           isSent: true,
           status: 'sent',
+          createdAt: getPKTDate(),
+          updatedAt: getPKTDate(),
         },
       });
 
@@ -211,7 +218,9 @@ export class CaregiversService {
         inviteCode: this.generateInviteCode(),
         relationshipCode: createDto.relationship || 'other',
         status: 'pending',
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        expiresAt: getPKTDate(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+        createdAt: getPKTDate(),
+        updatedAt: getPKTDate(),
       },
     });
 

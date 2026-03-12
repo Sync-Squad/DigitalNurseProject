@@ -1,6 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
 import { Public } from './common/decorators/public.decorator';
+import { getPKTDate } from './common/utils/date-utils';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Health')
@@ -21,7 +22,7 @@ export class AppController {
   getHealth() {
     return {
       status: 'ok',
-      timestamp: new Date().toISOString(),
+      timestamp: getPKTDate().toISOString(),
       uptime: process.uptime(),
     };
   }

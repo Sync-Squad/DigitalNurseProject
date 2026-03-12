@@ -18,6 +18,7 @@ import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { User } from '@prisma/client';
+import { getPKTDate } from '../common/utils/date-utils';
 
 @Injectable()
 export class AuthService {
@@ -115,14 +116,14 @@ export class AuthService {
             throw new BadRequestException('Invitation has already been processed.');
           }
 
-          if (invitation.expiresAt < new Date()) {
+          if (invitation.expiresAt < getPKTDate()) {
             throw new BadRequestException('Invitation has expired.');
           }
         }
 
         // Generate verification token
         const verificationToken = this.generateVerificationToken();
-        const tokenExpiry = new Date();
+        const tokenExpiry = getPKTDate();
         const expiryHours =
           parseInt(
             this.configService.get<string>('VERIFICATION_TOKEN_EXPIRY_HOURS') ||
@@ -140,6 +141,8 @@ export class AuthService {
             emailVerified: false,
             verificationToken,
             verificationTokenExpiresAt: tokenExpiry,
+            createdAt: getPKTDate(),
+            updatedAt: getPKTDate(),
           },
         });
 
@@ -149,6 +152,8 @@ export class AuthService {
             userId: user.userId,
             planId: null,
             status: 'active',
+            createdAt: getPKTDate(),
+            updatedAt: getPKTDate(),
           },
         });
 
@@ -157,11 +162,13 @@ export class AuthService {
           data: {
             userId: user.userId,
             roleId: role.roleId,
+            createdAt: getPKTDate(),
+            updatedAt: getPKTDate(),
           },
         });
 
         if (normalizedRoleCode === 'caregiver' && invitation) {
-          const now = new Date();
+          const now = getPKTDate();
 
           // Check if assignment already exists (prevent duplicates)
           const existingAssignment = await tx.elderAssignment.findFirst({
@@ -194,6 +201,8 @@ export class AuthService {
                 relationshipCode: normalizedRelationshipCode,
                 relationshipDomain: 'relationships', // Explicitly set domain
                 isPrimary: false,
+                createdAt: getPKTDate(),
+                updatedAt: getPKTDate(),
               },
             });
           }
@@ -393,7 +402,7 @@ export class AuthService {
       throw new NotFoundException('Invalid verification token');
     }
 
-    if (user.verificationTokenExpiresAt && user.verificationTokenExpiresAt < new Date()) {
+    if (user.verificationTokenExpiresAt && user.verificationTokenExpiresAt < getPKTDate()) {
       throw new BadRequestException('Verification token has expired');
     }
 
@@ -435,7 +444,7 @@ export class AuthService {
 
     // Generate new verification token
     const verificationToken = this.generateVerificationToken();
-    const tokenExpiry = new Date();
+    const tokenExpiry = getPKTDate();
     const expiryHours =
       parseInt(
         this.configService.get<string>('VERIFICATION_TOKEN_EXPIRY_HOURS') ||
@@ -479,7 +488,7 @@ export class AuthService {
 
     // Generate reset token
     const resetPasswordToken = this.generateVerificationToken();
-    const tokenExpiry = new Date();
+    const tokenExpiry = getPKTDate();
     // Reset tokens expire in 1 hour
     tokenExpiry.setHours(tokenExpiry.getHours() + 1);
 
@@ -516,7 +525,7 @@ export class AuthService {
 
     if (
       user.resetPasswordTokenExpiresAt &&
-      user.resetPasswordTokenExpiresAt < new Date()
+      user.resetPasswordTokenExpiresAt < getPKTDate()
     ) {
       throw new BadRequestException('Reset token has expired');
     }
@@ -606,7 +615,7 @@ export class AuthService {
       },
     });
 
-    const roleCode = role?.role.roleCode;
+    const roleCode = role?.role?.roleCode;
     return this.toClientRoleCode(roleCode);
   }
 
