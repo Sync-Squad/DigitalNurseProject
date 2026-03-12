@@ -11,8 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { SubscriptionBreakdown } from "@/mocks/data"
 
 const COLORS = {
-  FREE: "#94a3b8", // slate-400
-  PREMIUM: "#2563eb", // blue-600
+  FREE: "#3B82F6", // slate-400
+  PREMIUM: "#7FD991", // appleGreen
 }
 
 export function SubscriptionBreakdownCard({
@@ -57,9 +57,9 @@ export function SubscriptionBreakdownCard({
               ]}
             />
             <Legend
-              formatter={(value) => {
-                const item = data.find((d) => d.type === value)
-                return `${value}: ${item?.percentage}%`
+              formatter={(_value, entry: any) => {
+                const item = entry.payload
+                return `${item.type}: ${item.count} (${item.percentage}%)`
               }}
             />
           </PieChart>

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { subscriptions } from "@/mocks/data"
+import { useSubscriptionsData } from "@/hooks/use-subscriptions-data"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { addDays, format } from "date-fns"
-import { CalendarClock, CreditCard, DollarSign } from "lucide-react"
+import { CalendarClock } from "lucide-react"
 
 const statusTone = {
   Paid: "bg-emerald-500/10 text-emerald-600",
@@ -31,6 +31,7 @@ const statusTone = {
 export default function SubscriptionsPage() {
   const [plan, setPlan] = useState<"All" | "Essential" | "Premium">("All")
   const [search, setSearch] = useState("")
+  const { subscriptions, loading, error } = useSubscriptionsData()
 
   const filtered = useMemo(() => {
     return subscriptions.filter((record) => {
@@ -41,7 +42,7 @@ export default function SubscriptionsPage() {
         record.lastInvoice.toLowerCase().includes(search.toLowerCase())
       return matchesPlan && matchesSearch
     })
-  }, [plan, search])
+  }, [plan, search, subscriptions])
 
   return (
     <section className="space-y-6">
@@ -54,7 +55,7 @@ export default function SubscriptionsPage() {
             Monitor plan tiers, renewals, payment health, and billing actions.
           </p>
         </div>
-        <div className="flex gap-2">
+        {/* <div className="flex gap-2">
           <Button variant="outline" className="gap-2">
             <DollarSign className="size-4" />
             Issue credit
@@ -63,8 +64,48 @@ export default function SubscriptionsPage() {
             <CreditCard className="size-4" />
             Upgrade plan
           </Button>
-        </div>
+        </div> */}
       </div>
+
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-sm font-semibold text-muted-foreground">
+            Renewal forecast
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-3">
+          {[
+            { label: "Week", days: 7, color: "bg-blue-500/10 border-blue-500/30 text-blue-600" },
+            { label: "Month", days: 30, color: "bg-purple-500/10 border-purple-500/30 text-purple-600" },
+            { label: "Quarter", days: 90, color: "bg-emerald-500/10 border-emerald-500/30 text-emerald-600" },
+          ].map(({ label, days, color }) => (
+            <div
+              key={label}
+              className={`rounded-xl border ${color} p-4 text-sm`}
+            >
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <CalendarClock className="size-4" />
+                Upcoming renewals · {label}
+              </div>
+              <p className="mt-2 text-2xl font-semibold tracking-tight">
+                {
+                  subscriptions.filter((record) => {
+                    const daysAhead =
+                      (record.renewalDate.getTime() - new Date().getTime()) /
+                      (1000 * 60 * 60 * 24)
+                    return daysAhead >= 0 && daysAhead <= days
+                  }).length
+                }
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Next cohort milestone:{" "}
+                {format(addDays(new Date(), days), "MMM dd")}
+              </p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -130,7 +171,7 @@ export default function SubscriptionsPage() {
                   </TableCell>
                   <TableCell>{record.lastInvoice}</TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="default" size="sm" color="primary">
                       Manage
                     </Button>
                   </TableCell>
@@ -138,50 +179,22 @@ export default function SubscriptionsPage() {
               ))}
             </TableBody>
           </Table>
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="rounded-lg border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
+              Loading subscriptions...
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
               No subscriptions found for the selected filters.
             </div>
           ) : null}
         </CardContent>
       </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-sm font-semibold text-muted-foreground">
-            Renewal forecast
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
-          {["Week", "Month", "Quarter"].map((window) => (
-            <div
-              key={window}
-              className="rounded-xl border border-border/70 bg-muted/20 p-4 text-sm"
-            >
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <CalendarClock className="size-4" />
-                Upcoming renewals · {window}
-              </div>
-              <p className="mt-2 text-2xl font-semibold tracking-tight">
-                {
-                  subscriptions.filter((record) => {
-                    const daysAhead =
-                      (record.renewalDate.getTime() - new Date().getTime()) /
-                      (1000 * 60 * 60 * 24)
-                    if (window === "Week") return daysAhead <= 7
-                    if (window === "Month") return daysAhead <= 30
-                    return daysAhead <= 90
-                  }).length
-                }
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Next cohort milestone:{" "}
-                {format(addDays(new Date(), window === "Week" ? 7 : window === "Month" ? 30 : 90), "MMM dd")}
-              </p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      {error ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      ) : null}
     </section>
   )
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -8,9 +9,11 @@ import '../../../core/providers/health_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/care_context_provider.dart';
 import '../../../core/extensions/vital_type_extensions.dart';
+import '../../../core/extensions/vital_status_extensions.dart';
 import '../../../core/models/vital_measurement_model.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
+import '../../../core/utils/timezone_util.dart';
 import '../../../core/widgets/modern_scaffold.dart';
 import '../../../core/models/user_model.dart';
 import '../widgets/vitals_calendar_header.dart';
@@ -26,6 +29,7 @@ class VitalsListScreen extends StatefulWidget {
 class _VitalsListScreenState extends State<VitalsListScreen> {
   DateTime _selectedDate = DateTime.now();
   String? _lastContextKey;
+  String? _deletingVitalId;
 
   Future<void> _reloadVitals() async {
     final authProvider = context.read<AuthProvider>();
@@ -74,6 +78,77 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
     });
   }
 
+  Future<void> _handleDeleteVital(
+    String vitalId,
+    bool isCaregiver,
+    String? selectedElderId,
+  ) async {
+    if (_deletingVitalId != null) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('vitals.delete.title'.tr()),
+        content: Text('vitals.delete.confirm'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('vitals.delete.cancel'.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: AppTheme.getErrorColor(context),
+            ),
+            child: Text('common.delete'.tr()),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      setState(() {
+        _deletingVitalId = vitalId;
+      });
+
+      try {
+        final healthProvider = context.read<HealthProvider>();
+        final success = await healthProvider.deleteVital(
+          vitalId,
+          elderUserId: isCaregiver ? selectedElderId : null,
+        );
+
+        if (mounted) {
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('vitals.delete.success'.tr()),
+                backgroundColor: AppTheme.getSuccessColor(context),
+              ),
+            );
+            // Reload vitals to refresh the list
+            await _reloadVitals();
+          } else {
+            final errorMessage =
+                healthProvider.error ?? 'vitals.delete.failed'.tr();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(errorMessage),
+                backgroundColor: AppTheme.getErrorColor(context),
+              ),
+            );
+          }
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _deletingVitalId = null;
+          });
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -107,11 +182,11 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         foregroundColor: onPrimary,
         iconTheme: IconThemeData(color: onPrimary),
         title: Text(
-          'Health Vitals',
+          'vitals.title'.tr(),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: onPrimary,
-                fontWeight: FontWeight.w600,
-              ),
+            color: onPrimary,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         actions: [
           if (!isCaregiver)
@@ -131,6 +206,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         healthProvider: healthProvider,
         vitals: vitals,
         error: error,
+        selectedElderId: selectedElderId,
       ),
     );
   }
@@ -145,6 +221,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
     required HealthProvider healthProvider,
     required List<VitalMeasurementModel> vitals,
     required String? error,
+    required String? selectedElderId,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -161,9 +238,8 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.users,
-          title: 'No patients assigned yet',
-          message:
-              'Once you are added as a caregiver, you can review vitals for your patients here.',
+          title: 'vitals.caregiverNotice.noPatientsAssigned'.tr(),
+          message: 'vitals.caregiverNotice.noPatientsAssignedDesc'.tr(),
         );
       }
 
@@ -171,7 +247,7 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.info,
-          title: 'Unable to load patients',
+          title: 'vitals.caregiverNotice.unableToLoadPatients'.tr(),
           message: careContextError,
           onRetry: _reloadVitals,
         );
@@ -181,9 +257,8 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.userSearch,
-          title: 'Select a patient to continue',
-          message:
-              'Choose a patient from the dashboard to review their latest vitals.',
+          title: 'vitals.caregiverNotice.selectPatientContinue'.tr(),
+          message: 'vitals.caregiverNotice.selectPatientContinueDesc'.tr(),
         );
       }
     }
@@ -192,8 +267,12 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final normalCount = vitals.where((v) => v.getHealthStatus() == VitalHealthStatus.normal).length;
-    final warningCount = vitals.where((v) => v.getHealthStatus() != VitalHealthStatus.normal).length;
+    final normalCount = vitals
+        .where((v) => v.getHealthStatus() == VitalHealthStatus.normal)
+        .length;
+    final warningCount = vitals
+        .where((v) => v.getHealthStatus() != VitalHealthStatus.normal)
+        .length;
 
     return Padding(
       padding: ModernSurfaceTheme.screenPadding(),
@@ -224,24 +303,66 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
             width: double.infinity,
             decoration: ModernSurfaceTheme.glassCard(context),
             padding: EdgeInsets.all(16.w),
-            child: ElevatedButton.icon(
-              onPressed: () => context.push('/health/trends'),
-              icon: Icon(FIcons.trendingUp, color: Colors.white),
-              label: Text(
-                'View Trends',
-                style: textTheme.titleSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
+            child: Row(
+              children: [
+                if (!isCaregiver) ...[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.push('/vitals/add'),
+                      icon: const Icon(
+                        Icons.add_circle_outline,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      label: Text(
+                        'vitals.actions.logVital'.tr(),
+                        style: textTheme.titleSmall?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                ],
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => context.push('/health/trends'),
+                    icon: const Icon(
+                      FIcons.trendingUp,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    label: Text(
+                      'vitals.actions.viewTrends'.tr(),
+                      style: textTheme.titleSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      backgroundColor: AppTheme.appleGreen,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                      elevation: 0,
+                    ),
+                  ),
                 ),
-              ),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 14.h),
-                backgroundColor: AppTheme.appleGreen,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
-                ),
-              ),
+              ],
             ),
           ),
           SizedBox(height: 16.h),
@@ -258,65 +379,121 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Container(
-                          decoration: ModernSurfaceTheme.glassCard(context, accent: accent),
+                          decoration: ModernSurfaceTheme.glassCard(
+                            context,
+                            accent: accent,
+                          ),
                           padding: EdgeInsets.all(16.w),
-                          child: Row(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: ModernSurfaceTheme.iconBadge(context, accent),
-                                child: Icon(FIcons.activity, color: onPrimary),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      vital.type.displayName,
-                                      style: textTheme.bodyMedium?.copyWith(
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: ModernSurfaceTheme.iconBadge(
+                                      context,
+                                      accent,
+                                    ),
+                                    child: Icon(
+                                      FIcons.activity,
+                                      color: onPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          vital.type.displayName,
+                                          style: textTheme.bodyMedium?.copyWith(
                                             fontWeight: FontWeight.bold,
                                             color: onSurface,
                                           ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      DateFormat('MMM d, yyyy - h:mm a').format(vital.timestamp),
-                                      style: textTheme.bodySmall?.copyWith(
+                                        ),
+                                        SizedBox(height: 4),
+                                        Text(
+                                          DateFormat(
+                                            'MMM d, yyyy - h:mm a',
+                                          ).format(
+                                            TimezoneUtil.toPakistanTime(
+                                              vital.timestamp,
+                                            ),
+                                          ),
+                                          style: textTheme.bodySmall?.copyWith(
                                             color: muted,
                                           ),
+                                        ),
+                                        if (vital.notes != null) ...[
+                                          SizedBox(height: 4),
+                                          Text(
+                                            vital.notes!,
+                                            style: textTheme.bodySmall
+                                                ?.copyWith(color: muted),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ],
                                     ),
-                                    if (vital.notes != null) ...[
-                                      SizedBox(height: 4),
+                                  ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
                                       Text(
-                                        vital.notes!,
-                                        style: textTheme.bodySmall?.copyWith(
-                                              color: muted,
+                                        vital.value,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.bold,
+                                              color: accent,
                                             ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      Text(
+                                        vital.type.unit,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall,
                                       ),
                                     ],
-                                  ],
-                                ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    vital.value,
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color: accent,
+                                  ),
+                                  SizedBox(width: 8.w),
+                                  _deletingVitalId == vital.id
+                                      ? const Padding(
+                                          padding: EdgeInsets.all(8.0),
+                                          child: SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                        )
+                                      : IconButton(
+                                          onPressed: _deletingVitalId != null
+                                              ? null
+                                              : () => _handleDeleteVital(
+                                                  vital.id,
+                                                  isCaregiver,
+                                                  selectedElderId,
+                                                ),
+                                          icon: Icon(
+                                            Icons.delete_outline,
+                                            color: AppTheme.getErrorColor(
+                                              context,
+                                            ),
+                                          ),
+                                          tooltip: 'Delete vital measurement',
                                         ),
-                                  ),
-                                  Text(
-                                    vital.type.unit,
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  VitalStatusBadge(status: healthStatus),
                                 ],
+                              ),
+                              const SizedBox(height: 12),
+                              VitalStatusBadge(
+                                status: healthStatus,
+                                vital: vital,
                               ),
                             ],
                           ),
@@ -344,27 +521,21 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              FIcons.activity,
-              size: 64.r,
-              color: colorScheme.primary,
-            ),
+            Icon(FIcons.activity, size: 64.r, color: colorScheme.primary),
             SizedBox(height: 16.h),
             Text(
-              'No vitals logged yet',
+              'vitals.emptyState.noVitalsLoggedYet'.tr(),
               style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: onSurface,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: onSurface,
+              ),
             ),
             SizedBox(height: 8.h),
             Text(
               isCaregiver
-                  ? 'This patient has no vitals recorded yet.'
-                  : 'Start tracking your health vitals',
-              style: textTheme.bodySmall?.copyWith(
-                    color: muted,
-                  ),
+                  ? 'vitals.emptyState.patientNoVitalsRecorded'.tr()
+                  : 'vitals.emptyState.startTracking'.tr(),
+              style: textTheme.bodySmall?.copyWith(color: muted),
             ),
             if (!isCaregiver) ...[
               SizedBox(height: 24.h),
@@ -373,13 +544,16 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorScheme.primary,
                   foregroundColor: onPrimary,
-                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 24.w,
+                    vertical: 12.h,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30),
                   ),
                 ),
                 child: Text(
-                  'Log Vitals',
+                  'vitals.actions.logVital'.tr(),
                   style: textTheme.labelLarge?.copyWith(
                     color: onPrimary,
                     fontWeight: FontWeight.w600,
@@ -395,25 +569,19 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              FIcons.calendar,
-              size: 64.r,
-              color: colorScheme.primary,
-            ),
+            Icon(FIcons.calendar, size: 64.r, color: colorScheme.primary),
             SizedBox(height: 16.h),
             Text(
-              'No vitals for ${_getFormattedDate(_selectedDate)}',
+              'vitals.emptyState.noVitalsForDate'.tr(namedArgs: {'date': _getFormattedDate(_selectedDate)}),
               style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: onSurface,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: onSurface,
+              ),
             ),
             SizedBox(height: 8.h),
             Text(
-              'Select another date or add vitals',
-              style: textTheme.bodySmall?.copyWith(
-                    color: muted,
-                  ),
+              'vitals.emptyState.selectAnotherDate'.tr(),
+              style: textTheme.bodySmall?.copyWith(color: muted),
             ),
           ],
         ),
@@ -422,32 +590,29 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
   }
 
   String _getFormattedDate(DateTime date) {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    if (context.locale.languageCode == 'ur') {
+      final months = [
+        'medication.months.jan',
+        'medication.months.feb',
+        'medication.months.mar',
+        'medication.months.apr',
+        'medication.months.may',
+        'medication.months.jun',
+        'medication.months.jul',
+        'medication.months.aug',
+        'medication.months.sep',
+        'medication.months.oct',
+        'medication.months.nov',
+        'medication.months.dec',
+      ];
+      return '${months[date.month - 1].tr()} ${date.day}, ${date.year}';
+    } else {
+      return DateFormat('MMM d, yyyy').format(date);
+    }
   }
 
   Color _getStatusColor(VitalHealthStatus status) {
-    switch (status) {
-      case VitalHealthStatus.normal:
-        return AppTheme.getSuccessColor(context);
-      case VitalHealthStatus.warning:
-        return AppTheme.getWarningColor(context);
-      case VitalHealthStatus.danger:
-        return AppTheme.getErrorColor(context);
-    }
+    return status.getStatusColor(context);
   }
 
   Widget _buildCaregiverNotice(
@@ -474,17 +639,15 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
           Text(
             title,
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onSurface,
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 8.h),
           Text(
             message,
-            style: textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
+            style: textTheme.bodySmall?.copyWith(color: muted),
             textAlign: TextAlign.center,
           ),
           if (onRetry != null) ...[
@@ -530,15 +693,15 @@ class _ErrorBanner extends StatelessWidget {
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           TextButton(
             onPressed: onRetry,
             style: TextButton.styleFrom(foregroundColor: color),
-            child: const Text('Retry'),
+            child: Text('actions.retry'.tr()),
           ),
         ],
       ),
@@ -567,70 +730,107 @@ class _VitalsHero extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final onPrimary = colorScheme.onPrimary;
 
-    return Container(
-      width: double.infinity,
-      decoration: ModernSurfaceTheme.heroDecoration(context),
-      padding: ModernSurfaceTheme.heroPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            isCaregiver ? 'Patient vitals overview' : 'Today’s vitals snapshot',
-            style: textTheme.bodyMedium?.copyWith(
-                  color: onPrimary.withValues(alpha: 0.85),
-                ),
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
-                decoration: BoxDecoration(
-                  color: AppTheme.appleGreen,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '$totalCount',
-                  style: textTheme.titleMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
+    final h = ModernSurfaceTheme.heroPadding();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final halfWidth = constraints.maxWidth * 0.40;
+          return Container(
+            width: double.infinity,
+            decoration: ModernSurfaceTheme.heroDecoration(context),
+            child: Stack(
+              children: [
+                // ── Right 50%: image pinned to right edge with padding ─────────────
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: halfWidth,
+                  child: Image.asset(
+                    'assets/images/health.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
                   ),
                 ),
-              ),
-              SizedBox(width: 8.w),
-              Expanded(
-                child: Text(
-                  'Checks on $dateLabel',
-                  style: textTheme.headlineSmall?.copyWith(
-                        color: onPrimary,
-                        fontWeight: FontWeight.w700,
+                // ── Left side: text column drives card height ─────────
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: h.left,
+                    top: h.top,
+                    bottom: h.bottom,
+                    right: halfWidth + h.right,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isCaregiver
+                            ? 'vitals.hero.patientVitalsOverview'.tr()
+                            : 'vitals.hero.todaysVitalsSnapshot'.tr(),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: onPrimary.withValues(alpha: 0.85),
+                        ),
                       ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.appleGreen,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              '$totalCount',
+                              style: textTheme.titleMedium?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8.w),
+                          Flexible(
+                            child: Text(
+                              'vitals.hero.checksOn'.tr(namedArgs: {'date': dateLabel}),
+                              style: textTheme.headlineSmall?.copyWith(
+                                color: onPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15.sp,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12.h),
+                      Wrap(
+                        spacing: 8.w,
+                        runSpacing: 8.h,
+                        children: [
+                          _HeroChip(
+                            icon: Icons.favorite,
+                            label: '$normalCount stable',
+                          ),
+                          _HeroChip(
+                            icon: Icons.warning_amber_rounded,
+                            label: '$warningCount needs attention',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 12.h),
-          Wrap(
-            spacing: 8.w,
-            runSpacing: 8.h,
-            children: [
-              _HeroChip(
-                icon: Icons.favorite,
-                label: '$normalCount stable',
-              ),
-              _HeroChip(
-                icon: Icons.warning_amber_rounded,
-                label: '$warningCount needs attention',
-              ),
-              if (!isCaregiver)
-                _HeroChip(
-                  icon: Icons.add_circle_outline,
-                  label: 'Log Vital',
-                  onTap: () => context.push('/vitals/add'),
-                ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -639,17 +839,12 @@ class _VitalsHero extends StatelessWidget {
 class _HeroChip extends StatelessWidget {
   final IconData icon;
   final String label;
-  final VoidCallback? onTap;
 
-  const _HeroChip({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
+  const _HeroChip({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
-    final widget = Container(
+    return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: AppTheme.appleGreen,
@@ -663,20 +858,12 @@ class _HeroChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
     );
-
-    if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: widget,
-      );
-    }
-    return widget;
   }
 }

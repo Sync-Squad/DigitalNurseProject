@@ -59,6 +59,15 @@ export class SubscriptionsController {
 
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
+  @Get('active')
+  @ApiOperation({ summary: 'Get all active subscriptions' })
+  @ApiResponse({ status: 200, description: 'Active subscriptions retrieved' })
+  async getActiveSubscriptions() {
+    return this.subscriptionsService.getActiveSubscriptions();
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Post('create')
   @ApiOperation({ summary: 'Create a new subscription' })
   @ApiResponse({

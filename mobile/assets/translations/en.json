@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "My Digital Nurse",
-    "tagline": "Your Personal Health Companion",
+    "tagline": "Your Health Care Nurse",
     "description": "Manage medications, track vitals, coordinate care, and take control of your health journey."
   },
   "auth": {
@@ -10,11 +10,17 @@
       "welcomeBack": "Welcome back! Login to continue",
       "phone": "Phone Number",
       "phoneHint": "Enter your phone number (+92XXXXXXXXXX)",
+      "email": "Email",
+      "emailHint": "Enter your email address",
       "password": "Password",
       "passwordHint": "Enter your password",
       "loginButton": "Login",
       "noAccount": "Don't have an account? ",
       "registerLink": "Register",
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "forgotPassword": "Forgot Password?",
+      "emailSent": "Verification email sent",
       "failed": "Login Failed",
       "ok": "OK"
     },
@@ -151,6 +157,94 @@
       "selectLanguage": "Select Language"
     }
   },
+  "medication": {
+    "title": "Medication",
+    "months": {
+      "jan": "Jan",
+      "feb": "Feb",
+      "mar": "Mar",
+      "apr": "Apr",
+      "may": "May",
+      "jun": "Jun",
+      "jul": "Jul",
+      "aug": "Aug",
+      "sep": "Sep",
+      "oct": "Oct",
+      "nov": "Nov",
+      "dec": "Dec"
+    },
+    "forPatient": "For {name}",
+    "noPatientsAssigned": "No patients assigned yet",
+    "noPatientsDesc": "When a patient adds you as their caregiver, their medications will appear here.",
+    "unableToLoadPatients": "Unable to load patients",
+    "selectPatientContinue": "Select a patient to continue",
+    "selectPatientDesc": "Choose a patient from the dashboard to review their medication schedule.",
+    "noMedicinesAdded": "No medicines added yet",
+    "patientNoMedicines": "This patient has no medicines recorded yet.",
+    "addFirstMedicine": "Tap the button below to add your first medicine",
+    "addMedicine": "Add Medicine",
+    "noMedicinesForDate": "No medicines for {date}",
+    "selectAnotherDate": "Select another date or add medicines",
+    "scheduleOverview": "Schedule Overview",
+    "retry": "Retry",
+    "hero": {
+      "todaysPlan": "Today's Plan",
+      "careSchedule": "Care Schedule",
+      "medicinesOnDate": "Medicines on {date}"
+    },
+    "status": {
+      "taken": "Taken",
+      "missed": "Missed",
+      "upcoming": "Upcoming",
+      "noMedicines": "No medicines",
+      "partialTaken": "{taken} of {total} taken"
+    },
+    "timeOfDay": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening"
+    },
+    "add": {
+      "title": "Add Medicine",
+      "step": "Step {current} of {total}",
+      "next": "Next",
+      "back": "Back",
+      "save": "Save Medicine",
+      "success": "Medicine added successfully!",
+      "fail": "Failed to add medicine",
+      "validationError": "Please complete all required fields",
+      "steps": {
+        "name": "Medicine Name",
+        "nameDesc": "Let's start with the basics",
+        "form": "Medicine Form",
+        "formDesc": "What form is your medicine in?",
+        "frequency": "Frequency",
+        "frequencyDesc": "How often do you take it?",
+        "reminders": "Reminder Times",
+        "remindersDesc": "Set your reminder times",
+        "startDate": "Start Date",
+        "startDateDesc": "When do you start?",
+        "dose": "Dosage & Strength",
+        "doseDesc": "Dosage and strength details",
+        "review": "Review",
+        "reviewDesc": "Review before saving",
+        "endDate": "End Date",
+        "notes": "Notes"
+      }
+    },
+    "detail": {
+      "intakeHistory": "Intake History",
+      "noHistory": "No intake history yet",
+      "marked": "Marked as {status}",
+      "alreadyMarked": "This medicine is already marked as {status} for {time}",
+      "atThisTime": "this time",
+      "logFail": "Failed to log intake. Please try again.",
+      "deleteTitle": "Delete Medicine",
+      "deleteConfirm": "Are you sure you want to delete this medicine?",
+      "deleteSuccess": "Medicine deleted successfully",
+      "deleteFail": "Failed to delete medicine"
+    }
+  },
   "common": {
     "cancel": "Cancel",
     "ok": "OK",
@@ -168,13 +262,27 @@
   },
   "patient": {
     "welcomeBack": "Welcome back, {name}!",
+    "welcomeBackOnly": "Welcome back",
     "heroDescription": "Stay on track with your health journey. Monitor medications, vitals, and wellness all in one place.",
     "healthOverview": "Health Overview",
     "overviewDescription": "Real-time snapshot of your adherence, alerts, and vitals.",
     "adherence": "Adherence",
     "adherenceDescription": "On-time doses across the last 7 days.",
     "adherenceRate": "{percent}% adherence rate",
+    "heroHealthSubtitle": "Let's take care of your health today—one step at a time.",
+    "adherencePercentLabel": "{percent}% Adherence",
+    "adherenceGreat": "Great job this week!",
+    "adherenceMissed": "You missed some doses this week.",
+    "improveTogether": "let's improve together",
     "alerts": "Alerts",
+    "alertsTitle": "Alerts",
+    "vitalsNeedCheck": "{count} vitals need a quick check",
+    "allVitalsGood": "All vitals look good!",
+    "tapToReviewAbnormal": "Tap to review your abnormal vitals safely.",
+    "keepUpGreatWork": "Keep up the great work!",
+    "bloodPressureTitle": "Blood Pressure",
+    "noRecordsYet": "No records yet",
+    "mmHg": "mmHg",
     "alertsDescription": "Abnormal vitals needing attention.",
     "lastVital": "Last vital",
     "lastVitalDescription": "Most recent recording.",
@@ -216,6 +324,209 @@
     "exercise": "Exercise",
     "comingSoon": "{action} coming soon",
     "caregiverDashboard": "Caregiver Dashboard"
+  },
+  "vitals": {
+    "title": "Health Vitals",
+    "hero": {
+      "patientVitalsOverview": "Patient vitals overview",
+      "todaysVitalsSnapshot": "Today's vitals snapshot",
+      "checksOn": "Checks on {date}",
+      "stable": "stable {count}",
+      "needsAttention": "needs attention {count}"
+    },
+    "actions": {
+      "logVital": "Log Vital",
+      "viewTrends": "View Trends"
+    },
+    "emptyState": {
+      "noVitalsLoggedYet": "No vitals logged yet",
+      "patientNoVitalsRecorded": "This patient has no vitals recorded yet.",
+      "startTracking": "Start tracking your health vitals",
+      "noVitalsForDate": "No vitals for {date}",
+      "selectAnotherDate": "Select another date or add vitals"
+    },
+    "caregiverNotice": {
+      "noPatientsAssigned": "No patients assigned yet",
+      "noPatientsAssignedDesc": "Once you are added as a caregiver, you can review vitals for your patients here.",
+      "unableToLoadPatients": "Unable to load patients",
+      "selectPatientContinue": "Select a patient to continue",
+      "selectPatientContinueDesc": "Choose a patient from the dashboard to review their latest vitals."
+    },
+    "delete": {
+      "title": "Delete Vital Measurement",
+      "confirm": "Are you sure you want to delete this vital measurement?",
+      "cancel": "Cancel",
+      "success": "Vital measurement deleted successfully",
+      "failed": "Failed to delete vital measurement"
+    },
+    "status": {
+      "normal": {
+        "label": "Normal",
+        "message": "Blood pressure is normal."
+      },
+      "warning": {
+        "label": "Warning",
+        "message": "Blood pressure slightly high. Please monitor."
+      },
+      "danger": {
+        "label": "Danger",
+        "message": "Blood pressure is high. Doctor consultation advised."
+      },
+      "emergency": {
+        "label": "Emergency",
+        "message": "Very high blood pressure. Seek help immediately."
+      },
+      "lowBP": {
+        "label": "Low BP",
+        "message": "Blood pressure is low. Take care."
+      }
+    }
+  },
+  "caregiver": {
+    "contactTitle": "Contact Caregiver",
+    "contacting": "Contacting",
+    "myCaregiver": "My Caregiver",
+    "messageFormTitle": "Send Message",
+    "subjectLabel": "Subject (Optional)",
+    "subjectHint": "Enter subject",
+    "messageLabel": "Message",
+    "messageHint": "Type your message here...",
+    "sendButton": "Send Message",
+    "sending": "Sending...",
+    "sentSuccess": "Message sent successfully",
+    "sentError": "Failed to send message",
+    "noCaregivers": "No caregivers assigned yet."
+  },
+  "ai": {
+    "title": "AI Insights",
+    "subtitle": "AI generated personalized health advice",
+    "subtitleEmpty": "Analysis in progress",
+    "failedToLoad": "Failed to load insights",
+    "retry": "Retry",
+    "noInsightsYet": "No insights yet",
+    "noInsightsDescription": "AI insights will appear here as we analyze your health data",
+    "generateInsights": "Generate Insights",
+    "defaultInsightTitle": "Insight",
+    "recommendations": "Recommendations",
+    "markRead": "Mark Read",
+    "archive": "Archive",
+    "analyzing": "Analyzing insights...",
+    "yourInsights": "Your Insights",
+    "insightsAvailable": "{count} insights available",
+    "clearAll": "Clear all",
+    "filterInsights": "Filter Insights",
+    "type": "Type",
+    "priorityLabel": "Priority",
+    "clear": "Clear",
+    "apply": "Apply",
+    "filterOptions": {
+      "all": "All",
+      "medication": "Medication",
+      "healthTrend": "Health Trend",
+      "recommendation": "Recommendation",
+      "alert": "Alert"
+    },
+    "errors": {
+      "loadFailed": "Failed to load insights: {error}",
+      "markReadFailed": "Failed to mark as read: {error}",
+      "archiveFailed": "Failed to archive: {error}"
+    },
+    "nav": {
+      "title": "AI Features",
+      "subtitle": "Explore AI-powered health tools",
+      "chatTitle": "AI Chat",
+      "chatDesc": "Ask health questions",
+      "analysisTitle": "Analysis",
+      "analysisDesc": "Health analysis",
+      "searchTitle": "Search",
+      "searchDesc": "Semantic search",
+      "docQaTitle": "Doc QA",
+      "docQaDesc": "Ask about docs"
+    },
+    "priority": {
+      "critical": "CRITICAL",
+      "high": "HIGH",
+      "medium": "MEDIUM",
+      "low": "LOW"
+    },
+    "time": {
+      "minutesAgo": "{count}m ago",
+      "hoursAgo": "{count}h ago",
+      "yesterday": "Yesterday",
+      "daysAgo": "{count}d ago"
+    }
+  },
+  "documents": {
+    "title": "Health Documents",
+    "yourHealthVault": "Your Health Vault",
+    "sharedRecords": "Shared records",
+    "documentsCount": "Documents",
+    "upload": "Upload",
+    "actions": {
+      "uploadDocument": "Upload Document",
+      "retry": "Retry"
+    },
+    "emptyState": {
+      "noDocumentsUploadedYet": "No documents uploaded yet",
+      "patientNotShared": "This patient has not shared any records.",
+      "uploadPrescriptions": "Upload prescriptions, lab reports, and more."
+    },
+    "caregiverNotice": {
+      "noPatientsAssigned": "No patients assigned yet",
+      "noPatientsAssignedDesc": "When a patient shares their records with you, their documents will be visible here.",
+      "unableToLoadPatients": "Unable to load patients",
+      "selectPatientContinue": "Select a patient to continue",
+      "selectPatientContinueDesc": "Choose a patient from the dashboard to review their shared documents."
+    },
+    "uploadScreen": {
+      "title": "Upload Document",
+      "documentType": "Document Type",
+      "selectDocumentType": "Select document type",
+      "documentTitle": "Document Title",
+      "documentTitleHint": "Enter a descriptive title (e.g., Blood Test Result)",
+      "date": "Date",
+      "notesOptional": "Notes (Optional)",
+      "notesHint": "Add any additional details or context...",
+      "visibility": "Visibility",
+      "private": "Private (Only me)",
+      "sharedWithCaregiver": "Shared with Caregiver",
+      "public": "Public",
+      "selectFileOrImage": "Select File or Image",
+      "noFileSelected": "No file selected",
+      "selectedFile": "Selected file: {name}",
+      "changeFile": "Change File",
+      "uploadDocumentButton": "Upload Document",
+      "success": "Document uploaded successfully",
+      "fail": "Failed to upload document",
+      "uploading": "Uploading document...",
+      "selectTypeWarning": "Please select a document type",
+      "enterTitleWarning": "Please enter a title",
+      "selectFileWarning": "Please select a file to upload"
+    },
+    "viewerScreen": {
+      "details": "Details",
+      "uploadedOn": "Uploaded on: {date}",
+      "notes": "Notes",
+      "noNotes": "No notes provided.",
+      "actions": "Actions",
+      "share": "Share",
+      "download": "Download",
+      "delete": "Delete",
+      "errorLoading": "Error loading document",
+      "fileNotFound": "Document file not found",
+      "deleteTitle": "Delete Document",
+      "deleteConfirm": "Are you sure you want to delete this document? This action cannot be undone.",
+      "deleteSuccess": "Document deleted successfully",
+      "deleteFail": "Failed to delete document"
+    },
+    "types": {
+      "prescription": "Prescription",
+      "labReport": "Lab Report",
+      "xray": "X-Ray",
+      "scan": "Scan",
+      "discharge": "Discharge Summary",
+      "insurance": "Insurance",
+      "other": "Other"
+    }
   }
 }
-

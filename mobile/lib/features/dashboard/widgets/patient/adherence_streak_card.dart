@@ -22,12 +22,12 @@ class AdherenceStreakCard extends StatelessWidget {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final accent = adherencePercentage >= 90
         ? CaregiverDashboardTheme.primaryTeal
         : adherencePercentage >= 75
-            ? CaregiverDashboardTheme.accentYellow
-            : CaregiverDashboardTheme.accentCoral;
+        ? CaregiverDashboardTheme.accentYellow
+        : CaregiverDashboardTheme.accentCoral;
 
     final brightness = Theme.of(context).brightness;
     final onTint = CaregiverDashboardTheme.tintedForegroundColor(
@@ -42,7 +42,12 @@ class AdherenceStreakCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: CaregiverDashboardTheme.cardPadding(),
-      decoration: CaregiverDashboardTheme.tintedCard(context, accent),
+      decoration: CaregiverDashboardTheme.imageCardWithOverlay(
+        context,
+        //image: const AssetImage('assets/card-1.png'),
+        image: const AssetImage('assets/images/cardbackground1.jpeg'),
+        accent: accent,
+      ),
       child: Row(
         children: [
           // Left side - Streak info
@@ -58,7 +63,9 @@ class AdherenceStreakCard extends StatelessWidget {
                     Flexible(
                       child: Text(
                         'dashboard.adherenceStreak'.tr(),
-                        style: CaregiverDashboardTheme.sectionTitleStyle(context),
+                        style: CaregiverDashboardTheme.sectionTitleStyle(
+                          context,
+                        ),
                       ),
                     ),
                   ],
@@ -92,9 +99,12 @@ class AdherenceStreakCard extends StatelessWidget {
                 ),
                 SizedBox(height: 8.h),
                 Text(
-                  'patient.adherenceRate'.tr(namedArgs: {'percent': '${adherencePercentage.toInt()}'}),
-                  style: CaregiverDashboardTheme.sectionSubtitleStyle(context)
-                      .copyWith(color: onTintMuted),
+                  'patient.adherenceRate'.tr(
+                    namedArgs: {'percent': '${adherencePercentage.toInt()}'},
+                  ),
+                  style: CaregiverDashboardTheme.sectionSubtitleStyle(
+                    context,
+                  ).copyWith(color: onTintMuted),
                 ),
               ],
             ),
@@ -152,4 +162,3 @@ class AdherenceStreakCard extends StatelessWidget {
     );
   }
 }
-

@@ -10,7 +10,8 @@ class ApiService {
   bool _isRefreshing = false;
   bool _isInitializing = false;
   Completer<void>? _initCompleter;
-  final List<({RequestOptions options, Completer<Response> completer})> _pendingRequests = [];
+  final List<({RequestOptions options, Completer<Response> completer})>
+  _pendingRequests = [];
 
   // Singleton pattern
   factory ApiService() {
@@ -43,12 +44,14 @@ class ApiService {
       _log('🚀 [API] Starting initialization...');
       final baseUrl = await AppConfig.getBaseUrl();
       _log('📍 [API] Resolved Base URL: $baseUrl');
-      
+
       _dio = Dio(
         BaseOptions(
           baseUrl: baseUrl,
+          // Improved timeouts: 30s is enough for most connections
+          // even with slow email sending on registration.
           connectTimeout: const Duration(seconds: 30),
-          receiveTimeout: const Duration(seconds: 30),
+          receiveTimeout: const Duration(seconds: 45),
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
@@ -57,8 +60,10 @@ class ApiService {
       );
 
       // Verify the base URL was set correctly
-      _log('✅ [API] Dio instance created with baseUrl: ${_dio!.options.baseUrl}');
-      
+      _log(
+        '✅ [API] Dio instance created with baseUrl: ${_dio!.options.baseUrl}',
+      );
+
       _setupInterceptors();
       _log('✅ [API] API Service fully initialized');
       _initCompleter!.complete();
@@ -81,7 +86,9 @@ class ApiService {
 
   Dio get dio {
     if (_dio == null) {
-      throw StateError('API Service not initialized. Call _ensureInitialized() first.');
+      throw StateError(
+        'API Service not initialized. Call _ensureInitialized() first.',
+      );
     }
     return _dio!;
   }
@@ -105,11 +112,8 @@ class ApiService {
           final token = await _tokenService.getAccessToken();
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
-            _log('🔐 [API] Request with auth token');
-          } else {
-            _log('🔓 [API] Request without auth token');
           }
-          
+
           _logRequest(options);
           return handler.next(options);
         },
@@ -131,6 +135,12 @@ class ApiService {
   }
 
   void _logRequest(RequestOptions options) {
+    // Skip logging for medication intakes endpoint
+    if (options.path.contains('/medications/') &&
+        options.path.endsWith('/intakes')) {
+      return;
+    }
+
     print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     print('📤 [API REQUEST]');
     print('   Method: ${options.method}');
@@ -148,10 +158,18 @@ class ApiService {
   }
 
   void _logResponse(Response response) {
+    // Skip logging for medication intakes endpoint
+    if (response.requestOptions.path.contains('/medications/') &&
+        response.requestOptions.path.endsWith('/intakes')) {
+      return;
+    }
+
     print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     print('📥 [API RESPONSE]');
     print('   Status: ${response.statusCode} ${response.statusMessage}');
-    print('   URL: ${response.requestOptions.baseUrl}${response.requestOptions.path}');
+    print(
+      '   URL: ${response.requestOptions.baseUrl}${response.requestOptions.path}',
+    );
     if (response.data != null) {
       // Truncate large responses for readability
       final dataStr = response.data.toString();
@@ -165,10 +183,18 @@ class ApiService {
   }
 
   void _logError(DioException error) {
+    // Skip logging for medication intakes endpoint
+    if (error.requestOptions.path.contains('/medications/') &&
+        error.requestOptions.path.endsWith('/intakes')) {
+      return;
+    }
+
     print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     print('❌ [API ERROR]');
     print('   Type: ${error.type}');
-    print('   URL: ${error.requestOptions.baseUrl}${error.requestOptions.path}');
+    print(
+      '   URL: ${error.requestOptions.baseUrl}${error.requestOptions.path}',
+    );
     if (error.response != null) {
       print('   Status: ${error.response!.statusCode}');
       print('   Message: ${error.response!.data}');
@@ -188,10 +214,22 @@ class ApiService {
   ) async {
     // Prevent multiple simultaneous refresh attempts
     if (_isRefreshing) {
+      _log(
+        '⏳ [API] Already refreshing, queuing request: ${error.requestOptions.path}',
+      );
       // Queue this request to retry after refresh
       final completer = Completer<Response>();
-      _pendingRequests.add((options: error.requestOptions, completer: completer));
-      return completer.future.then((response) => handler.resolve(response));
+      _pendingRequests.add((
+        options: error.requestOptions,
+        completer: completer,
+      ));
+
+      try {
+        final response = await completer.future;
+        return handler.resolve(response);
+      } catch (e) {
+        return handler.reject(e is DioException ? e : error);
+      }
     }
 
     _isRefreshing = true;
@@ -199,8 +237,12 @@ class ApiService {
     try {
       final refreshToken = await _tokenService.getRefreshToken();
       if (refreshToken == null) {
-        _log('❌ [API] No refresh token available, clearing tokens');
+        _log(
+          '❌ [API] No refresh token available, clearing tokens and aborting',
+        );
         await _tokenService.clearTokens();
+        _isRefreshing = false;
+        _resolvePendingRequests(error, isError: true);
         return handler.reject(error);
       }
 
@@ -213,38 +255,72 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = response.data;
+        final newAccessToken = data['accessToken'];
+        final newRefreshToken = data['refreshToken'];
+
         await _tokenService.saveTokens(
-          accessToken: data['accessToken'],
-          refreshToken: data['refreshToken'],
+          accessToken: newAccessToken,
+          refreshToken: newRefreshToken,
         );
         _log('✅ [API] Token refresh successful');
 
         // Retry original request with new token
         final opts = error.requestOptions;
-        opts.headers['Authorization'] = 'Bearer ${data['accessToken']}';
+        opts.headers['Authorization'] = 'Bearer $newAccessToken';
         _log('🔄 [API] Retrying original request: ${opts.method} ${opts.path}');
-        final retryResponse = await dio.fetch(opts);
-
-        // Resolve all pending requests
-        _log('🔄 [API] Resolving ${_pendingRequests.length} pending requests');
-        for (final pending in _pendingRequests) {
-          pending.options.headers['Authorization'] = 'Bearer ${data['accessToken']}';
-          dio.fetch(pending.options).then(pending.completer.complete);
-        }
-        _pendingRequests.clear();
 
         _isRefreshing = false;
+        // Resolve all pending requests FIRST before retrying original to avoid blocking
+        _resolvePendingRequests(null, accessToken: newAccessToken);
+
+        final retryResponse = await dio.fetch(opts);
         return handler.resolve(retryResponse);
+      } else {
+        throw DioException(
+          requestOptions: response.requestOptions,
+          response: response,
+          type: DioExceptionType.badResponse,
+        );
       }
     } catch (e) {
       // Refresh failed - clear tokens
       _log('❌ [API] Token refresh failed: $e');
       await _tokenService.clearTokens();
+      _isRefreshing = false;
+      _resolvePendingRequests(error, isError: true);
+      return handler.reject(error);
+    } finally {
+      _isRefreshing = false;
     }
+  }
 
-    _isRefreshing = false;
+  void _resolvePendingRequests(
+    DioException? error, {
+    String? accessToken,
+    bool isError = false,
+  }) {
+    if (_pendingRequests.isEmpty) return;
+
+    _log(
+      '🔄 [API] Resolving ${_pendingRequests.length} pending requests (Error: $isError)',
+    );
+
+    for (final pending in _pendingRequests) {
+      if (isError) {
+        pending.completer.completeError(
+          error ?? Exception('Token refresh failed'),
+        );
+      } else if (accessToken != null) {
+        pending.options.headers['Authorization'] = 'Bearer $accessToken';
+        dio
+            .fetch(pending.options)
+            .then(
+              (resp) => pending.completer.complete(resp),
+              onError: (err) => pending.completer.completeError(err),
+            );
+      }
+    }
     _pendingRequests.clear();
-    return handler.reject(error);
   }
 
   // GET request
@@ -255,8 +331,9 @@ class ApiService {
   }) async {
     await _ensureInitialized();
     try {
+      final sanitizedPath = path.startsWith('/') ? path.replaceFirst('/', '') : path;
       return await dio.get(
-        path,
+        sanitizedPath,
         queryParameters: queryParameters,
         options: options,
       );
@@ -274,8 +351,9 @@ class ApiService {
   }) async {
     await _ensureInitialized();
     try {
+      final sanitizedPath = path.startsWith('/') ? path.replaceFirst('/', '') : path;
       return await dio.post(
-        path,
+        sanitizedPath,
         data: data,
         queryParameters: queryParameters,
         options: options,
@@ -294,8 +372,9 @@ class ApiService {
   }) async {
     await _ensureInitialized();
     try {
+      final sanitizedPath = path.startsWith('/') ? path.replaceFirst('/', '') : path;
       return await dio.put(
-        path,
+        sanitizedPath,
         data: data,
         queryParameters: queryParameters,
         options: options,
@@ -314,8 +393,9 @@ class ApiService {
   }) async {
     await _ensureInitialized();
     try {
+      final sanitizedPath = path.startsWith('/') ? path.replaceFirst('/', '') : path;
       return await dio.patch(
-        path,
+        sanitizedPath,
         data: data,
         queryParameters: queryParameters,
         options: options,
@@ -334,8 +414,9 @@ class ApiService {
   }) async {
     await _ensureInitialized();
     try {
+      final sanitizedPath = path.startsWith('/') ? path.replaceFirst('/', '') : path;
       return await dio.delete(
-        path,
+        sanitizedPath,
         data: data,
         queryParameters: queryParameters,
         options: options,
@@ -350,9 +431,17 @@ class ApiService {
     if (error.response != null) {
       // Server responded with error
       final statusCode = error.response!.statusCode;
-      final message = error.response!.data?['message'] ??
-          error.response!.data?['error'] ??
-          'An error occurred';
+      final responseData = error.response!.data;
+      final message = responseData is Map
+          ? (responseData['message'] ??
+                responseData['error'] ??
+                'An error occurred')
+          : (responseData?.toString() ?? 'An error occurred');
+
+      _log('❌ [API] Server error response:');
+      _log('   Status Code: $statusCode');
+      _log('   Response Data: $responseData');
+      _log('   Message: $message');
 
       switch (statusCode) {
         case 400:
@@ -367,46 +456,56 @@ class ApiService {
         case 409:
           return Exception('Conflict: $message');
         case 500:
-          return Exception('Server error: Please try again later');
+          // Include the actual error message from server if available
+          final serverMessage = message != 'An error occurred'
+              ? message
+              : 'Please try again later';
+          return Exception('Server error: $serverMessage');
         default:
           return Exception(message);
       }
     } else if (error.type == DioExceptionType.connectionTimeout ||
         error.type == DioExceptionType.receiveTimeout) {
-      return Exception('Connection timeout: Please check your internet connection');
+      return Exception(
+        'Connection timeout: Please check your internet connection',
+      );
     } else if (error.type == DioExceptionType.connectionError) {
       // Connection refused - most common issue
       final baseUrl = dio.options.baseUrl;
-      String helpfulMessage = 'Connection refused: Cannot reach server at $baseUrl\n\n';
-      
+      String helpfulMessage =
+          'Connection refused: Cannot reach server at $baseUrl\n\n';
+
       if (baseUrl.contains('localhost') || baseUrl.contains('127.0.0.1')) {
         helpfulMessage += '⚠️ TROUBLESHOOTING:\n';
         helpfulMessage += '1. Make sure your backend server is running\n';
-        helpfulMessage += '2. If using a physical device, use your computer\'s IP address instead of localhost\n';
+        helpfulMessage +=
+            '2. If using a physical device, use your computer\'s IP address instead of localhost\n';
         helpfulMessage += '   Example: http://192.168.1.100:3000/api\n';
         helpfulMessage += '3. Ensure both devices are on the same network\n';
         helpfulMessage += '4. Check firewall settings on your computer\n';
       } else if (baseUrl.contains('10.0.2.2')) {
         helpfulMessage += '⚠️ TROUBLESHOOTING:\n';
-        helpfulMessage += '1. Make sure your backend server is running on your host machine\n';
-        helpfulMessage += '2. If using Android emulator, 10.0.2.2 should work\n';
-        helpfulMessage += '3. If using physical device, set API URL to your computer\'s IP address\n';
+        helpfulMessage +=
+            '1. Make sure your backend server is running on your host machine\n';
+        helpfulMessage +=
+            '2. If using Android emulator, 10.0.2.2 should work\n';
+        helpfulMessage +=
+            '3. If using physical device, set API URL to your computer\'s IP address\n';
       } else {
         helpfulMessage += '⚠️ TROUBLESHOOTING:\n';
         helpfulMessage += '1. Verify the server is running and accessible\n';
         helpfulMessage += '2. Check the API URL is correct: $baseUrl\n';
         helpfulMessage += '3. Ensure both devices are on the same network\n';
       }
-      
+
       _log('❌ Connection Error Details:');
       _log('   URL: $baseUrl');
       _log('   Error: ${error.message}');
       _log('   Socket Error: ${error.error}');
-      
+
       return Exception(helpfulMessage);
     } else {
       return Exception('Network error: ${error.message}');
     }
   }
 }
-

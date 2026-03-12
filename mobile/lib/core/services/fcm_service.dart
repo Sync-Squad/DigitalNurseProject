@@ -7,6 +7,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:permission_handler/permission_handler.dart';
 import '../models/notification_model.dart';
+import '../../firebase_options.dart';
 
 /// Callback type for navigating to alarm screen
 typedef AlarmNavigationCallback = void Function(String? payload);
@@ -37,7 +38,9 @@ class FCMService {
 
     try {
       // Initialize Firebase if not already done
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
 
       // Initialize timezone data
       tz.initializeTimeZones();
@@ -166,13 +169,13 @@ class FCMService {
         final canScheduleExact = await androidPlugin
             ?.canScheduleExactNotifications();
         _exactAlarmPermission = canScheduleExact;
-        
+
         if (canScheduleExact == false) {
           print('Requesting exact alarm permission...');
           final exactAlarmGranted = await androidPlugin
               ?.requestExactAlarmsPermission();
           _exactAlarmPermission = exactAlarmGranted ?? false;
-          
+
           if (exactAlarmGranted == true) {
             print('✅ Exact alarm permission granted!');
           } else {
@@ -263,7 +266,8 @@ class FCMService {
     if (notification == null) return;
 
     final type = message.data['type'] ?? 'general';
-    final isMedicineReminder = type == 'medicine_reminder' || type == 'missed_dose';
+    final isMedicineReminder =
+        type == 'medicine_reminder' || type == 'missed_dose';
 
     final androidDetails = AndroidNotificationDetails(
       _getChannelId(message.data),
@@ -431,7 +435,7 @@ class FCMService {
 
       // Configure sound and vibration for medicine reminders
       final isMedicineReminder = type == NotificationType.medicineReminder;
-      
+
       final androidDetails = AndroidNotificationDetails(
         channelId,
         channelName,
@@ -490,7 +494,7 @@ class FCMService {
           print('⚠️ Exact alarm permission denied, using inexact scheduling');
           print('⚠️ Notification #$id may be delayed by 5-15 minutes');
           _exactAlarmPermission = false;
-          
+
           // Fallback to inexact scheduling
           await _localNotifications.zonedSchedule(
             id,
@@ -557,12 +561,12 @@ class FCMService {
         final canScheduleExact = await androidPlugin
             ?.canScheduleExactNotifications();
         _exactAlarmPermission = canScheduleExact;
-        
+
         if (canScheduleExact == false) {
           print('Requesting exact alarm permission...');
           final granted = await androidPlugin?.requestExactAlarmsPermission();
           _exactAlarmPermission = granted ?? false;
-          
+
           if (granted == true) {
             print('✅ Exact alarm permission granted!');
             return true;
@@ -602,7 +606,7 @@ class FCMService {
             ?.canScheduleExactNotifications();
         info['canScheduleExact'] = canScheduleExact;
         info['exactAlarmPermission'] = canScheduleExact;
-        
+
         // Check full-screen intent permission
         final fullScreenStatus = await checkFullScreenIntentPermission();
         info['fullScreenIntentPermission'] = fullScreenStatus;
@@ -637,7 +641,7 @@ class FCMService {
 
     try {
       final status = await Permission.systemAlertWindow.status;
-      
+
       if (status.isGranted) {
         print('Full-screen intent permission already granted');
         return true;
@@ -646,7 +650,7 @@ class FCMService {
       // Request the permission - this will open settings on Android 11+
       final result = await Permission.systemAlertWindow.request();
       print('Full-screen intent permission request result: $result');
-      
+
       return result.isGranted;
     } catch (e) {
       print('Error requesting full-screen intent permission: $e');
@@ -668,6 +672,6 @@ class FCMService {
 /// Background message handler (must be top-level function)
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   print('Handling background message: ${message.messageId}');
 }

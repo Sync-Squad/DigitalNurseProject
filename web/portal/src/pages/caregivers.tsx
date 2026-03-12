@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { caregivers } from "@/mocks/data"
+import { useCaregiversData } from "@/hooks/use-caregivers-data"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -36,6 +36,7 @@ export default function CaregiversPage() {
     "all"
   )
   const assignDialog = useDisclosure()
+  const { caregivers, loading, error } = useCaregiversData()
 
   const filteredCaregivers = useMemo(() => {
     return caregivers.filter((caregiver) => {
@@ -45,7 +46,7 @@ export default function CaregiversPage() {
       const matchesStatus = status === "all" || caregiver.status === status
       return matchesSearch && matchesStatus
     })
-  }, [search, status])
+  }, [search, status, caregivers])
 
   return (
     <section className="space-y-6">
@@ -157,6 +158,15 @@ export default function CaregiversPage() {
               ))}
             </TableBody>
           </Table>
+          {loading ? (
+            <div className="rounded-lg border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
+              Loading caregivers...
+            </div>
+          ) : filteredCaregivers.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
+              No caregivers found for the selected filters.
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
@@ -189,6 +199,12 @@ export default function CaregiversPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {error ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      ) : null}
     </section>
   )
 }

@@ -1,4 +1,5 @@
 import '../models/medicine_model.dart';
+import '../utils/timezone_util.dart';
 
 /// Maps backend medication response to Flutter MedicineModel
 class MedicationMapper {
@@ -282,13 +283,13 @@ class MedicationMapper {
         status = 'pending';
     }
 
+    // Convert to Pakistan timezone to ensure consistent timezone handling
     return {
-      'scheduledTime': intake.scheduledTime.toIso8601String(),
+      'scheduledTime': TimezoneUtil.toPakistanTimeIso8601(intake.scheduledTime),
       'status': status,
       if (intake.takenTime != null)
-        'takenTime': intake.takenTime!.toIso8601String(),
+        'takenTime': TimezoneUtil.toPakistanTimeIso8601(intake.takenTime!),
       if (elderUserId != null) 'elderUserId': elderUserId,
     };
   }
 }
-

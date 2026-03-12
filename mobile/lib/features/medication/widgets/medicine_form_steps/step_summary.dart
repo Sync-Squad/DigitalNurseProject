@@ -123,9 +123,7 @@ class _StepSummaryState extends State<StepSummary> {
                   onPress: onEdit,
                   child: Text(
                     'Edit',
-                    style: TextStyle(
-                      color: context.theme.colors.foreground,
-                    ),
+                    style: TextStyle(color: context.theme.colors.foreground),
                   ),
                 ),
               ],

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -10,6 +9,7 @@ import '../../../../core/extensions/activity_type_extensions.dart';
 import '../../../../core/extensions/meal_type_extensions.dart';
 import '../../../../core/providers/lifestyle_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/timezone_util.dart';
 import '../dashboard_theme.dart';
 import 'expandable_patient_card.dart';
 
@@ -21,20 +21,21 @@ class PatientLifestyleCard extends StatelessWidget {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final lifestyleProvider = context.watch<LifestyleProvider>();
-    final now = DateTime.now();
+    final now = TimezoneUtil.nowInPakistan();
     final todayStart = DateTime(now.year, now.month, now.day);
-    final todayEnd = todayStart.add(const Duration(days: 1));
 
     final todayDietLogs = lifestyleProvider.dietLogs.where((log) {
-      return log.timestamp.isAfter(todayStart) &&
-          log.timestamp.isBefore(todayEnd);
+      final pktTime = TimezoneUtil.toPakistanTime(log.timestamp);
+      final logDate = DateTime(pktTime.year, pktTime.month, pktTime.day);
+      return logDate.isAtSameMomentAs(todayStart);
     }).toList();
 
     final todayExerciseLogs = lifestyleProvider.exerciseLogs.where((log) {
-      return log.timestamp.isAfter(todayStart) &&
-          log.timestamp.isBefore(todayEnd);
+      final pktTime = TimezoneUtil.toPakistanTime(log.timestamp);
+      final logDate = DateTime(pktTime.year, pktTime.month, pktTime.day);
+      return logDate.isAtSameMomentAs(todayStart);
     }).toList();
 
     final todayTotalLogs = todayDietLogs.length + todayExerciseLogs.length;
@@ -50,10 +51,7 @@ class PatientLifestyleCard extends StatelessWidget {
       routeForViewDetails: '/lifestyle',
       expandedChild: todayTotalLogs == 0
           ? Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 18.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
               decoration: CaregiverDashboardTheme.tintedCard(
                 context,
                 CaregiverDashboardTheme.primaryTeal,
@@ -74,16 +72,16 @@ class PatientLifestyleCard extends StatelessWidget {
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
-                child: Text(
-                  'patient.noLifestyleLogs'.tr(),
-                  style: context.theme.typography.sm.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: CaregiverDashboardTheme.tintedForegroundColor(
-                      CaregiverDashboardTheme.primaryTeal,
-                      brightness: brightness,
+                    child: Text(
+                      'patient.noLifestyleLogs'.tr(),
+                      style: context.theme.typography.sm.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: CaregiverDashboardTheme.tintedForegroundColor(
+                          CaregiverDashboardTheme.primaryTeal,
+                          brightness: brightness,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
                   ),
                 ],
               ),
@@ -130,8 +128,9 @@ class PatientLifestyleCard extends StatelessWidget {
                       child: _LifestyleLogRow(
                         icon: Icons.fitness_center,
                         title: log.activityType.displayName,
-                        subtitle: '${log.durationMinutes} min, ${log.caloriesBurned} cal',
-                        value: DateFormat('h:mm a').format(log.timestamp),
+                        subtitle:
+                            '${log.durationMinutes} min, ${log.caloriesBurned} cal',
+                        value: '${log.durationMinutes} min',
                         accent: context.theme.colors.secondary,
                         onTap: () => context.push('/lifestyle'),
                       ),
@@ -183,11 +182,7 @@ class _LifestyleLogRow extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: CaregiverDashboardTheme.iconBadge(context, accent),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 22,
-            ),
+            child: Icon(icon, color: Colors.white, size: 22),
           ),
           SizedBox(width: 14.w),
           Expanded(

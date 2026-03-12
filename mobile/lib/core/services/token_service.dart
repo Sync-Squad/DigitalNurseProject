@@ -13,7 +13,9 @@ class TokenService {
     required String accessToken,
     required String refreshToken,
   }) async {
-    _log('💾 Saving tokens (access: ${accessToken.substring(0, 20)}..., refresh: ${refreshToken.substring(0, 20)}...)');
+    _log(
+      '💾 Saving tokens (access: ${accessToken.substring(0, 20)}..., refresh: ${refreshToken.substring(0, 20)}...)',
+    );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_accessTokenKey, accessToken);
     await prefs.setString(_refreshTokenKey, refreshToken);
@@ -24,11 +26,6 @@ class TokenService {
   Future<String?> getAccessToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString(_accessTokenKey);
-    if (token != null) {
-      _log('🔑 Access token found (${token.substring(0, 20)}...)');
-    } else {
-      _log('❌ No access token found');
-    }
     return token;
   }
 
@@ -62,4 +59,3 @@ class TokenService {
     return hasTokens;
   }
 }
-

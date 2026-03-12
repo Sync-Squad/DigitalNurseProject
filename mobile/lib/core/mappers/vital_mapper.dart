@@ -1,4 +1,5 @@
 import '../models/vital_measurement_model.dart';
+import '../utils/timezone_util.dart';
 
 /// Maps backend vital response to Flutter VitalMeasurementModel
 class VitalMapper {
@@ -7,7 +8,9 @@ class VitalMapper {
     // Convert type string to enum
     VitalType type = VitalType.bloodPressure;
     if (json['type'] != null || json['kindCode'] != null) {
-      final typeStr = (json['type'] ?? json['kindCode']).toString().toLowerCase();
+      final typeStr = (json['type'] ?? json['kindCode'])
+          .toString()
+          .toLowerCase();
       switch (typeStr) {
         case 'bloodpressure':
         case 'blood_pressure':
@@ -57,25 +60,33 @@ class VitalMapper {
     DateTime timestamp = DateTime.now();
     if (json['timestamp'] != null) {
       try {
-        timestamp = DateTime.parse(json['timestamp'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(
+          json['timestamp'].toString(),
+        );
       } catch (e) {
         timestamp = DateTime.now();
       }
     } else if (json['recordedAt'] != null) {
       try {
-        timestamp = DateTime.parse(json['recordedAt'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(
+          json['recordedAt'].toString(),
+        );
       } catch (e) {
         timestamp = DateTime.now();
       }
     }
 
     return VitalMeasurementModel(
-      id: json['id']?.toString() ?? json['vitalMeasurementId']?.toString() ?? '',
+      id:
+          json['id']?.toString() ??
+          json['vitalMeasurementId']?.toString() ??
+          '',
       type: type,
       value: value,
       timestamp: timestamp,
       notes: json['notes']?.toString(),
-      userId: json['userId']?.toString() ?? json['elderUserId']?.toString() ?? '',
+      userId:
+          json['userId']?.toString() ?? json['elderUserId']?.toString() ?? '',
     );
   }
 
@@ -108,10 +119,11 @@ class VitalMapper {
     }
 
     // For blood pressure, parse the value string
+    // Ensure value is always sent as a string (not a number)
     Map<String, dynamic> request = {
       'type': type,
-      'value': vital.value,
-      'timestamp': vital.timestamp.toIso8601String(),
+      'value': vital.value.toString(), // Ensure it's always a string
+      'timestamp': TimezoneUtil.toPakistanTimeIso8601(vital.timestamp),
     };
 
     if (vital.notes != null) {
@@ -119,10 +131,10 @@ class VitalMapper {
     }
 
     if (elderUserId != null && elderUserId.isNotEmpty) {
-      request['elderUserId'] = elderUserId;
+      // Ensure elderUserId is always sent as a string
+      request['elderUserId'] = elderUserId.toString();
     }
 
     return request;
   }
 }
-

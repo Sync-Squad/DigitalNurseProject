@@ -8,8 +8,12 @@ class AppTheme {
   static const Color teal = Color(0xFF008080); // Primary teal
   static const Color tealLight = Color(0xFF66B2B2); // Lighter variant
   static const Color tealDark = Color(0xFF006666); // Darker variant
-  static const Color tealDarker = Color(0xFF004C4C); // Even darker for dark mode
-  static const Color tealLighter = Color(0xFFB2D8D8); // Very light teal for accents
+  static const Color tealDarker = Color(
+    0xFF004C4C,
+  ); // Even darker for dark mode
+  static const Color tealLighter = Color(
+    0xFFB2D8D8,
+  ); // Very light teal for accents
 
   // Light mode colors
   static const Color lightBackground = Color(0xFFF8F9FE);
@@ -22,8 +26,11 @@ class AppTheme {
   static const Color darkSurfaceVariant = Color(0xFF2A3142);
 
   // Apple Green Color (Secondary)
+  // RULE: appleGreen is the standard button color with white text
   static const Color appleGreen = Color(0xFF7FD991); // Apple green
-  
+  static const Color buttonTextColor =
+      Colors.white; // Standard button text color
+
   // Blue Color (Tertiary)
   static const Color blueTertiary = Color(0xFF3B82F6); // Blue tertiary
 
@@ -70,7 +77,7 @@ class AppTheme {
     final colors = _lightColors;
     final typography = FThemes.zinc.light.typography;
     final fStyle = FThemes.zinc.light.style;
-    
+
     return FThemes.zinc.light.copyWith(
       colors: colors,
       buttonStyles: buttonStyles(
@@ -96,7 +103,7 @@ class AppTheme {
     final colors = _darkColors;
     final typography = FThemes.zinc.dark.typography;
     final fStyle = FThemes.zinc.dark.style;
-    
+
     return FThemes.zinc.dark.copyWith(
       colors: colors,
       buttonStyles: buttonStyles(

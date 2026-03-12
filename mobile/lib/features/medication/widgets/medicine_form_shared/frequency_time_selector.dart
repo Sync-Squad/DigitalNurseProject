@@ -131,9 +131,7 @@ class _TimePickerDialogState extends State<TimePickerDialog> {
           onPress: () => Navigator.of(context).pop(),
           child: Text(
             'Cancel',
-            style: TextStyle(
-              color: context.theme.colors.foreground,
-            ),
+            style: TextStyle(color: context.theme.colors.foreground),
           ),
         ),
         FButton(

@@ -24,21 +24,27 @@ import {
   FileText,
   HeartPulse,
   Pill,
+  Search,
   Shield,
   Stethoscope,
   Users,
 } from "lucide-react"
-import {
-  documents as documentMocks,
-  notificationTemplates,
-  notifications,
-  patientRoster,
-  patientWorkspace,
-  vitalTrend,
-} from "@/mocks/data"
+import { notificationTemplates } from "@/mocks/data"
 import { VitalsTrendCard } from "@/components/dashboard/vitals-trend-card"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { usePatientsData } from "@/hooks/use-patients-data"
+import { usePatientWorkspaceData } from "@/hooks/use-patient-workspace-data"
+import { useState } from "react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { Video } from "lucide-react"
 
 const riskTone = {
   low: "bg-emerald-500/10 text-emerald-600",
@@ -49,22 +55,116 @@ const riskTone = {
 
 export default function PatientWorkspacePage() {
   const { slug } = useParams<{ slug: string }>()
-  const rosterPatient = patientRoster.find((patient) => patient.slug === slug)
-
-  const workspace = slug === "ayesha-khan" ? patientWorkspace : undefined
-
-  const fallbackDocuments = useMemo(
-    () =>
-      documentMocks.filter((doc) => doc.patient === rosterPatient?.name),
-    [rosterPatient?.name]
+  const { patients, loading: patientsLoading, error: patientsError } = usePatientsData()
+  const rosterPatient = useMemo(
+    () => patients.find((patient) => patient.slug === slug),
+    [patients, slug],
   )
-  const documents = workspace?.documents ?? fallbackDocuments
-  const careTeam = workspace?.careTeam ?? []
-  const medications = workspace?.medications ?? []
-  const medicationLog = workspace?.medicationLog ?? []
-  const vitalsRecent = workspace?.vitals?.recent ?? []
-  const abnormalEvents = workspace?.vitals?.abnormalEvents ?? []
+  const {
+    data: workspace,
+    loading: workspaceLoading,
+    error: workspaceError,
+  } = usePatientWorkspaceData(rosterPatient?.id, {
+    careTeamNames: rosterPatient?.careTeam,
+  })
+
+  const demographics = workspace?.demographics || {
+    name: rosterPatient?.name || "Patient",
+    age: rosterPatient?.age ?? null,
+    gender: null,
+    subscription: rosterPatient?.subscription || "Essential",
+    riskLevel: rosterPatient?.risk || "low",
+    emergencyContact: null,
+    lastSynced: rosterPatient?.lastActivity || "",
+  }
+
+  const [isTelevisitOpen, setIsTelevisitOpen] = useState(false)
+  const [abnormalSearch, setAbnormalSearch] = useState("")
+
+  const handleDownloadSummary = () => {
+    const summary = `
+Patient Summary: ${demographics.name}
+Age: ${demographics.age ?? '—'}
+Risk level: ${demographics.riskLevel}
+Subscription: ${demographics.subscription}
+Last Synced: ${lastSynced}
+
+Vitals Overview:
+${vitalsRecent.map(v => `- ${v.type}: ${v.value} (${v.status})`).join('\n')}
+
+Medications:
+${medications.map(m => `- ${m.name}: ${m.dosage} (${m.adherence}% adherence)`).join('\n')}
+
+Emergency Contact: ${demographics.emergencyContact ?? 'No contact listed'}
+    `.trim();
+
+    const blob = new Blob([summary], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${demographics.name.replace(/\s+/g, '_')}_Summary.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleStartTelevisit = () => {
+    setIsTelevisitOpen(true)
+  }
+
+  const careTeam =
+    workspace?.careTeam ||
+    (rosterPatient?.careTeam || []).map((member) => ({
+      name: member,
+      role: "Caregiver",
+      status: "Active",
+    }))
+
+  const medications = workspace?.medications || []
+  const medicationLog = workspace?.medicationLog || []
+  const vitalsRecent = workspace?.vitalsRecent || []
+  const abnormalEvents = workspace?.abnormalEvents || []
+  const documents = workspace?.documents || []
+  const notificationsList = workspace?.notifications || []
+
+  const vitalTrendData = (vitalsRecent || []).map((vital, index) => {
+    const v1 = parseFloat(String(vital.value1 || (Array.isArray(vital.value) ? vital.value[0] : vital.value)));
+    const v2 = parseFloat(String(vital.value2 || 0));
+    const type = String(vital.type).toLowerCase();
+
+    return {
+      date: `Day ${index + 1}`,
+      systolic: type.includes("pressure") ? v1 : 0,
+      diastolic: type.includes("pressure") ? v2 : 0,
+      heartRate: type.includes("heart") ? v1 : 0,
+      value: v1 // Fallback for other vitals
+    }
+  })
+
+  const riskKey = (demographics.riskLevel || "low").toLowerCase() as keyof typeof riskTone
+  const lastSynced = demographics.lastSynced
+    ? new Date(demographics.lastSynced).toLocaleString()
+    : rosterPatient?.lastActivity || ""
   const lifestyle = workspace?.lifestyle
+
+  const filteredAbnormal = useMemo(() => {
+    return abnormalEvents.filter(event =>
+      event.type.toLowerCase().includes(abnormalSearch.toLowerCase()) ||
+      event.note.toLowerCase().includes(abnormalSearch.toLowerCase()) ||
+      event.status.toLowerCase().includes(abnormalSearch.toLowerCase())
+    )
+  }, [abnormalEvents, abnormalSearch])
+
+  if (patientsLoading) {
+    return (
+      <section className="space-y-6">
+        <div className="rounded-lg border border-dashed border-border/60 p-6 text-sm text-muted-foreground">
+          Loading patient directory...
+        </div>
+      </section>
+    )
+  }
 
   if (!rosterPatient) {
     return <Navigate to="/patients" replace />
@@ -77,24 +177,22 @@ export default function PatientWorkspacePage() {
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-3xl font-semibold tracking-tight">
-                {workspace?.demographics.name ?? rosterPatient.name}
+                {demographics.name}
               </h1>
               <Badge variant="outline">
-                {workspace?.demographics.subscription ?? rosterPatient.subscription} plan
+                {demographics.subscription} plan
               </Badge>
-              <Badge className={cn("uppercase", riskTone[rosterPatient.risk])}>
-                {workspace?.demographics.riskLevel ?? rosterPatient.risk}
+              <Badge className={cn("uppercase", riskTone[riskKey])}>
+                {demographics.riskLevel}
               </Badge>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              {workspace
-                ? `Age ${workspace.demographics.age} · ${workspace.demographics.gender} · Last synced ${workspace.demographics.lastSynced}`
-                : `Age ${rosterPatient.age} · Last activity ${rosterPatient.lastActivity}`}
+              {`Age ${demographics.age ?? "—"}${demographics.gender ? ` · ${demographics.gender}` : ""} · Last synced ${lastSynced}`}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Button variant="outline">Download summary</Button>
-            <Button className="gap-2">
+            <Button variant="outline" onClick={handleDownloadSummary}>Download summary</Button>
+            <Button className="gap-2" onClick={handleStartTelevisit}>
               <Stethoscope className="size-4" />
               Start televisit
             </Button>
@@ -104,19 +202,18 @@ export default function PatientWorkspacePage() {
           <InfoTile
             icon={<Users className="size-4 text-primary" />}
             label="Care team"
-            value={`${careTeam.length || rosterPatient.careTeam.length} members`}
+            value={`${careTeam.length} members`}
           />
           <InfoTile
             icon={<Pill className="size-4 text-primary" />}
             label="Medication adherence"
-            value={`${
-              medications.length
-                ? Math.round(
-                    medications.reduce((acc, med) => acc + med.adherence, 0) /
-                      medications.length
-                  )
-                : rosterPatient.adherence
-            }%`}
+            value={`${medications.length
+              ? Math.round(
+                medications.reduce((acc, med) => acc + med.adherence, 0) /
+                medications.length
+              )
+              : rosterPatient.adherence
+              }%`}
           />
           <InfoTile
             icon={<HeartPulse className="size-4 text-primary" />}
@@ -132,6 +229,12 @@ export default function PatientWorkspacePage() {
         </div>
       </header>
 
+      {(patientsError || workspaceError) ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          {patientsError || workspaceError}
+        </div>
+      ) : null}
+
       <Tabs defaultValue="medications" className="space-y-6">
         <TabsList className="flex w-full justify-start gap-2 overflow-x-auto bg-muted/40 p-1">
           <TabsTrigger value="medications">Medications</TabsTrigger>
@@ -143,7 +246,11 @@ export default function PatientWorkspacePage() {
         </TabsList>
 
         <TabsContent value="medications" className="space-y-4">
-          {workspace ? (
+          {workspaceLoading ? (
+            <div className="rounded-lg border border-dashed border-border/60 p-6 text-sm text-muted-foreground">
+              Loading medications...
+            </div>
+          ) : medications.length ? (
             <>
               <Card>
                 <CardHeader>
@@ -218,14 +325,14 @@ export default function PatientWorkspacePage() {
           ) : (
             <EmptyState
               title="No detailed medication data"
-              description="This mock dataset currently highlights Ayesha Khan. Additional patient detail views can be mapped as backend integration progresses."
+              description="This patient does not have medication history yet."
             />
           )}
         </TabsContent>
 
         <TabsContent value="vitals" className="space-y-4">
-          <div className="grid gap-4 lg:grid-cols-5">
-            <VitalsTrendCard data={vitalTrend} />
+          <div className="grid gap-4 lg:grid-cols-4">
+            <VitalsTrendCard data={vitalTrendData} />
             <Card className="lg:col-span-1">
               <CardHeader>
                 <CardTitle className="text-sm font-semibold text-muted-foreground">
@@ -233,50 +340,111 @@ export default function PatientWorkspacePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {vitalsRecent.map((vital) => (
+                {vitalsRecent.map((vital, index) => (
                   <div
-                    key={vital.type}
+                    key={`${vital.type}-${index}`}
                     className="rounded-lg border border-border/60 p-3 text-sm"
                   >
-                    <p className="font-medium">{vital.type}</p>
-                    <p className="text-muted-foreground">{vital.value}</p>
-                    <Badge variant="outline" className="mt-2">
+                    <div className="flex items-center justify-between">
+                      <p className="font-medium">{vital.type}</p>
+                      <span className="text-[10px] text-muted-foreground">
+                        {new Date(vital.recordedAt).toLocaleString([], {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                    <div className="mt-1 flex items-baseline gap-1">
+                      <p className="text-lg font-semibold">{vital.value}</p>
+                      <span className="text-[10px] font-medium uppercase text-muted-foreground">
+                        {vital.unit}
+                      </span>
+                    </div>
+                    {vital.notes && (
+                      <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground/80 italic">
+                        &quot;{vital.notes}&quot;
+                      </p>
+                    )}
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "mt-2 uppercase text-[10px]",
+                        vital.status === "High" || vital.status === "Low"
+                          ? "border-rose-500/50 bg-rose-500/10 text-rose-600"
+                          : "border-emerald-500/50 bg-emerald-500/10 text-emerald-600"
+                      )}
+                    >
                       {vital.status}
                     </Badge>
                   </div>
                 ))}
               </CardContent>
             </Card>
+            <Card className="lg:col-span-1 h-[450px] overflow-hidden flex flex-col">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-semibold text-muted-foreground">
+                    Abnormal events
+                  </CardTitle>
+                  <Badge variant="secondary" className="text-[10px]">
+                    {filteredAbnormal.length}
+                  </Badge>
+                </div>
+                <div className="relative mt-2">
+                  <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                  <input
+                    placeholder="Filter events..."
+                    className="w-full rounded-md border border-input bg-background pl-8 py-1.5 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={abnormalSearch}
+                    onChange={(e) => setAbnormalSearch(e.target.value)}
+                  />
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1 overflow-y-auto">
+                {filteredAbnormal.length ? (
+                  <Accordion type="single" collapsible className="w-full">
+                    {filteredAbnormal.map((event) => (
+                      <AccordionItem key={event.id} value={event.id} className="border-b border-border/40 last:border-0">
+                        <AccordionTrigger className="py-3 text-left hover:no-underline">
+                          <div className="flex flex-col gap-1 pr-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold">{event.type}</span>
+                              <Badge className={cn("text-[9px] px-1 h-3.5 uppercase",
+                                event.status === "High" ? "bg-rose-500/10 text-rose-600 border-rose-500/20" : "bg-amber-500/10 text-amber-600 border-amber-500/20")}>
+                                {event.status}
+                              </Badge>
+                            </div>
+                            <span className="text-[10px] text-muted-foreground">
+                              {new Date(event.recordedAt).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="text-[11px] leading-relaxed text-muted-foreground pb-4">
+                          <div className="rounded-lg bg-muted/30 p-2 space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span>Value: <span className="font-medium text-foreground">{event.value} {event.unit}</span></span>
+                              <Badge variant="outline" className="text-[9px] h-4">Active</Badge>
+                            </div>
+                            <p className="border-t border-border/40 pt-2 italic leading-normal">
+                              {event.note}
+                            </p>
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-full py-8 text-center">
+                    <p className="text-xs text-muted-foreground italic">
+                      {abnormalSearch ? "No events match your filter" : "All readings stable"}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-semibold text-muted-foreground">
-                Abnormal events
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {abnormalEvents.length ? (
-                <Accordion type="single" collapsible>
-                  {abnormalEvents.map((event) => (
-                    <AccordionItem key={event.id} value={event.id}>
-                      <AccordionTrigger>
-                        {new Date(event.recordedAt).toLocaleString()}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <p className="text-sm text-muted-foreground">
-                          {event.note}
-                        </p>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No abnormal readings captured in the selected period.
-                </p>
-              )}
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="lifestyle" className="space-y-4">
@@ -381,7 +549,7 @@ export default function PatientWorkspacePage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {notifications.slice(0, 4).map((notification) => (
+              {notificationsList.slice(0, 4).map((notification) => (
                 <div
                   key={notification.id}
                   className="rounded-xl border border-border/70 bg-muted/20 p-3"
@@ -457,6 +625,40 @@ export default function PatientWorkspacePage() {
         </Link>
         .
       </div>
+
+      <Dialog open={isTelevisitOpen} onOpenChange={setIsTelevisitOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Start Televisit</DialogTitle>
+            <DialogDescription>
+              Connect with {demographics.name} via a secure video consultation.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col items-center justify-center gap-6 py-8">
+            <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-primary/10">
+              <Video className="h-12 w-12 text-primary animate-pulse" />
+              <div className="absolute inset-0 rounded-full border-4 border-primary/20 animate-ping" />
+            </div>
+            <div className="space-y-2 text-center">
+              <p className="text-sm font-medium">Ready to start the session</p>
+              <p className="text-xs text-muted-foreground">
+                Ensure your camera and microphone are accessible.
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-center gap-2">
+            <Button variant="outline" onClick={() => setIsTelevisitOpen(false)}>
+              Cancel
+            </Button>
+            <Button className="gap-2" onClick={() => {
+              window.open(`https://meet.jit.si/DigitalNurse-${demographics.name.replace(/\s+/g, '-')}`, '_blank');
+              setIsTelevisitOpen(false);
+            }}>
+              Join Call Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }

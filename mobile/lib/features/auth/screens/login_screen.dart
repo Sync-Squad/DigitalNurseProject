@@ -20,7 +20,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   final bool _obscurePassword = true;
@@ -31,30 +31,13 @@ class _LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     _checkBiometricAvailability();
-    // Add phone number formatter
-    _phoneController.addListener(_formatPhoneInput);
-  }
-
-  void _formatPhoneInput() {
-    final text = _phoneController.text;
-    if (text.isEmpty) return;
-    
-    // If text doesn't start with +92, format it
-    if (!text.startsWith('+92')) {
-      final formatted = _formatPhoneNumber(text);
-      if (formatted != text) {
-        _phoneController.value = TextEditingValue(
-          text: formatted,
-          selection: TextSelection.collapsed(offset: formatted.length),
-        );
-      }
-    }
   }
 
   Future<void> _checkBiometricAvailability() async {
     final authProvider = context.read<AuthProvider>();
     // Check if biometric is available for any user
-    final isAvailable = await authProvider.isBiometricLoginAvailableForAnyUser();
+    final isAvailable = await authProvider
+        .isBiometricLoginAvailableForAnyUser();
     if (mounted) {
       setState(() {
         _biometricAvailable = isAvailable;
@@ -64,59 +47,44 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _phoneController.removeListener(_formatPhoneInput);
-    _phoneController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  /// Format phone number to include +92 prefix if not already present
-  String _formatPhoneNumber(String phone) {
-    // Remove any whitespace
-    String cleaned = phone.trim().replaceAll(RegExp(r'\s+'), '');
-    
-    // If already starts with +92, return as is
-    if (cleaned.startsWith('+92')) {
-      return cleaned;
-    }
-    
-    // If starts with 92 (without +), add +
-    if (cleaned.startsWith('92')) {
-      return '+$cleaned';
-    }
-    
-    // If starts with 0, replace 0 with +92
-    if (cleaned.startsWith('0')) {
-      return '+92${cleaned.substring(1)}';
-    }
-    
-    // Otherwise, add +92 prefix
-    return '+92$cleaned';
-  }
-
   Future<void> _handleLogin() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    // Manual validation as FTextField might not trigger FormState validation correctly
+    if (email.isEmpty) {
+      _showErrorSnackBar('auth.login.emailRequired'.tr());
+      return;
+    }
+
+    if (password.isEmpty) {
+      _showErrorSnackBar('auth.login.passwordRequired'.tr());
+      return;
+    }
+
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = context.read<AuthProvider>();
-    
-    // Format phone number to include +92 prefix
-    final formattedPhone = _formatPhoneNumber(_phoneController.text.trim());
-    
-    final success = await authProvider.login(
-      formattedPhone,
-      _passwordController.text,
-    );
+
+    final success = await authProvider.login(email, password);
 
     if (mounted) {
       if (success) {
         final currentUser = authProvider.currentUser;
         if (currentUser != null) {
           // Show biometric enable dialog if biometric is available and not already enabled
-          final biometricAvailable = await authProvider.isBiometricLoginAvailable(currentUser.id);
+          final biometricAvailable = await authProvider
+              .isBiometricLoginAvailable(currentUser.id);
           if (!biometricAvailable) {
             // Check if device supports biometric
             final biometricService = BiometricService();
-            final deviceSupportsBiometric = await biometricService.isAvailable();
+            final deviceSupportsBiometric = await biometricService
+                .isAvailable();
             if (deviceSupportsBiometric) {
               // Show prompt to enable biometric login
               await _showBiometricEnableDialog(currentUser.id);
@@ -125,24 +93,33 @@ class _LoginScreenState extends State<LoginScreen> {
         }
         context.go('/home');
       } else {
-        _showErrorSnackBar(authProvider.error ?? 'Login failed');
+        final error = authProvider.error ?? 'Login failed';
+        // Check if error is about unverified email
+        if (error.toLowerCase().contains('verify your email') ||
+            error.toLowerCase().contains('email not verified')) {
+          await _showEmailVerificationDialog();
+        } else {
+          _showErrorSnackBar(error);
+        }
       }
     }
   }
 
   Future<void> _handleBiometricLogin() async {
     final authProvider = context.read<AuthProvider>();
-    
+
     // Get list of users with biometric enabled
     final userIds = await authProvider.getUsersWithBiometricEnabled();
-    
+
     if (userIds.isEmpty) {
-      _showErrorSnackBar('No biometric login set up. Please login with your phone and password first, then you can enable biometric login for faster access.');
+      _showErrorSnackBar(
+        'No biometric login set up. Please login with your email and password first, then you can enable biometric login for faster access.',
+      );
       return;
     }
-    
+
     String? selectedUserId;
-    
+
     // If multiple users, show selection dialog
     if (userIds.length > 1) {
       selectedUserId = await _showUserSelectionDialog(userIds);
@@ -154,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
       // Single user, use that userId
       selectedUserId = userIds.first;
     }
-    
+
     // Proceed with biometric login for selected user
     final success = await authProvider.loginWithBiometrics(selectedUserId);
 
@@ -162,30 +139,65 @@ class _LoginScreenState extends State<LoginScreen> {
       if (success) {
         context.go('/home');
       } else {
-        final errorMessage = authProvider.error ?? 'Biometric authentication failed or cancelled';
+        final errorMessage =
+            authProvider.error ??
+            'Biometric authentication failed or cancelled';
         String userFriendlyMessage;
-        
+
         if (errorMessage.contains('No saved credentials')) {
-          userFriendlyMessage = 'No saved credentials found for this account.\n\nPlease login with phone and password first, then enable biometric login.';
+          userFriendlyMessage =
+              'No saved credentials found for this account.\n\nPlease login with email and password first, then enable biometric login.';
         } else if (errorMessage.contains('not enabled')) {
-          userFriendlyMessage = 'Biometric login is not enabled for this account.\n\nPlease login with phone and password and enable biometric login.';
+          userFriendlyMessage =
+              'Biometric login is not enabled for this account.\n\nPlease login with email and password and enable biometric login.';
         } else if (errorMessage.contains('cancelled')) {
-          userFriendlyMessage = 'Biometric authentication was cancelled.\n\nPlease try again.';
+          userFriendlyMessage =
+              'Biometric authentication was cancelled.\n\nPlease try again.';
         } else if (errorMessage.contains('Invalid saved credentials')) {
-          userFriendlyMessage = 'Saved credentials are invalid.\n\nPlease login with phone and password again to update your biometric login.';
+          userFriendlyMessage =
+              'Saved credentials are invalid.\n\nPlease login with email and password again to update your biometric login.';
         } else {
           userFriendlyMessage = errorMessage;
         }
-        
+
         _showErrorSnackBar(userFriendlyMessage);
       }
     }
   }
 
+  Future<void> _showEmailVerificationDialog() async {
+    // Try to get email from user - we'll need to fetch it or ask user
+    // For now, show a dialog with option to resend
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Email Not Verified'),
+        content: const Text(
+          'Please verify your email address before logging in. Check your inbox for the verification email, or click "Resend" to send a new one.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              // Navigate to email verification screen
+              // We'll need email, but we can ask user or try to get from backend
+              context.go('/email-verification');
+            },
+            child: const Text('Resend Email'),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showErrorSnackBar(String message) {
     // Extract user-friendly error message
     String errorMessage = message;
-    
+
     // Remove common prefixes
     if (errorMessage.contains('Unauthorized:')) {
       errorMessage = errorMessage.split('Unauthorized:').last.trim();
@@ -193,12 +205,12 @@ class _LoginScreenState extends State<LoginScreen> {
     if (errorMessage.contains('Exception: ')) {
       errorMessage = errorMessage.replaceFirst('Exception: ', '');
     }
-    
+
     // If message is empty or generic, use a default message
     if (errorMessage.isEmpty || errorMessage == 'Login failed') {
-      errorMessage = 'Invalid phone number or password. Please try again.';
+      errorMessage = 'Invalid email address or password. Please try again.';
     }
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(errorMessage),
@@ -231,14 +243,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 final authProvider = context.read<AuthProvider>();
                 final currentUser = authProvider.currentUser;
                 if (currentUser != null) {
-                  final success = await authProvider.saveCredentialsForBiometric(
-                    userId: userId,
-                    phone: _formatPhoneNumber(_phoneController.text.trim()),
-                    password: _passwordController.text,
-                  );
+                  final success = await authProvider
+                      .saveCredentialsForBiometric(
+                        userId: userId,
+                        phone: _emailController.text
+                            .trim(), // Using email as identifier
+                        password: _passwordController.text,
+                      );
                   if (mounted && success) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Biometric login enabled successfully')),
+                      SnackBar(
+                        content: Text('Biometric login enabled successfully'),
+                      ),
                     );
                   }
                 }
@@ -257,7 +273,7 @@ class _LoginScreenState extends State<LoginScreen> {
   /// Show dialog to select which user to login with (for multi-user scenarios)
   Future<String?> _showUserSelectionDialog(List<String> userIds) async {
     final secureStorage = SecureStorageService();
-    
+
     // Get phone numbers for each user
     final List<Map<String, String>> users = [];
     for (final userId in userIds) {
@@ -266,11 +282,11 @@ class _LoginScreenState extends State<LoginScreen> {
         users.add({'userId': userId, 'phone': phone});
       }
     }
-    
+
     if (users.isEmpty) {
       return null;
     }
-    
+
     return showDialog<String>(
       context: context,
       builder: (BuildContext context) {
@@ -317,7 +333,7 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(height: 40.h),
-                
+
                 // Hero section with logo/title
                 Container(
                   decoration: ModernSurfaceTheme.heroDecoration(context),
@@ -326,28 +342,24 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       SizedBox(height: 20.h),
                       // Logo/Icon
-                      Icon(
-                        FIcons.heartPulse,
-                        size: 80.r,
-                        color: Colors.white,
-                      ),
+                      Icon(FIcons.heartPulse, size: 80.r, color: Colors.white),
                       SizedBox(height: ModernSurfaceTheme.heroSpacing()),
 
                       // Title
                       Text(
                         'app.name'.tr(),
-                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                        style: Theme.of(context).textTheme.headlineLarge
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 8.h),
                       Text(
                         'auth.login.welcomeBack'.tr(),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: Colors.white.withOpacity(0.9)),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 20.h),
@@ -358,17 +370,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Form container with glassmorphic card
                 Container(
-                  decoration: ModernSurfaceTheme.glassCard(context, highlighted: true),
+                  decoration: ModernSurfaceTheme.glassCard(
+                    context,
+                    highlighted: true,
+                  ),
                   padding: ModernSurfaceTheme.cardPadding(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Phone field
+                      // Email field
                       FTextField(
-                        controller: _phoneController,
-                        label: Text('auth.login.phone'.tr()),
-                        hint: 'Enter phone number (e.g., 03001234567)',
-                        keyboardType: TextInputType.phone,
+                        controller: _emailController,
+                        label: Text('auth.login.email'.tr()),
+                        hint: 'auth.login.emailHint'.tr(),
+                        keyboardType: TextInputType.emailAddress,
                       ),
                       SizedBox(height: 20.h),
 
@@ -379,7 +394,43 @@ class _LoginScreenState extends State<LoginScreen> {
                         hint: 'auth.login.passwordHint'.tr(),
                         obscureText: _obscurePassword,
                       ),
-                      SizedBox(height: 28.h),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () async {
+                            final email = _emailController.text.trim();
+                            if (email.isEmpty) {
+                              _showErrorSnackBar(
+                                'auth.login.emailRequired'.tr(),
+                              );
+                              return;
+                            }
+
+                            final success = await context
+                                .read<AuthProvider>()
+                                .forgotPassword(email);
+                            if (mounted && success) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('auth.login.emailSent'.tr()),
+                                  backgroundColor: AppTheme.getSuccessColor(
+                                    context,
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Text(
+                            'auth.login.forgotPassword'.tr(),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: AppTheme.appleGreen,
+                                  decoration: TextDecoration.underline,
+                                ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
 
                       // Login button with modern pill style
                       Container(
@@ -401,17 +452,21 @@ class _LoginScreenState extends State<LoginScreen> {
                                       height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white,
-                                        ),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
                                       ),
                                     )
                                   : Text(
                                       'auth.login.loginButton'.tr(),
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
                             ),
                           ),
@@ -429,9 +484,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Text(
                           'or',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                         SizedBox(height: 16.h),
                         Container(
@@ -445,7 +503,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           child: Material(
                             color: Colors.transparent,
                             child: InkWell(
-                              onTap: authProvider.isLoading ? null : _handleBiometricLogin,
+                              onTap: authProvider.isLoading
+                                  ? null
+                                  : _handleBiometricLogin,
                               borderRadius: BorderRadius.circular(30),
                               child: Container(
                                 padding: EdgeInsets.all(16.w),
@@ -461,9 +521,12 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(height: 8.h),
                         Text(
                           'Use Biometric Login',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ],
                     ),
@@ -497,15 +560,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                 SizedBox(width: 8.w),
                                 Text(
                                   'Test Credentials',
-                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                               ],
                             ),
                             Icon(
-                              _showTestCredentials ? Icons.expand_less : Icons.expand_more,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              _showTestCredentials
+                                  ? Icons.expand_less
+                                  : Icons.expand_more,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
                             ),
                           ],
                         ),
@@ -514,13 +580,21 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(height: 16.h),
                         Divider(),
                         SizedBox(height: 12.h),
-                        _buildTestCredential('Patient User', '+923001234567', 'password123'),
+                        _buildTestCredential(
+                          'Patient User',
+                          'patient@example.com',
+                          'password123',
+                        ),
                         SizedBox(height: 12.h),
-                        _buildTestCredential('Caregiver User', '+923007654321', 'password123'),
+                        _buildTestCredential(
+                          'Caregiver User',
+                          'caregiver@example.com',
+                          'password123',
+                        ),
                         SizedBox(height: 8.h),
                         TextButton(
                           onPressed: () {
-                            _phoneController.text = '+923001234567';
+                            _emailController.text = 'patient@example.com';
                             _passwordController.text = 'password123';
                             setState(() {
                               _showTestCredentials = false;
@@ -537,7 +611,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         SizedBox(height: 8.h),
                         TextButton(
                           onPressed: () {
-                            _phoneController.text = '+923007654321';
+                            _emailController.text = 'caregiver@example.com';
                             _passwordController.text = 'password123';
                             setState(() {
                               _showTestCredentials = false;
@@ -570,7 +644,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextButton(
                       onPressed: () => context.go('/register'),
                       style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
+                        ),
                       ),
                       child: Text(
                         'auth.login.registerLink'.tr(),
@@ -591,7 +668,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildTestCredential(String label, String phone, String password) {
+  Widget _buildTestCredential(String label, String email, String password) {
     return Container(
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
@@ -603,15 +680,12 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           Text(
             label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
           ),
           SizedBox(height: 4.h),
-          Text(
-            'Phone: $phone',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          Text('Email: $email', style: Theme.of(context).textTheme.bodySmall),
           Text(
             'Password: $password',
             style: Theme.of(context).textTheme.bodySmall,

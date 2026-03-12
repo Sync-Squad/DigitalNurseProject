@@ -67,21 +67,23 @@ class VitalMeasurementModel {
           final systolic = int.tryParse(parts[0]) ?? 0;
           final diastolic = int.tryParse(parts[1]) ?? 0;
 
-          // Danger: >140 / >90 mmHg OR <80 / <50 mmHg
-          if (systolic > 140 ||
-              systolic < 80 ||
-              diastolic > 90 ||
-              diastolic < 50) {
+          // Emergency: Systolic ≥ 180 OR Diastolic ≥ 120
+          if (systolic >= 180 || diastolic >= 120) {
+            return VitalHealthStatus.emergency;
+          }
+          // Low BP: Systolic < 90 OR Diastolic < 60
+          if (systolic < 90 || diastolic < 60) {
+            return VitalHealthStatus.lowBP;
+          }
+          // Danger: Systolic 140-179 OR Diastolic 90-119
+          if (systolic >= 140 || diastolic >= 90) {
             return VitalHealthStatus.danger;
           }
-          // Warning: 121-140 / 81-90 mmHg OR 80-89 / 50-59 mmHg
-          if (systolic > 120 ||
-              systolic < 90 ||
-              diastolic > 80 ||
-              diastolic < 60) {
+          // Warning: Systolic 121-139 OR Diastolic 81-89
+          if (systolic > 120 || diastolic > 80) {
             return VitalHealthStatus.warning;
           }
-          // Normal: 90-120 / 60-80 mmHg
+          // Normal: Systolic 90-120 AND Diastolic 60-80
           return VitalHealthStatus.normal;
         }
         return VitalHealthStatus.normal;
@@ -149,6 +151,8 @@ enum VitalHealthStatus {
   normal, // Green
   warning, // Orange
   danger, // Red
+  emergency, // Dark Red (Hypertensive Crisis)
+  lowBP, // Blue/Purple (Hypotension)
 }
 
 enum VitalType {
@@ -159,4 +163,3 @@ enum VitalType {
   oxygenSaturation,
   weight,
 }
-

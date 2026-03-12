@@ -78,12 +78,11 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen> {
         } else {
           value = double.tryParse(measurement.value) ?? 0;
         }
-        
+
         if (value > 0) {
-          dataPoints.add(_ChartDataPoint(
-            date: measurement.timestamp,
-            value: value,
-          ));
+          dataPoints.add(
+            _ChartDataPoint(date: measurement.timestamp, value: value),
+          );
         }
       }
     }
@@ -98,7 +97,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen> {
     if (chartData.isEmpty) return {};
 
     final Map<String, List<double>> groupedData = {};
-    
+
     for (final point in chartData) {
       final key = DateFormat('MM/dd').format(point.date);
       groupedData.putIfAbsent(key, () => []);
@@ -148,6 +147,8 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              _TrendsHero(selectedType: _selectedType, days: _selectedDays),
+              SizedBox(height: 16.h),
               // Vital Type Selector
               _GlassFormSection(
                 title: 'Select Vital Type',
@@ -190,9 +191,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen> {
                     final isSelected = _selectedDays == days;
                     return Expanded(
                       child: Padding(
-                        padding: EdgeInsets.only(
-                          right: days != 30 ? 8.w : 0,
-                        ),
+                        padding: EdgeInsets.only(right: days != 30 ? 8.w : 0),
                         child: _TimePeriodChip(
                           label: '$days days',
                           isSelected: isSelected,
@@ -239,11 +238,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            FIcons.activity,
-            size: 48.r,
-            color: colorScheme.primary,
-          ),
+          Icon(FIcons.activity, size: 48.r, color: colorScheme.primary),
           SizedBox(height: 16.h),
           Text(
             'No data available for this period',
@@ -419,11 +414,7 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen> {
                     context,
                     AppTheme.getWarningColor(context),
                   ),
-                  child: Icon(
-                    FIcons.info,
-                    color: Colors.white,
-                    size: 20.r,
-                  ),
+                  child: Icon(FIcons.info, color: Colors.white, size: 20.r),
                 ),
                 SizedBox(width: 12.w),
                 Expanded(
@@ -469,9 +460,9 @@ class _GlassFormSection extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           child,
@@ -502,8 +493,8 @@ class _TimePeriodChip extends StatelessWidget {
           color: isSelected ? AppTheme.appleGreen : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected 
-                ? AppTheme.appleGreen 
+            color: isSelected
+                ? AppTheme.appleGreen
                 : Theme.of(context).colorScheme.outline.withOpacity(0.3),
           ),
         ),
@@ -511,21 +502,17 @@ class _TimePeriodChip extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (isSelected) ...[
-              Icon(
-                Icons.check,
-                size: 16,
-                color: Colors.white,
-              ),
+              Icon(Icons.check, size: 16, color: Colors.white),
               SizedBox(width: 4.w),
             ],
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: isSelected 
-                        ? Colors.white 
-                        : Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: isSelected
+                    ? Colors.white
+                    : Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ],
         ),
@@ -538,10 +525,7 @@ class _TrendsLineChart extends StatelessWidget {
   final List<_ChartDataPoint> dataPoints;
   final String unit;
 
-  const _TrendsLineChart({
-    required this.dataPoints,
-    required this.unit,
-  });
+  const _TrendsLineChart({required this.dataPoints, required this.unit});
 
   @override
   Widget build(BuildContext context) {
@@ -552,8 +536,10 @@ class _TrendsLineChart extends StatelessWidget {
     final minY = dataPoints.map((p) => p.value).reduce((a, b) => a < b ? a : b);
     final maxY = dataPoints.map((p) => p.value).reduce((a, b) => a > b ? a : b);
     final padding = (maxY - minY) * 0.1;
-    
-    final adjustedMinY = (minY - padding).clamp(0.0, double.infinity).toDouble();
+
+    final adjustedMinY = (minY - padding)
+        .clamp(0.0, double.infinity)
+        .toDouble();
     final adjustedMaxY = maxY + padding;
 
     return LineChart(
@@ -571,8 +557,12 @@ class _TrendsLineChart extends StatelessWidget {
         ),
         titlesData: FlTitlesData(
           show: true,
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -584,7 +574,7 @@ class _TrendsLineChart extends StatelessWidget {
                   return const SizedBox.shrink();
                 }
                 // Show only first, middle, and last labels
-                if (index == 0 || 
+                if (index == 0 ||
                     index == dataPoints.length - 1 ||
                     index == dataPoints.length ~/ 2) {
                   return Padding(
@@ -691,10 +681,7 @@ class _TrendsBarChart extends StatelessWidget {
   final Map<String, double> data;
   final String unit;
 
-  const _TrendsBarChart({
-    required this.data,
-    required this.unit,
-  });
+  const _TrendsBarChart({required this.data, required this.unit});
 
   @override
   Widget build(BuildContext context) {
@@ -733,8 +720,12 @@ class _TrendsBarChart extends StatelessWidget {
         ),
         titlesData: FlTitlesData(
           show: true,
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
@@ -797,9 +788,7 @@ class _TrendsBarChart extends StatelessWidget {
                 toY: entry.value.value,
                 color: AppTheme.appleGreen,
                 width: 20.w,
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(6),
-                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(6)),
                 backDrawRodData: BackgroundBarChartRodData(
                   show: true,
                   toY: adjustedMaxY,
@@ -809,6 +798,99 @@ class _TrendsBarChart extends StatelessWidget {
             ],
           );
         }).toList(),
+      ),
+    );
+  }
+}
+
+class _TrendsHero extends StatelessWidget {
+  final VitalType selectedType;
+  final int days;
+
+  const _TrendsHero({required this.selectedType, required this.days});
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final onPrimary = colorScheme.onPrimary;
+
+    final h = ModernSurfaceTheme.heroPadding();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final halfWidth = constraints.maxWidth * 0.40;
+          return Container(
+            width: double.infinity,
+            decoration: ModernSurfaceTheme.heroDecoration(context),
+            child: Stack(
+              children: [
+                // ── Right 50%: image pinned to right edge ─────────────
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: halfWidth,
+                  child: Image.asset(
+                    'assets/images/health.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  ),
+                ),
+                // ── Left side: text column drives card height ─────────
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: h.left,
+                    top: h.top,
+                    bottom: h.bottom,
+                    right: halfWidth + h.right,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Health Insights',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: onPrimary.withValues(alpha: 0.85),
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        '${selectedType.displayName} Trends',
+                        style: textTheme.headlineSmall?.copyWith(
+                          color: onPrimary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15.sp,
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 6.h,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          color: AppTheme.appleGreen,
+                        ),
+                        child: Text(
+                          'Last $days days',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

@@ -36,21 +36,20 @@ class AuthProvider with ChangeNotifier {
   }
 
   // Login
-  Future<bool> login(String phone, String password) async {
+  Future<bool> login(String email, String password) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      _currentUser = await _authService.login(phone, password);
-      _isLoading = false;
-      notifyListeners();
+      _currentUser = await _authService.login(email, password);
       return true;
     } catch (e) {
       _error = _extractErrorMessage(e);
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return false;
     }
   }
 
@@ -80,16 +79,18 @@ class AuthProvider with ChangeNotifier {
         phone: phone,
         caregiverInviteCode: caregiverInviteCode,
       );
+      // Log out any previously logged-in user to clear their session
+      // This prevents the router from redirecting to /home and loading old user data
+      await logout();
       // Mark welcome screen as seen after successful registration
       await _authService.setWelcomeScreenSeen();
-      _isLoading = false;
-      notifyListeners();
       return true;
     } catch (e) {
       _error = _extractErrorMessage(e);
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return false;
     }
   }
 
@@ -101,14 +102,73 @@ class AuthProvider with ChangeNotifier {
 
     try {
       await _authService.verifyEmail(token);
-      _isLoading = false;
-      notifyListeners();
       return true;
     } catch (e) {
       _error = _extractErrorMessage(e);
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  // Resend verification email
+  Future<bool> resendVerificationEmail(String email) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final success = await _authService.resendVerificationEmail(email);
+      return success;
+    } catch (e) {
+      _error = _extractErrorMessage(e);
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Forgot password
+  Future<bool> forgotPassword(String email) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final success = await _authService.forgotPassword(email);
+      return success;
+    } catch (e) {
+      _error = _extractErrorMessage(e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Reset password
+  Future<bool> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final success = await _authService.resetPassword(
+        token: token,
+        newPassword: newPassword,
+      );
+      return success;
+    } catch (e) {
+      _error = _extractErrorMessage(e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
@@ -132,6 +192,27 @@ class AuthProvider with ChangeNotifier {
         medicalConditions: medicalConditions,
         emergencyContact: emergencyContact,
       );
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = _extractErrorMessage(e);
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Upload profile picture
+  Future<bool> uploadProfilePicture(String filePath) async {
+    if (_currentUser == null) return false;
+
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      _currentUser = await _authService.uploadAvatar(filePath);
       _isLoading = false;
       notifyListeners();
       return true;
@@ -178,31 +259,27 @@ class AuthProvider with ChangeNotifier {
 
       if (!authenticated) {
         _error = 'Biometric authentication was cancelled. Please try again.';
-        _isLoading = false;
-        notifyListeners();
         return false;
       }
 
       // If biometric authentication successful, login with saved credentials for this user
       _currentUser = await _authService.loginWithBiometrics(userId);
-      _isLoading = false;
-      notifyListeners();
       return true;
     } on PlatformException catch (e) {
       // Handle PlatformException specifically
       if (e.code == 'no_fragment_activity') {
-        _error = 'Biometric authentication is not properly configured. Please contact support.';
+        _error =
+            'Biometric authentication is not properly configured. Please contact support.';
       } else {
         _error = 'Biometric authentication failed: ${e.message ?? e.code}';
       }
-      _isLoading = false;
-      notifyListeners();
       return false;
     } catch (e) {
       _error = _extractErrorMessage(e);
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
-      return false;
     }
   }
 
@@ -247,7 +324,8 @@ class AuthProvider with ChangeNotifier {
       if (!isAvailable) {
         return false;
       }
-      final usersWithBiometric = await _authService.getUsersWithBiometricEnabled();
+      final usersWithBiometric = await _authService
+          .getUsersWithBiometricEnabled();
       return usersWithBiometric.isNotEmpty;
     } catch (e) {
       return false;

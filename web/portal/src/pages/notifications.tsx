@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { notifications } from "@/mocks/data"
+import { useNotificationsData } from "@/hooks/use-notifications-data"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -25,6 +25,7 @@ const severityTone = {
 export default function NotificationsPage() {
   const [query, setQuery] = useState("")
   const [tab, setTab] = useState<"all" | "info" | "warning" | "critical">("all")
+  const { notifications, loading, error } = useNotificationsData()
 
   const filtered = useMemo(() => {
     return notifications.filter((notification) => {
@@ -34,7 +35,7 @@ export default function NotificationsPage() {
         notification.summary.toLowerCase().includes(query.toLowerCase())
       return matchesTab && matchesQuery
     })
-  }, [tab, query])
+  }, [tab, query, notifications])
 
   return (
     <section className="space-y-6">
@@ -154,13 +155,23 @@ export default function NotificationsPage() {
               ))}
             </TableBody>
           </Table>
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="rounded-lg border border-dashed border-border/60 py-12 text-center text-sm text-muted-foreground">
+              Loading notifications...
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border/60 py-12 text-center text-sm text-muted-foreground">
               No notifications match the filter criteria.
             </div>
           ) : null}
         </CardContent>
       </Card>
+
+      {error ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      ) : null}
     </section>
   )
 }

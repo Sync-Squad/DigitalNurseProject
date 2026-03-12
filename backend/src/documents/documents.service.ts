@@ -45,6 +45,7 @@ export class DocumentsService {
         fileType,
         uploadedBy: context.actorUserId,
         visibility: createDto.visibility || DocumentVisibility.PRIVATE,
+        uploadedAt: createDto.uploadDate ? new Date(createDto.uploadDate) : new Date(),
       },
     });
 

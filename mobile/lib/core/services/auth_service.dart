@@ -1,5 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/app_config.dart';
 import '../models/user_model.dart';
 import 'api_service.dart';
 import 'token_service.dart';
@@ -25,25 +28,30 @@ class AuthService {
   /// This fetches the Gemini API key from the database and caches it locally
   void _fetchConfigInBackground() {
     // Run in background - don't await to avoid blocking login flow
-    _configService.fetchAndCacheGeminiApiKey().then((apiKey) {
-      if (apiKey != null) {
-        _log('✅ [AUTH] Gemini API key fetched from database');
-      } else {
-        _log('⚠️ [AUTH] Using fallback Gemini API key (database fetch failed or empty)');
-      }
-    }).catchError((e) {
-      _log('⚠️ [AUTH] Failed to fetch Gemini API key from database: $e');
-      // App will continue using fallback API key
-    });
+    _configService
+        .fetchAndCacheGeminiApiKey()
+        .then((apiKey) {
+          if (apiKey != null) {
+            _log('✅ [AUTH] Gemini API key fetched from database');
+          } else {
+            _log(
+              '⚠️ [AUTH] Using fallback Gemini API key (database fetch failed or empty)',
+            );
+          }
+        })
+        .catchError((e) {
+          _log('⚠️ [AUTH] Failed to fetch Gemini API key from database: $e');
+          // App will continue using fallback API key
+        });
   }
 
-  // Login with phone and password
-  Future<UserModel> login(String phone, String password) async {
-    _log('🔐 [AUTH] Attempting login for: $phone');
+  // Login with email and password
+  Future<UserModel> login(String email, String password) async {
+    _log('🔐 [AUTH] Attempting login for: $email');
     try {
       final response = await _apiService.post(
         '/auth/login',
-        data: {'phone': phone, 'password': password},
+        data: {'email': email, 'password': password},
       );
 
       if (response.statusCode == 200) {
@@ -93,7 +101,8 @@ class AuthService {
           age: userData['age']?.toString(),
           medicalConditions: userData['medicalConditions']?.toString(),
           emergencyContact: userData['emergencyContact']?.toString(),
-          phone: userData['phone']?.toString() ?? phone,
+          phone: userData['phone']?.toString(),
+          avatarUrl: userData['avatarUrl']?.toString().trim(),
         );
 
         // Save user to shared preferences
@@ -127,12 +136,31 @@ class AuthService {
     String? phone,
     String? caregiverInviteCode,
   }) async {
+    final trimmedPhone = phone != null && phone.trim().isNotEmpty
+        ? phone.trim()
+        : null;
     _log('📝 [AUTH] Attempting registration for: $email');
 
     // Client-side validation
-    if (name.isEmpty || email.isEmpty || password.isEmpty) {
-      _log('❌ [AUTH] Registration validation failed: All fields are required');
-      throw Exception('All fields are required');
+    if (name.isEmpty || password.isEmpty || email.trim().isEmpty) {
+      _log(
+        '❌ [AUTH] Registration validation failed: Name, email and password are required',
+      );
+      throw Exception('Name, email and password are required');
+    }
+
+    // Validate email format
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email.trim())) {
+      _log('❌ [AUTH] Registration validation failed: Invalid email format');
+      throw Exception('Please enter a valid email address');
+    }
+
+    // Validate phone format if provided
+    if (trimmedPhone != null && trimmedPhone.isNotEmpty) {
+      if (!RegExp(r'^\+92\d{10}$').hasMatch(trimmedPhone)) {
+        _log('❌ [AUTH] Registration validation failed: Invalid phone format');
+        throw Exception('Phone must be in format +92XXXXXXXXXX');
+      }
     }
 
     if (password != confirmPassword) {
@@ -145,17 +173,16 @@ class AuthService {
       throw Exception('Password must be at least 8 characters');
     }
 
-    final trimmedPhone =
-        phone != null && phone.trim().isNotEmpty ? phone.trim() : null;
     final payloadRole = role == UserRole.caregiver ? 'caregiver' : 'patient';
 
     try {
       final requestBody = {
-        'email': email.trim(),
         'password': password,
         'name': name.trim(),
+        'email': email.trim(),
         'roleCode': payloadRole,
-        if (trimmedPhone != null) 'phone': trimmedPhone,
+        if (trimmedPhone != null && trimmedPhone.isNotEmpty)
+          'phone': trimmedPhone,
         if (role == UserRole.caregiver && caregiverInviteCode != null)
           'caregiverInviteCode': caregiverInviteCode.trim(),
       };
@@ -172,10 +199,12 @@ class AuthService {
         // Registration successful - return a user model with the userId
         // Note: Backend returns { message, userId }, not full user object
         // User will need to verify email before logging in
-        final responseRole =
-            (data['role'] ?? payloadRole).toString().toLowerCase();
-        final userRole =
-            responseRole == 'caregiver' ? UserRole.caregiver : UserRole.patient;
+        final responseRole = (data['role'] ?? payloadRole)
+            .toString()
+            .toLowerCase();
+        final userRole = responseRole == 'caregiver'
+            ? UserRole.caregiver
+            : UserRole.patient;
 
         final user = UserModel(
           id: data['userId'].toString(),
@@ -221,12 +250,77 @@ class AuthService {
     }
   }
 
-  // Resend verification email (if backend supports it)
-  // Note: This might need to be a different endpoint
+  // Resend verification email
   Future<bool> resendVerificationEmail(String email) async {
-    // Backend might not have this endpoint yet
-    // For now, we'll just return true or throw
-    throw Exception('Resend verification email not implemented in backend');
+    _log('📧 [AUTH] Resending verification email to: $email');
+    try {
+      final response = await _apiService.post(
+        '/auth/resend-verification',
+        data: {'email': email},
+      );
+
+      if (response.statusCode == 200) {
+        _log('✅ [AUTH] Verification email resent successfully');
+        return true;
+      } else {
+        _log(
+          '❌ [AUTH] Failed to resend verification email: ${response.statusMessage}',
+        );
+        throw Exception('Failed to resend verification email');
+      }
+    } catch (e) {
+      _log('❌ [AUTH] Error resending verification email: $e');
+      throw Exception(e.toString());
+    }
+  }
+
+  // Forgot password - send reset link
+  Future<bool> forgotPassword(String email) async {
+    _log('🔑 [AUTH] Requesting password reset for: $email');
+    try {
+      final response = await _apiService.post(
+        '/auth/forgot-password',
+        data: {'email': email},
+      );
+
+      if (response.statusCode == 200) {
+        _log('✅ [AUTH] Password reset link sent successfully');
+        return true;
+      } else {
+        _log(
+          '❌ [AUTH] Failed to send password reset link: ${response.statusMessage}',
+        );
+        throw Exception('Failed to send password reset link');
+      }
+    } catch (e) {
+      _log('❌ [AUTH] Error requesting password reset: $e');
+      throw Exception(e.toString());
+    }
+  }
+
+  // Reset password
+  Future<bool> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    _log('🔑 [AUTH] Attempting password reset with token');
+    try {
+      final response = await _apiService.post(
+        '/auth/reset-password',
+        data: {'token': token, 'newPassword': newPassword},
+      );
+
+      if (response.statusCode == 200) {
+        _log('✅ [AUTH] Password reset successful');
+        return true;
+      } else {
+        _log('❌ [AUTH] Password reset failed: ${response.statusMessage}');
+        throw Exception('Password reset failed');
+      }
+    } catch (e) {
+      _log('❌ [AUTH] Error resetting password: $e');
+      throw Exception(e.toString());
+    }
   }
 
   // Refresh access token
@@ -295,6 +389,7 @@ class AuthService {
           medicalConditions: userData['medicalConditions']?.toString(),
           emergencyContact: userData['emergencyContact']?.toString(),
           phone: userData['phone']?.toString(),
+          avatarUrl: userData['avatarUrl']?.toString().trim(),
         );
 
         await _saveUser(user);
@@ -327,7 +422,7 @@ class AuthService {
       if (name != null) data['name'] = name;
       if (phoneNumber != null) {
         data['phoneNumber'] = phoneNumber;
-        data['phone'] = phoneNumber;
+        // Note: Backend only accepts 'phoneNumber', not 'phone'
       }
       if (dateOfBirth != null) data['dateOfBirth'] = dateOfBirth;
       if (address != null) data['address'] = address;
@@ -336,7 +431,7 @@ class AuthService {
       if (medicalConditions != null)
         data['medicalConditions'] = medicalConditions;
       if (emergencyContact != null) data['emergencyContact'] = emergencyContact;
-      if (age != null) data['age'] = age;
+      // Note: Backend doesn't accept 'age' field - age is calculated from dateOfBirth if needed
 
       final response = await _apiService.patch('/users/profile', data: data);
 
@@ -372,6 +467,7 @@ class AuthService {
           medicalConditions: userData['medicalConditions']?.toString(),
           emergencyContact: userData['emergencyContact']?.toString(),
           phone: userData['phone']?.toString(),
+          avatarUrl: userData['avatarUrl']?.toString().trim(),
         );
 
         await _saveUser(updatedUser);
@@ -382,6 +478,84 @@ class AuthService {
       }
     } catch (e) {
       _log('❌ [AUTH] Profile update error: $e');
+      throw Exception(e.toString());
+    }
+  }
+
+  /// Upload profile picture avatar
+  Future<UserModel> uploadAvatar(String filePath) async {
+    _log('📤 [AUTH] Uploading avatar: $filePath');
+    try {
+      final file = File(filePath);
+      if (!await file.exists()) {
+        throw Exception('File does not exist: $filePath');
+      }
+
+      // Prepare form data
+      final formData = FormData.fromMap({
+        'avatar': await MultipartFile.fromFile(
+          filePath,
+          filename: file.path.split('/').last,
+        ),
+      });
+
+      // Use Dio directly for multipart upload to ensure correct headers
+      final baseUrl = await AppConfig.getBaseUrl();
+      // Actually, ApiService already has the logic, but for multipart we often need direct Dio
+      // Let's check how DocumentService did it.
+      
+      final token = await _tokenService.getAccessToken();
+
+      final dio = Dio(
+        BaseOptions(
+          baseUrl: baseUrl,
+          headers: {
+            if (token != null) 'Authorization': 'Bearer $token',
+            'Content-Type': 'multipart/form-data',
+          },
+        ),
+      );
+
+      final response = await dio.post(
+        '/users/profile/avatar',
+        data: formData,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _log('✅ [AUTH] Avatar uploaded successfully');
+        final userData = response.data;
+
+        // Create updated user model
+        // Re-using the logic from updateProfile/getProfile
+        UserRole role = UserRole.patient;
+        final roleStr = (userData['role'] ?? 'patient').toString().toLowerCase();
+        if (roleStr == 'caregiver') role = UserRole.caregiver;
+
+        SubscriptionTier subscriptionTier = SubscriptionTier.free;
+        final tierStr = (userData['subscriptionTier'] ?? 'free').toString().toLowerCase();
+        if (tierStr == 'premium') subscriptionTier = SubscriptionTier.premium;
+
+        final updatedUser = UserModel(
+          id: userData['id']?.toString() ?? '',
+          email: userData['email']?.toString() ?? '',
+          name: userData['name']?.toString() ?? '',
+          role: role,
+          subscriptionTier: subscriptionTier,
+          age: userData['age']?.toString(),
+          medicalConditions: userData['medicalConditions']?.toString(),
+          emergencyContact: userData['emergencyContact']?.toString(),
+          phone: userData['phone']?.toString(),
+          avatarUrl: userData['avatarUrl']?.toString().trim(),
+        );
+
+        await _saveUser(updatedUser);
+        return updatedUser;
+      } else {
+        _log('❌ [AUTH] Avatar upload failed: ${response.statusMessage}');
+        throw Exception('Avatar upload failed: ${response.statusMessage}');
+      }
+    } catch (e) {
+      _log('❌ [AUTH] Avatar upload error: $e');
       throw Exception(e.toString());
     }
   }
@@ -490,10 +664,16 @@ class AuthService {
   }) async {
     _log('💾 [AUTH] Saving credentials for biometric login for user: $userId');
     try {
-      await _secureStorage.saveCredentials(userId: userId, phone: phone, password: password);
+      await _secureStorage.saveCredentials(
+        userId: userId,
+        phone: phone,
+        password: password,
+      );
       _log('✅ [AUTH] Credentials saved for biometric login for user: $userId');
     } catch (e) {
-      _log('❌ [AUTH] Error saving credentials for biometric for user $userId: $e');
+      _log(
+        '❌ [AUTH] Error saving credentials for biometric for user $userId: $e',
+      );
       rethrow;
     }
   }
@@ -506,8 +686,12 @@ class AuthService {
       // Check if biometric is enabled and credentials exist for this user
       final hasCredentials = await _secureStorage.hasSavedCredentials(userId);
       if (!hasCredentials) {
-        _log('❌ [AUTH] No saved credentials found for biometric login for user: $userId');
-        throw Exception('No saved credentials found for this account. Please login with phone and password first.');
+        _log(
+          '❌ [AUTH] No saved credentials found for biometric login for user: $userId',
+        );
+        throw Exception(
+          'No saved credentials found for this account. Please login with phone and password first.',
+        );
       }
 
       final isEnabled = await _secureStorage.isBiometricEnabled(userId);
@@ -520,12 +704,17 @@ class AuthService {
       final phone = await _secureStorage.getSavedPhone(userId);
       final password = await _secureStorage.getSavedPassword(userId);
 
-      if (phone == null || password == null || phone.isEmpty || password.isEmpty) {
+      if (phone == null ||
+          password == null ||
+          phone.isEmpty ||
+          password.isEmpty) {
         _log('❌ [AUTH] Invalid saved credentials for user: $userId');
         throw Exception('Invalid saved credentials for this account');
       }
 
-      _log('✅ [AUTH] Credentials retrieved for user $userId, attempting login...');
+      _log(
+        '✅ [AUTH] Credentials retrieved for user $userId, attempting login...',
+      );
 
       // Use existing login method with retrieved credentials
       return await login(phone, password);
@@ -542,7 +731,9 @@ class AuthService {
       await _secureStorage.clearCredentials(userId);
       _log('✅ [AUTH] Biometric credentials cleared for user: $userId');
     } catch (e) {
-      _log('❌ [AUTH] Error clearing biometric credentials for user $userId: $e');
+      _log(
+        '❌ [AUTH] Error clearing biometric credentials for user $userId: $e',
+      );
       rethrow;
     }
   }
@@ -552,10 +743,14 @@ class AuthService {
     try {
       final hasCredentials = await _secureStorage.hasSavedCredentials(userId);
       final isEnabled = await _secureStorage.isBiometricEnabled(userId);
-      _log('🔍 [AUTH] Biometric login status for user $userId - hasCredentials: $hasCredentials, isEnabled: $isEnabled');
+      _log(
+        '🔍 [AUTH] Biometric login status for user $userId - hasCredentials: $hasCredentials, isEnabled: $isEnabled',
+      );
       return hasCredentials && isEnabled;
     } catch (e) {
-      _log('❌ [AUTH] Error checking biometric login status for user $userId: $e');
+      _log(
+        '❌ [AUTH] Error checking biometric login status for user $userId: $e',
+      );
       return false;
     }
   }

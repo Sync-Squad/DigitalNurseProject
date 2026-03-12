@@ -22,8 +22,8 @@ class AdherenceStreakCard extends StatelessWidget {
     final accent = adherencePercentage >= 90
         ? CaregiverDashboardTheme.primaryTeal
         : adherencePercentage >= 75
-            ? CaregiverDashboardTheme.accentYellow
-            : CaregiverDashboardTheme.accentCoral;
+        ? CaregiverDashboardTheme.accentYellow
+        : CaregiverDashboardTheme.accentCoral;
 
     final brightness = Theme.of(context).brightness;
     final onTint = CaregiverDashboardTheme.tintedForegroundColor(
@@ -54,7 +54,9 @@ class AdherenceStreakCard extends StatelessWidget {
                     Flexible(
                       child: Text(
                         'dashboard.adherenceStreak'.tr(),
-                        style: CaregiverDashboardTheme.sectionTitleStyle(context),
+                        style: CaregiverDashboardTheme.sectionTitleStyle(
+                          context,
+                        ),
                       ),
                     ),
                   ],
@@ -89,8 +91,9 @@ class AdherenceStreakCard extends StatelessWidget {
                 SizedBox(height: 8.h),
                 Text(
                   '${adherencePercentage.toInt()}% adherence rate',
-                  style: CaregiverDashboardTheme.sectionSubtitleStyle(context)
-                      .copyWith(color: onTintMuted),
+                  style: CaregiverDashboardTheme.sectionSubtitleStyle(
+                    context,
+                  ).copyWith(color: onTintMuted),
                 ),
               ],
             ),

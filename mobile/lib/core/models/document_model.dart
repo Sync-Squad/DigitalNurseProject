@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import '../config/app_config.dart';
 
 class DocumentModel {
@@ -100,9 +101,11 @@ extension DocumentModelExtension on DocumentModel {
   /// Check if the document is an image
   bool get isImage {
     final type = fileType?.toLowerCase() ?? '';
-    return type.contains('image') || 
-           type == 'jpg' || type == 'jpeg' || 
-           type == 'png' || type == 'gif';
+    return type.contains('image') ||
+        type == 'jpg' ||
+        type == 'jpeg' ||
+        type == 'png' ||
+        type == 'gif';
   }
 
   /// Check if the document is a PDF
@@ -132,19 +135,19 @@ extension DocumentTypeExtension on DocumentType {
   String get displayName {
     switch (this) {
       case DocumentType.prescription:
-        return 'Prescription';
+        return 'documents.types.prescription'.tr();
       case DocumentType.labReport:
-        return 'Lab Report';
+        return 'documents.types.labReport'.tr();
       case DocumentType.xray:
-        return 'X-Ray';
+        return 'documents.types.xray'.tr();
       case DocumentType.scan:
-        return 'Scan';
+        return 'documents.types.scan'.tr();
       case DocumentType.discharge:
-        return 'Discharge Summary';
+        return 'documents.types.discharge'.tr();
       case DocumentType.insurance:
-        return 'Insurance';
+        return 'documents.types.insurance'.tr();
       case DocumentType.other:
-        return 'Other';
+        return 'documents.types.other'.tr();
     }
   }
 }

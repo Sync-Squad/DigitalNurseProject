@@ -32,8 +32,9 @@ class CareRecipientSelector extends StatelessWidget {
             width: 32,
             child: CircularProgressIndicator(
               strokeWidth: 3,
-              valueColor:
-                  AlwaysStoppedAnimation<Color>(context.theme.colors.primary),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                context.theme.colors.primary,
+              ),
             ),
           ),
         ),
@@ -59,10 +60,7 @@ class CareRecipientSelector extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
-              error!,
-              style: context.theme.typography.xs,
-            ),
+            Text(error!, style: context.theme.typography.xs),
           ],
         ),
       );
@@ -156,4 +154,3 @@ class CareRecipientSelector extends StatelessWidget {
     );
   }
 }
-

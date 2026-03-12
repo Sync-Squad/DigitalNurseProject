@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import '../../../core/extensions/vital_type_extensions.dart';
 import '../../../core/models/vital_measurement_model.dart';
 import '../../../core/providers/health_provider.dart';
@@ -23,7 +24,7 @@ class _AddVitalScreenState extends State<AddVitalScreen> {
   final _notesController = TextEditingController();
 
   VitalType _selectedType = VitalType.bloodPressure;
-  final DateTime _timestamp = DateTime.now();
+  DateTime _timestamp = DateTime.now();
 
   @override
   void dispose() {
@@ -89,6 +90,52 @@ class _AddVitalScreenState extends State<AddVitalScreen> {
     }
   }
 
+  Future<void> _selectDate() async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: _timestamp,
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now(),
+    );
+
+    if (selectedDate != null) {
+      setState(() {
+        _timestamp = DateTime(
+          selectedDate.year,
+          selectedDate.month,
+          selectedDate.day,
+          _timestamp.hour,
+          _timestamp.minute,
+        );
+      });
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final selectedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_timestamp),
+    );
+
+    if (selectedTime != null) {
+      setState(() {
+        _timestamp = DateTime(
+          _timestamp.year,
+          _timestamp.month,
+          _timestamp.day,
+          selectedTime.hour,
+          selectedTime.minute,
+        );
+      });
+    }
+  }
+
+  String _getFormattedDateTime() {
+    final dateFormat = DateFormat('MMM dd, yyyy');
+    final timeFormat = DateFormat('h:mm a');
+    return '${dateFormat.format(_timestamp)} at ${timeFormat.format(_timestamp)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     final healthProvider = context.watch<HealthProvider>();
@@ -127,16 +174,19 @@ class _AddVitalScreenState extends State<AddVitalScreen> {
                     value: _selectedType,
                     isExpanded: true,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                     items: VitalType.values
                         .map(
                           (type) => DropdownMenuItem(
                             value: type,
                             child: Text(
                               type.displayName,
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context).colorScheme.onSurface,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurface,
                                   ),
                             ),
                           ),
@@ -152,6 +202,65 @@ class _AddVitalScreenState extends State<AddVitalScreen> {
                               });
                             }
                           },
+                  ),
+                ),
+                SizedBox(height: 16.h),
+                _GlassFormSection(
+                  title: 'Date & Time',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              _getFormattedDateTime(),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: AppTheme.appleGreen,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: isSaving ? null : _selectDate,
+                              icon: const Icon(Icons.calendar_today, size: 18),
+                              label: const Text('Change Date'),
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(vertical: 12.h),
+                                backgroundColor: AppTheme.appleGreen,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: isSaving ? null : _selectTime,
+                              icon: const Icon(Icons.access_time, size: 18),
+                              label: const Text('Change Time'),
+                              style: ElevatedButton.styleFrom(
+                                padding: EdgeInsets.symmetric(vertical: 12.h),
+                                backgroundColor: AppTheme.appleGreen,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
                 SizedBox(height: 16.h),
@@ -222,9 +331,9 @@ class _GlassFormSection extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface,
-                ),
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           child,
@@ -253,7 +362,7 @@ class _CustomTextField extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -269,9 +378,7 @@ class _CustomTextField extends StatelessWidget {
           controller: controller,
           maxLines: maxLines ?? 1,
           validator: validator,
-          style: textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurface,
-          ),
+          style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: textTheme.bodyMedium?.copyWith(
@@ -293,24 +400,15 @@ class _CustomTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: AppTheme.appleGreen,
-                width: 2,
-              ),
+              borderSide: BorderSide(color: AppTheme.appleGreen, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: colorScheme.error,
-                width: 1,
-              ),
+              borderSide: BorderSide(color: colorScheme.error, width: 1),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(
-                color: colorScheme.error,
-                width: 2,
-              ),
+              borderSide: BorderSide(color: colorScheme.error, width: 2),
             ),
             contentPadding: EdgeInsets.symmetric(
               horizontal: 16.w,

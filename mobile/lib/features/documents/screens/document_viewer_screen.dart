@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -9,13 +10,17 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/providers/document_provider.dart';
+import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/care_context_provider.dart';
 import '../../../core/models/document_model.dart';
+import '../../../core/models/user_model.dart';
 import '../../../core/services/document_service.dart';
 import '../../../core/services/token_service.dart';
 import '../../../core/config/app_config.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
+import '../../../core/utils/timezone_util.dart';
 import 'package:dio/dio.dart';
 
 class DocumentViewerScreen extends StatefulWidget {
@@ -31,35 +36,84 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   final DocumentService _documentService = DocumentService();
   final TokenService _tokenService = TokenService();
   bool _isDownloading = false;
+  bool _isDeleting = false;
 
   Future<void> _handleDelete(BuildContext context) async {
+    if (_isDeleting) return;
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Document'),
-        content: const Text('Are you sure you want to delete this document?'),
+        title: Text('documents.viewerScreen.deleteTitle'.tr()),
+        content: Text('documents.viewerScreen.deleteConfirm'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: TextButton.styleFrom(
-              foregroundColor: context.theme.colors.destructive,
+              foregroundColor: AppTheme.getErrorColor(context),
             ),
-            child: const Text('Delete'),
+            child: Text('common.delete'.tr()),
           ),
         ],
       ),
     );
 
     if (confirm == true && context.mounted) {
-      final success = await context.read<DocumentProvider>().deleteDocument(
-        widget.documentId,
-      );
-      if (context.mounted && success) {
-        context.pop();
+      setState(() {
+        _isDeleting = true;
+      });
+
+      try {
+        final authProvider = context.read<AuthProvider>();
+        final user = authProvider.currentUser;
+
+        if (user == null) {
+          return;
+        }
+
+        // Handle caregiver context - get elderUserId if user is a caregiver
+        String? elderUserId;
+        if (user.role == UserRole.caregiver) {
+          final documentProvider = context.read<DocumentProvider>();
+          final document = documentProvider.documents.firstWhere(
+            (d) => d.id == widget.documentId,
+            orElse: () => throw Exception('Document not found'),
+          );
+          final careContext = context.read<CareContextProvider>();
+          await careContext.ensureLoaded();
+          elderUserId = careContext.selectedElderId ?? document.userId;
+        }
+
+        final success = await context.read<DocumentProvider>().deleteDocument(
+          widget.documentId,
+          elderUserId: elderUserId,
+        );
+
+        if (context.mounted) {
+          if (success) {
+            context.pop();
+          } else {
+            final errorMessage =
+                context.read<DocumentProvider>().error ??
+                'documents.viewerScreen.deleteFail'.tr();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(errorMessage),
+                backgroundColor: AppTheme.getErrorColor(context),
+              ),
+            );
+          }
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isDeleting = false;
+          });
+        }
       }
     }
   }
@@ -79,7 +133,8 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
 
       // Get download directory
       final directory = await getApplicationDocumentsDirectory();
-      final fileName = '${document.title}_${document.id}.${_getFileExtension(document)}';
+      final fileName =
+          '${document.title}_${document.id}.${_getFileExtension(document)}';
       final savePath = '${directory.path}/$fileName';
 
       // Download the file
@@ -127,7 +182,8 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   Future<String?> _getFileUrl(DocumentModel document) async {
     if (document.fileUrl != null) {
       final baseUrl = await AppConfig.getBaseUrl();
-      if (document.fileUrl!.startsWith('http://') || document.fileUrl!.startsWith('https://')) {
+      if (document.fileUrl!.startsWith('http://') ||
+          document.fileUrl!.startsWith('https://')) {
         return document.fileUrl;
       }
       return '$baseUrl${document.fileUrl}';
@@ -149,9 +205,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
               context,
               accent: AppTheme.getDocumentColor(context, document.type.name),
             ),
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: const Center(child: CircularProgressIndicator()),
           );
         }
 
@@ -200,7 +254,11 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: Colors.grey[600]),
+                    Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.grey[600],
+                    ),
                     SizedBox(height: 8.h),
                     Text(
                       'Failed to load image',
@@ -219,7 +277,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   Future<Map<String, String>> _getImageUrlWithHeaders(String imageUrl) async {
     final baseUrl = await AppConfig.getBaseUrl();
     final token = await _tokenService.getAccessToken();
-    
+
     // Construct full URL if needed
     String fullUrl;
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
@@ -228,10 +286,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
       fullUrl = '$baseUrl$imageUrl';
     }
 
-    return {
-      'url': fullUrl,
-      if (token != null) 'headers': 'Bearer $token',
-    };
+    return {'url': fullUrl, if (token != null) 'headers': 'Bearer $token'};
   }
 
   Widget _buildPdfViewer(String pdfUrl, DocumentModel document) {
@@ -293,11 +348,15 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
     );
   }
 
-  Future<String> _downloadPdfForViewing(String pdfUrl, DocumentModel document) async {
+  Future<String> _downloadPdfForViewing(
+    String pdfUrl,
+    DocumentModel document,
+  ) async {
     try {
       // Get temporary directory for caching
       final directory = await getTemporaryDirectory();
-      final fileName = 'pdf_${document.id}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final fileName =
+          'pdf_${document.id}_${DateTime.now().millisecondsSinceEpoch}.pdf';
       final localPath = '${directory.path}/$fileName';
 
       // Check if file already exists
@@ -310,18 +369,16 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
       final baseUrl = await AppConfig.getBaseUrl();
       final token = await _tokenService.getAccessToken();
 
-      final dio = Dio(BaseOptions(
-        baseUrl: baseUrl,
-        headers: {
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-      ));
+      final dio = Dio(
+        BaseOptions(
+          baseUrl: baseUrl,
+          headers: {if (token != null) 'Authorization': 'Bearer $token'},
+        ),
+      );
 
       final response = await dio.get(
         pdfUrl.startsWith('http') ? pdfUrl : '$baseUrl$pdfUrl',
-        options: Options(
-          responseType: ResponseType.bytes,
-        ),
+        options: Options(responseType: ResponseType.bytes),
       );
 
       if (response.statusCode == 200) {
@@ -355,15 +412,15 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
           Text(
             document.fileType ?? 'Document',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
-                ),
+              color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
             'Preview not available',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: ModernSurfaceTheme.deepTeal.withOpacity(0.5),
-                ),
+              color: ModernSurfaceTheme.deepTeal.withOpacity(0.5),
+            ),
           ),
         ],
       ),
@@ -386,15 +443,30 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          'Document Details',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        title: Text(
+          'documents.viewerScreen.details'.tr(),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
         actions: [
-          IconButton(
-            onPressed: () => _handleDelete(context),
-            icon: const Icon(Icons.delete_outline, color: Colors.white),
-          ),
+          _isDeleting
+              ? const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  ),
+                )
+              : IconButton(
+                  onPressed: _isDeleting ? null : () => _handleDelete(context),
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: AppTheme.getErrorColor(context),
+                  ),
+                ),
         ],
       ),
       body: SingleChildScrollView(
@@ -413,17 +485,18 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
                   Text(
                     document.title,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: ModernSurfaceTheme.deepTeal,
-                        ),
+                      fontWeight: FontWeight.w700,
+                      color: ModernSurfaceTheme.deepTeal,
+                    ),
                   ),
                   SizedBox(height: 16.h),
                   _InfoRow(label: 'Type', value: document.type.displayName),
                   SizedBox(height: 8.h),
                   _InfoRow(
                     label: 'Upload Date',
-                    value: DateFormat('MMM d, yyyy - h:mm a')
-                        .format(document.uploadDate),
+                    value: DateFormat(
+                      'MMM d, yyyy - h:mm a',
+                    ).format(TimezoneUtil.toPakistanTime(document.uploadDate)),
                   ),
                   SizedBox(height: 8.h),
                   _InfoRow(
@@ -453,7 +526,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
                       ),
                     )
                   : const Icon(FIcons.download),
-              label: Text(_isDownloading ? 'Downloading...' : 'Download'),
+              label: Text(_isDownloading ? 'Downloading...' : 'documents.viewerScreen.download'.tr()),
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 14.h),
                 backgroundColor: ModernSurfaceTheme.primaryTeal,
@@ -474,7 +547,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
                 );
               },
               icon: const Icon(FIcons.share),
-              label: const Text('Share'),
+              label: Text('documents.viewerScreen.share'.tr()),
               style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 14.h),
                 side: BorderSide(
@@ -495,11 +568,11 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
   String _getVisibilityText(DocumentVisibility visibility) {
     switch (visibility) {
       case DocumentVisibility.private:
-        return 'Private';
+        return 'documents.uploadScreen.private'.tr();
       case DocumentVisibility.sharedWithCaregiver:
-        return 'Shared with Caregivers';
+        return 'documents.uploadScreen.sharedWithCaregiver'.tr();
       case DocumentVisibility.public:
-        return 'Public';
+        return 'documents.uploadScreen.public'.tr();
     }
   }
 }
@@ -520,17 +593,17 @@ class _InfoRow extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: ModernSurfaceTheme.deepTeal.withOpacity(0.6),
-                ),
+              color: ModernSurfaceTheme.deepTeal.withOpacity(0.6),
+            ),
           ),
         ),
         Expanded(
           child: Text(
             value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: ModernSurfaceTheme.deepTeal,
-                ),
+              fontWeight: FontWeight.w600,
+              color: ModernSurfaceTheme.deepTeal,
+            ),
           ),
         ),
       ],

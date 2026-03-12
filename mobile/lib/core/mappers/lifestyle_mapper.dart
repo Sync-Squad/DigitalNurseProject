@@ -1,5 +1,6 @@
 import '../models/diet_log_model.dart';
 import '../models/exercise_log_model.dart';
+import '../utils/timezone_util.dart';
 
 /// Maps backend lifestyle response to Flutter models
 class LifestyleMapper {
@@ -8,7 +9,9 @@ class LifestyleMapper {
     // Convert mealType string to enum
     MealType mealType = MealType.breakfast;
     if (json['mealType'] != null || json['mealTypeCode'] != null) {
-      final mealStr = (json['mealType'] ?? json['mealTypeCode']).toString().toLowerCase();
+      final mealStr = (json['mealType'] ?? json['mealTypeCode'])
+          .toString()
+          .toLowerCase();
       switch (mealStr) {
         case 'breakfast':
           mealType = MealType.breakfast;
@@ -31,26 +34,26 @@ class LifestyleMapper {
     DateTime timestamp = DateTime.now();
     if (json['timestamp'] != null) {
       try {
-        timestamp = DateTime.parse(json['timestamp'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(
+          json['timestamp'].toString(),
+        );
       } catch (e) {
         timestamp = DateTime.now();
       }
     } else if (json['logDate'] != null) {
       try {
         // logDate might be a date string (YYYY-MM-DD) or ISO datetime
-        final dateStr = json['logDate'].toString();
-        if (dateStr.contains('T')) {
-          timestamp = DateTime.parse(dateStr);
-        } else {
-          // Parse date-only string (YYYY-MM-DD)
-          timestamp = DateTime.parse('${dateStr}T00:00:00');
-        }
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(
+          json['logDate'].toString(),
+        );
       } catch (e) {
         timestamp = DateTime.now();
       }
     } else if (json['loggedAt'] != null) {
       try {
-        timestamp = DateTime.parse(json['loggedAt'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(
+          json['loggedAt'].toString(),
+        );
       } catch (e) {
         timestamp = DateTime.now();
       }
@@ -62,7 +65,9 @@ class LifestyleMapper {
       description: json['description']?.toString() ?? '',
       calories: int.tryParse(json['calories']?.toString() ?? '0') ?? 0,
       timestamp: timestamp,
-      userId: json['userId']?.toString() ?? json['elderUserId']?.toString() ?? '',
+      userId:
+          json['userId']?.toString() ?? json['elderUserId']?.toString() ?? '',
+      sourcePlanId: json['sourcePlanId']?.toString(),
     );
   }
 
@@ -89,8 +94,12 @@ class LifestyleMapper {
     }
 
     // Format date as YYYY-MM-DD (date only, not datetime)
-    final logDate = '${diet.timestamp.year}-${diet.timestamp.month.toString().padLeft(2, '0')}-${diet.timestamp.day.toString().padLeft(2, '0')}';
-    
+    // Convert to Pakistan timezone first to ensure correct date extraction
+    // Extract date components ensuring we use Pakistan timezone perspective
+    final logDate = TimezoneUtil.toPakistanTimeIso8601(
+      diet.timestamp,
+    ).split('T')[0];
+
     return {
       'mealType': mealType,
       'description': diet.description,
@@ -106,7 +115,9 @@ class LifestyleMapper {
     // Convert activityType string to enum
     ActivityType activityType = ActivityType.other;
     if (json['activityType'] != null || json['activityTypeCode'] != null) {
-      final activityStr = (json['activityType'] ?? json['activityTypeCode']).toString().toLowerCase();
+      final activityStr = (json['activityType'] ?? json['activityTypeCode'])
+          .toString()
+          .toLowerCase();
       switch (activityStr) {
         case 'walking':
           activityType = ActivityType.walking;
@@ -139,26 +150,26 @@ class LifestyleMapper {
     DateTime timestamp = DateTime.now();
     if (json['timestamp'] != null) {
       try {
-        timestamp = DateTime.parse(json['timestamp'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(
+          json['timestamp'].toString(),
+        );
       } catch (e) {
         timestamp = DateTime.now();
       }
     } else if (json['logDate'] != null) {
       try {
         // logDate might be a date string (YYYY-MM-DD) or ISO datetime
-        final dateStr = json['logDate'].toString();
-        if (dateStr.contains('T')) {
-          timestamp = DateTime.parse(dateStr);
-        } else {
-          // Parse date-only string (YYYY-MM-DD)
-          timestamp = DateTime.parse('${dateStr}T00:00:00');
-        }
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(
+          json['logDate'].toString(),
+        );
       } catch (e) {
         timestamp = DateTime.now();
       }
     } else if (json['loggedAt'] != null) {
       try {
-        timestamp = DateTime.parse(json['loggedAt'].toString());
+        timestamp = TimezoneUtil.fromPakistanTimeIso8601(
+          json['loggedAt'].toString(),
+        );
       } catch (e) {
         timestamp = DateTime.now();
       }
@@ -168,10 +179,14 @@ class LifestyleMapper {
       id: json['id']?.toString() ?? json['exerciseLogId']?.toString() ?? '',
       activityType: activityType,
       description: json['description']?.toString() ?? '',
-      durationMinutes: int.tryParse(json['durationMinutes']?.toString() ?? '0') ?? 0,
-      caloriesBurned: int.tryParse(json['caloriesBurned']?.toString() ?? '0') ?? 0,
+      durationMinutes:
+          int.tryParse(json['durationMinutes']?.toString() ?? '0') ?? 0,
+      caloriesBurned:
+          int.tryParse(json['caloriesBurned']?.toString() ?? '0') ?? 0,
       timestamp: timestamp,
-      userId: json['userId']?.toString() ?? json['elderUserId']?.toString() ?? '',
+      userId:
+          json['userId']?.toString() ?? json['elderUserId']?.toString() ?? '',
+      sourcePlanId: json['sourcePlanId']?.toString(),
     );
   }
 
@@ -210,8 +225,12 @@ class LifestyleMapper {
     }
 
     // Format date as YYYY-MM-DD (date only, not datetime)
-    final logDate = '${exercise.timestamp.year}-${exercise.timestamp.month.toString().padLeft(2, '0')}-${exercise.timestamp.day.toString().padLeft(2, '0')}';
-    
+    // Convert to Pakistan timezone first to ensure correct date extraction
+    // Extract date components ensuring we use Pakistan timezone perspective
+    final logDate = TimezoneUtil.toPakistanTimeIso8601(
+      exercise.timestamp,
+    ).split('T')[0];
+
     return {
       'activityType': activityType,
       'description': exercise.description,
@@ -223,4 +242,3 @@ class LifestyleMapper {
     };
   }
 }
-

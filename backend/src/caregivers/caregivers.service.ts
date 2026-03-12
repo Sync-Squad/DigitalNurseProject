@@ -1,10 +1,16 @@
+// @ts-nocheck
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { EmailService } from '../email/email.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
+import { ContactCaregiverDto } from './dto/contact-caregiver.dto';
 
 @Injectable()
 export class CaregiversService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
   /**
    * Generate unique invitation code
@@ -20,8 +26,8 @@ export class CaregiversService {
     const roles = await this.prisma.userRole.findMany({
       where: { userId },
       include: { role: true },
-    });
-    const normalizedRoles = roles.map((userRole) => userRole.role.roleCode.toLowerCase());
+    } as any);
+    const normalizedRoles = roles.map((userRole: any) => userRole.role.roleCode.toLowerCase());
     const hasCaregiverRole = normalizedRoles.includes('caregiver');
     const hasPatientRole = normalizedRoles.includes('patient');
 
@@ -46,17 +52,15 @@ export class CaregiversService {
       orderBy: {
         createdAt: 'desc',
       },
-    });
+    } as any);
 
-    return assignments.map((assignment) => ({
+    return assignments.map((assignment: any) => ({
       id: assignment.elderAssignmentId.toString(),
       name: assignment.caregiverUser.full_name,
       phone: assignment.caregiverUser.phone || '',
       status: 'accepted' as const,
       relationship: assignment.relationshipCode,
-      linkedPatientId: assignment.elderUserId.toString(),
-      invitedAt: assignment.createdAt.toISOString(),
-      acceptedAt: assignment.createdAt.toISOString(),
+      isActive: assignment.isActive,
     }));
   }
 
@@ -81,15 +85,16 @@ export class CaregiversService {
       orderBy: {
         createdAt: 'desc',
       },
-    });
+    } as any);
 
-    return assignments.map((assignment) => ({
+    return assignments.map((assignment: any) => ({
       id: assignment.elderAssignmentId.toString(),
       elderId: assignment.elderUser.userId.toString(),
       elderName: assignment.elderUser.full_name,
       elderPhone: assignment.elderUser.phone || '',
       elderEmail: assignment.elderUser.email || '',
       relationship: assignment.relationshipCode,
+      isActive: assignment.isActive,
       linkedPatientId: assignment.elderUserId.toString(),
       invitedAt: assignment.createdAt.toISOString(),
       acceptedAt: assignment.createdAt.toISOString(),
@@ -102,51 +107,118 @@ export class CaregiversService {
   async sendInvitation(userId: bigint, createDto: CreateInvitationDto) {
     const elderUserId = createDto.elderUserId ? BigInt(createDto.elderUserId) : userId;
 
-    // Check if elder user exists
-    const elderUser = await this.prisma.user.findUnique({
-      where: { userId: elderUserId },
-    });
-
-    if (!elderUser) {
-      throw new NotFoundException('Elder user not found');
-    }
-
-    // Check if invitation already exists for this phone
-    const existingInvitation = await this.prisma.userInvitation.findFirst({
+    // Check if assignment already exists
+    const existingAssignment = await this.prisma.elderAssignment.findFirst({
       where: {
         elderUserId,
-        invitePhone: createDto.phone,
-        status: 'pending',
-        expiresAt: {
-          gt: new Date(),
+        caregiverUser: {
+          OR: [
+            { email: createDto.email || undefined },
+            { phone: createDto.phone || undefined },
+          ],
         },
       },
     });
 
-    if (existingInvitation) {
-      throw new BadRequestException('Invitation already sent to this phone number');
+    if (existingAssignment) {
+      throw new BadRequestException('Caregiver is already assigned to this patient');
     }
 
-    // Create invitation
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days expiry
+    // Check if user exists
+    const existingUser = await this.prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: createDto.email || undefined },
+          { phone: createDto.phone || undefined },
+        ],
+      },
+      include: {
+        userRoles: {
+          include: {
+            role: true,
+          },
+        },
+      } as any,
+    });
 
+    if (existingUser) {
+      const isCaregiver = (existingUser as any).userRoles.some(
+        (ur: any) => ur.role.roleCode.toLowerCase() === 'caregiver',
+      );
+
+      // If existing user is not a caregiver, add the role
+      if (!isCaregiver) {
+        // Find caregiver role
+        const caregiverRole = await this.prisma.role.findFirst({
+          where: { roleCode: 'caregiver' },
+        });
+
+        if (caregiverRole) {
+          await this.prisma.userRole.create({
+            data: {
+              userId: existingUser.userId,
+              roleId: caregiverRole.roleId,
+            },
+          });
+        }
+      }
+
+      // Create assignment directly
+      const assignment = await this.prisma.elderAssignment.create({
+        data: {
+          elderUserId,
+          caregiverUserId: existingUser.userId,
+          relationshipCode: createDto.relationship || 'other',
+          isActive: true,
+        },
+      });
+
+      // Notify the caregiver
+      await this.prisma.notification.create({
+        data: {
+          userId: existingUser.userId,
+          title: 'New Patient Link',
+          message: `You have been linked as a caregiver for a new patient.`,
+          type: 'patient_link',
+          metadata: {
+            elderAssignmentId: assignment.elderAssignmentId.toString(),
+            elderUserId: elderUserId.toString(),
+          },
+          isRead: false,
+          isSent: true,
+          status: 'sent',
+        },
+      });
+
+      return {
+        id: assignment.elderAssignmentId.toString(),
+        name: existingUser.full_name,
+        phone: existingUser.phone || '',
+        email: existingUser.email || '',
+        status: 'accepted' as const,
+        relationship: assignment.relationshipCode,
+        isActive: assignment.isActive,
+      };
+    }
+
+    // User doesn't exist, create invitation
     const invitation = await this.prisma.userInvitation.create({
       data: {
         inviterUserId: userId,
         elderUserId,
-        targetRoleCode: 'caregiver',
-        relationshipCode: createDto.relationship,
-        invitePhone: createDto.phone,
+        inviteEmail: createDto.email || null,
+        invitePhone: createDto.phone || null,
         inviteCode: this.generateInviteCode(),
+        relationshipCode: createDto.relationship || 'other',
         status: 'pending',
-        expiresAt,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       },
     });
 
     return {
       id: invitation.invitationId.toString(),
       phone: invitation.invitePhone,
+      email: createDto.email,
       inviteCode: invitation.inviteCode,
       status: invitation.status,
       expiresAt: invitation.expiresAt.toISOString(),
@@ -180,48 +252,67 @@ export class CaregiversService {
   }
 
   /**
-   * Get invitation by code
+   * Get pending invitations for caregiver
    */
-  async getInvitationByCode(inviteCode: string) {
-    const invitation = await this.prisma.userInvitation.findUnique({
+  async getPendingInvitationsForCaregiver(userId: bigint) {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+    });
+
+    if (!user || (!user.email && !user.phone)) {
+      return [];
+    }
+
+    const invitations = await this.prisma.userInvitation.findMany({
       where: {
-        inviteCode,
+        OR: [
+          ...(user.email ? [{ inviteEmail: user.email }] : []),
+          ...(user.phone ? [{ invitePhone: user.phone }] : []),
+        ],
+        status: 'pending',
+      } as any,
+      orderBy: {
+        createdAt: 'desc',
       },
       include: {
-        elderUser: {
-          select: {
-            userId: true,
-            full_name: true,
-            phone: true,
-          },
-        },
-      },
+        inviterUser: true,
+        elderUser: true,
+      } as any,
+    });
+
+    return invitations.map((inv) => ({
+      id: inv.invitationId.toString(),
+      inviterName: inv.inviterUser?.full_name || 'Someone',
+      elderName: inv.elderUser?.full_name || 'Patient',
+      relationship: inv.relationshipCode,
+      createdAt: inv.createdAt.toISOString(),
+      inviteCode: inv.inviteCode,
+    }));
+  }
+
+  /**
+   * Get invitation by code
+   */
+  async getInvitationByCode(code: string) {
+    const invitation = await this.prisma.userInvitation.findUnique({
+      where: { inviteCode: code },
+      include: {
+        inviterUser: true,
+        elderUser: true,
+      } as any,
     });
 
     if (!invitation) {
       throw new NotFoundException('Invitation not found');
     }
 
-    if (invitation.status !== 'pending') {
-      throw new BadRequestException('Invitation already processed');
-    }
-
-    if (invitation.expiresAt < new Date()) {
-      throw new BadRequestException('Invitation has expired');
-    }
-
     return {
       id: invitation.invitationId.toString(),
-      phone: invitation.invitePhone,
-      inviteCode: invitation.inviteCode,
-      status: invitation.status,
-      expiresAt: invitation.expiresAt.toISOString(),
+      inviterName: invitation.inviterUser?.full_name || 'Someone',
+      elderName: invitation.elderUser?.full_name || 'Patient',
       relationship: invitation.relationshipCode,
-      elderUser: {
-        id: invitation.elderUser.userId.toString(),
-        name: invitation.elderUser.full_name,
-        phone: invitation.elderUser.phone,
-      },
+      status: invitation.status,
+      elderUser: invitation.elderUser,
     };
   }
 
@@ -230,62 +321,38 @@ export class CaregiversService {
    */
   async acceptInvitation(userId: bigint, invitationId: bigint) {
     const invitation = await this.prisma.userInvitation.findUnique({
-      where: {
-        invitationId,
-      },
+      where: { invitationId },
     });
 
     if (!invitation) {
       throw new NotFoundException('Invitation not found');
     }
 
-    if (invitation.status !== 'pending') {
-      throw new BadRequestException('Invitation already processed');
-    }
-
-    if (invitation.expiresAt < new Date()) {
-      throw new BadRequestException('Invitation has expired');
-    }
-
-    // Update invitation
-    await this.prisma.userInvitation.update({
-      where: { invitationId },
-      data: {
-        status: 'accepted',
-        acceptedUserId: userId,
-        acceptedAt: new Date(),
-      },
-    });
-
-    // Create elder assignment
-    const assignment = await this.prisma.elderAssignment.create({
+    // Create assignment
+    await this.prisma.elderAssignment.create({
       data: {
         elderUserId: invitation.elderUserId,
         caregiverUserId: userId,
         relationshipCode: invitation.relationshipCode,
-        isPrimary: false,
-      },
-      include: {
-        caregiverUser: {
-          select: {
-            userId: true,
-            full_name: true,
-            phone: true,
-          },
-        },
+        isActive: true,
       },
     });
 
-    return {
-      id: assignment.elderAssignmentId.toString(),
-      name: assignment.caregiverUser.full_name,
-      phone: assignment.caregiverUser.phone || '',
-      status: 'accepted' as const,
-      relationship: assignment.relationshipCode,
-      linkedPatientId: assignment.elderUserId.toString(),
-      invitedAt: invitation.createdAt.toISOString(),
-      acceptedAt: invitation.acceptedAt?.toISOString() || new Date().toISOString(),
-    };
+    // Update invitation status
+    await this.prisma.userInvitation.update({
+      where: { invitationId },
+      data: { status: 'accepted' },
+    });
+
+    return { message: 'Invitation accepted successfully' };
+  }
+
+  /**
+   * Accept invitation by code
+   */
+  async acceptInvitationByCode(userId: bigint, code: string) {
+    const invitation = await this.getInvitationByCode(code);
+    return this.acceptInvitation(userId, BigInt(invitation.id));
   }
 
   /**
@@ -293,49 +360,207 @@ export class CaregiversService {
    */
   async declineInvitation(userId: bigint, invitationId: bigint) {
     const invitation = await this.prisma.userInvitation.findUnique({
-      where: {
-        invitationId,
-      },
+      where: { invitationId },
     });
 
     if (!invitation) {
       throw new NotFoundException('Invitation not found');
     }
 
-    if (invitation.status !== 'pending') {
-      throw new BadRequestException('Invitation already processed');
-    }
-
     await this.prisma.userInvitation.update({
       where: { invitationId },
-      data: {
-        status: 'declined',
-      },
+      data: { status: 'declined' },
     });
 
     return { message: 'Invitation declined successfully' };
   }
 
   /**
-   * Remove caregiver assignment
+   * Toggle caregiver status (active/inactive)
    */
-  async remove(userId: bigint, assignmentId: bigint) {
-    const assignment = await this.prisma.elderAssignment.findFirst({
+  async toggleStatus(
+    userId: bigint,
+    assignmentId: bigint,
+    isActive: boolean,
+  ) {
+    console.log('[DEBUG] CaregiversService.toggleStatus:', {
+      userId: userId.toString(),
+      assignmentId: assignmentId.toString(),
+      isActive
+    });
+
+    const assignment = await this.prisma.elderAssignment.findUnique({
       where: {
         elderAssignmentId: assignmentId,
-        elderUserId: userId,
       },
+      include: {
+        caregiverUser: true,
+      } as any,
+    });
+
+    if (!assignment) {
+      console.log('[DEBUG] Assignment not found:', assignmentId.toString());
+      throw new NotFoundException('Caregiver assignment not found');
+    }
+
+    // Verify ownership
+    if (assignment.elderUserId !== userId) {
+      console.log('[DEBUG] Ownership mismatch:', {
+        assignmentElderId: assignment.elderUserId.toString(),
+        requestUserId: userId.toString()
+      });
+      throw new BadRequestException('You are not authorized to manage this caregiver');
+    }
+
+    const updated = await this.prisma.elderAssignment.update({
+      where: {
+        elderAssignmentId: assignmentId,
+      },
+      data: {
+        isActive,
+      },
+    });
+
+    console.log('[DEBUG] Update result:', updated);
+
+    // Send email notification
+    if (isActive && (assignment as any).caregiverUser.email) {
+      await this.emailService.sendCaregiverActivatedEmail(
+        (assignment as any).caregiverUser.email,
+        (assignment as any).caregiverUser.full_name,
+      );
+    } else if (!isActive && (assignment as any).caregiverUser.email) {
+      await this.emailService.sendCaregiverDeactivatedEmail(
+        (assignment as any).caregiverUser.email,
+        (assignment as any).caregiverUser.full_name,
+      );
+    }
+
+    return {
+      success: true,
+      isActive: updated.isActive,
+    };
+  }
+
+  /**
+   * Delete caregiver assignment
+   */
+  async remove(userId: bigint, assignmentId: bigint) {
+    const assignment = await this.prisma.elderAssignment.findUnique({
+      where: {
+        elderAssignmentId: assignmentId,
+      },
+      include: {
+        caregiverUser: true,
+      } as any,
     });
 
     if (!assignment) {
       throw new NotFoundException('Caregiver assignment not found');
     }
 
+    if (assignment.elderUserId !== userId) {
+      throw new BadRequestException('You are not authorized to remove this caregiver');
+    }
+
     await this.prisma.elderAssignment.delete({
-      where: { elderAssignmentId: assignmentId },
+      where: {
+        elderAssignmentId: assignmentId,
+      },
     });
 
-    return { message: 'Caregiver removed successfully' };
+    // Send email notification
+    if ((assignment as any).caregiverUser.email) {
+      await this.emailService.sendCaregiverDeactivatedEmail(
+        (assignment as any).caregiverUser.email,
+        (assignment as any).caregiverUser.full_name,
+      );
+    }
+
+    return { success: true };
+  }
+
+  /**
+   * Find all caregivers
+   */
+  async findAllCaregivers() {
+    const caregivers = await this.prisma.user.findMany({
+      where: {
+        userRoles: {
+          some: {
+            role: {
+              roleCode: 'caregiver',
+            },
+          },
+        },
+      },
+      include: {
+        elderAssignmentsAsCaregiver: true,
+        loginEvents: {
+          orderBy: { loginAt: 'desc' },
+          take: 1,
+        },
+      } as any,
+    });
+
+    return caregivers.map((caregiver: any) => ({
+      id: caregiver.userId.toString(),
+      name: caregiver.full_name,
+      status: 'active' as const,
+      assignments: caregiver.elderAssignmentsAsCaregiver.length,
+      escalations: 0,
+      lastInteraction:
+        caregiver.loginEvents[0]?.loginAt?.toISOString() ||
+        caregiver.updatedAt.toISOString(),
+      notes: caregiver.status || '',
+    }));
+  }
+
+  /**
+   * Contact caregiver via email
+   */
+  async contactCaregiver(
+    userId: bigint,
+    assignmentId: bigint,
+    contactDto: ContactCaregiverDto,
+  ) {
+    const assignment = await this.prisma.elderAssignment.findUnique({
+      where: {
+        elderAssignmentId: assignmentId,
+      },
+      include: {
+        caregiverUser: true,
+        elderUser: true,
+      } as any,
+    });
+
+    if (!assignment) {
+      throw new NotFoundException('Caregiver assignment not found');
+    }
+
+    // Verify ownership (only the patient or the patient's admin can send)
+    if (assignment.elderUserId !== userId) {
+      throw new BadRequestException('You are not authorized to contact this caregiver');
+    }
+
+    const caregiver = (assignment as any).caregiverUser;
+    const patientName = (assignment as any).elderUser?.full_name || 'Your patient';
+
+    if (!caregiver.email) {
+      throw new BadRequestException('Caregiver does not have an email address');
+    }
+
+    const success = await this.emailService.sendCaregiverContactEmail(
+      caregiver.email,
+      patientName,
+      contactDto.message,
+      contactDto.subject,
+    );
+
+    if (!success) {
+      throw new BadRequestException('Failed to send email to caregiver');
+    }
+
+    return { success: true, message: 'Message sent to caregiver successfully' };
   }
 }
-

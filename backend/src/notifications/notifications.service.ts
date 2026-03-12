@@ -31,10 +31,31 @@ export class NotificationsService {
   /**
    * Find all notifications for a user
    */
-  async findAll(context: ActorContext, isRead?: boolean) {
+  async findAll(
+    context: ActorContext,
+    isRead?: boolean,
+    type?: string,
+    startDate?: Date,
+    endDate?: Date,
+  ) {
     const where: any = { userId: context.elderUserId };
     if (isRead !== undefined) {
       where.isRead = isRead;
+    }
+    if (type) {
+      where.notificationType = type;
+    }
+    if (startDate || endDate) {
+      where.createdAt = {};
+      if (startDate) {
+        where.createdAt.gte = startDate;
+      }
+      if (endDate) {
+        // Set endDate to end of day
+        const endOfDay = new Date(endDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        where.createdAt.lte = endOfDay;
+      }
     }
 
     const notifications = await this.prisma.notification.findMany({

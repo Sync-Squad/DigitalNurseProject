@@ -474,6 +474,87 @@ export const subscriptions: SubscriptionRecord[] = [
     lastInvoice: "INV-2025-2017",
     addOns: ["Caregiver Analytics"],
   },
+  {
+    id: "sub-4",
+    patient: "Nadeem Qureshi",
+    plan: "Premium",
+    renewalDate: addDays(new Date(), 3),
+    paymentStatus: "Paid",
+    lastInvoice: "INV-2025-2019",
+    addOns: ["Caregiver Analytics", "Bilingual Support", "Priority Support"],
+  },
+  {
+    id: "sub-5",
+    patient: "Sana Arif",
+    plan: "Essential",
+    renewalDate: addDays(new Date(), 12),
+    paymentStatus: "Due",
+    lastInvoice: "INV-2025-2025",
+    addOns: ["Medication Insights"],
+  },
+  {
+    id: "sub-6",
+    patient: "Ahmed Malik",
+    plan: "Premium",
+    renewalDate: addDays(new Date(), 28),
+    paymentStatus: "Paid",
+    lastInvoice: "INV-2025-2035",
+    addOns: ["Caregiver Analytics"],
+  },
+  {
+    id: "sub-7",
+    patient: "Fatima Sheikh",
+    plan: "Essential",
+    renewalDate: addDays(new Date(), 5),
+    paymentStatus: "Past Due",
+    lastInvoice: "INV-2025-2018",
+    addOns: [],
+  },
+  {
+    id: "sub-8",
+    patient: "Zain Ali",
+    plan: "Premium",
+    renewalDate: addDays(new Date(), 45),
+    paymentStatus: "Paid",
+    lastInvoice: "INV-2025-2042",
+    addOns: ["Bilingual Support", "Priority Support"],
+  },
+  {
+    id: "sub-9",
+    patient: "Hina Rizvi",
+    plan: "Essential",
+    renewalDate: addDays(new Date(), 20),
+    paymentStatus: "Due",
+    lastInvoice: "INV-2025-2027",
+    addOns: ["Medication Insights"],
+  },
+  {
+    id: "sub-10",
+    patient: "Omar Khan",
+    plan: "Premium",
+    renewalDate: addDays(new Date(), 65),
+    paymentStatus: "Paid",
+    lastInvoice: "INV-2025-2062",
+    addOns: ["Caregiver Analytics", "Bilingual Support"],
+  },
+  {
+    id: "sub-11",
+    patient: "Sara Ahmed",
+    plan: "Essential",
+    renewalDate: addDays(new Date(), 2),
+    paymentStatus: "Due",
+    lastInvoice: "INV-2025-2015",
+    addOns: [],
+  },
+  {
+    id: "sub-12",
+    patient: "Bilal Hassan",
+    plan: "Premium",
+    renewalDate: addDays(new Date(), 35),
+    paymentStatus: "Paid",
+    lastInvoice: "INV-2025-2040",
+    addOns: ["Priority Support"],
+  },
 ]
 
 export type ReportSchedule = {
@@ -627,4 +708,36 @@ export const patientWorkspace = {
   documents: documents.filter((doc) => doc.patient === "Ayesha Khan"),
   notifications: notifications.slice(0, 3),
 }
+
+export type CityPatientData = {
+  city: string
+  patients: number
+}
+
+export const cityPatientData: CityPatientData[] = [
+  { city: "Karachi", patients: 45 },
+  { city: "Lahore", patients: 38 },
+  { city: "Islamabad", patients: 32 },
+  { city: "Rawalpindi", patients: 18 },
+  { city: "Faisalabad", patients: 12 },
+  { city: "Multan", patients: 8 },
+  { city: "Peshawar", patients: 7 },
+]
+
+export type CityRevenueData = {
+  city: string
+  revenue: number
+  subscriptions: number
+  growth: number
+}
+
+export const cityRevenueData: CityRevenueData[] = [
+  { city: "Karachi", revenue: 1250000, subscriptions: 45, growth: 12.5 },
+  { city: "Lahore", revenue: 980000, subscriptions: 38, growth: 8.3 },
+  { city: "Islamabad", revenue: 850000, subscriptions: 32, growth: 15.2 },
+  { city: "Rawalpindi", revenue: 420000, subscriptions: 18, growth: 5.7 },
+  { city: "Faisalabad", revenue: 280000, subscriptions: 12, growth: 3.1 },
+  { city: "Multan", revenue: 195000, subscriptions: 8, growth: 2.4 },
+  { city: "Peshawar", revenue: 175000, subscriptions: 7, growth: 1.8 },
+]
 

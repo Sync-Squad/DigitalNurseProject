@@ -6,6 +6,7 @@ import 'package:easy_localization/easy_localization.dart';
 import '../../../core/providers/health_provider.dart';
 import '../../../core/extensions/vital_type_extensions.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/timezone_util.dart';
 import 'expandable_section_tile.dart';
 
 class VitalsSection extends StatelessWidget {
@@ -56,7 +57,9 @@ class VitalsSection extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: context.theme.colors.muted,
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: context.theme.colors.border),
+                          border: Border.all(
+                            color: context.theme.colors.border,
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -80,9 +83,11 @@ class VitalsSection extends StatelessWidget {
                                         ?.copyWith(fontWeight: FontWeight.bold),
                                   ),
                                   Text(
-                                    DateFormat(
-                                      'MMM d, h:mm a',
-                                    ).format(vital.timestamp),
+                                    DateFormat('MMM d, h:mm a').format(
+                                      TimezoneUtil.toPakistanTime(
+                                        vital.timestamp,
+                                      ),
+                                    ),
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: Theme.of(context)

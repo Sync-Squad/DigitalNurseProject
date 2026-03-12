@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react"
-import { documents } from "@/mocks/data"
+import { useDocumentsData } from "@/hooks/use-documents-data"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Table,
@@ -26,6 +26,7 @@ export default function DocumentsPage() {
   const [visibility, setVisibility] = useState<"all" | "Team" | "Caregiver" | "Private">(
     "all"
   )
+  const { documents, loading, error } = useDocumentsData()
 
   const filteredDocuments = useMemo(() => {
     return documents.filter((doc) => {
@@ -36,7 +37,7 @@ export default function DocumentsPage() {
         doc.patient.toLowerCase().includes(search.toLowerCase())
       return matchesVisibility && matchesSearch
     })
-  }, [visibility, search])
+  }, [visibility, search, documents])
 
   return (
     <section className="space-y-6">
@@ -129,13 +130,23 @@ export default function DocumentsPage() {
               ))}
             </TableBody>
           </Table>
-          {filteredDocuments.length === 0 ? (
+          {loading ? (
+            <div className="rounded-lg border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
+              Loading documents...
+            </div>
+          ) : filteredDocuments.length === 0 ? (
             <div className="rounded-lg border border-dashed border-border/60 py-10 text-center text-sm text-muted-foreground">
               No documents found for the selected filters.
             </div>
           ) : null}
         </CardContent>
       </Card>
+
+      {error ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      ) : null}
     </section>
   )
 }

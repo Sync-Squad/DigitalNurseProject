@@ -20,19 +20,22 @@ export const API_ENDPOINTS = {
   },
   // User endpoints
   users: {
-    me: "/users/me",
-    updateProfile: "/users/me",
+    profile: "/users/profile",
+    updateProfile: "/users/profile",
+    patients: "/users/patients",
+    detail: (id: string) => `/users/${id}`,
   },
-  // Patient endpoints
-  patients: {
-    list: "/patients",
-    detail: (id: string) => `/patients/${id}`,
+  // Dashboard endpoints
+  dashboard: {
+    metrics: "/dashboard/metrics",
+    stats: "/dashboard/stats",
   },
   // Caregiver endpoints
   caregivers: {
     list: "/caregivers",
     detail: (id: string) => `/caregivers/${id}`,
     invite: "/caregivers/invite",
+    all: "/caregivers/all",
   },
   // Vitals endpoints
   vitals: {
@@ -62,8 +65,17 @@ export const API_ENDPOINTS = {
   },
   // Subscriptions endpoints
   subscriptions: {
-    list: "/subscriptions",
-    detail: (id: string) => `/subscriptions/${id}`,
+    active: "/subscriptions/active",
+    plans: "/subscriptions/plans",
+    current: "/subscriptions/current",
+  },
+  // Lifestyle endpoints
+  lifestyle: {
+    summaryWeekly: "/lifestyle/summary/weekly",
+    dietPlans: "/lifestyle/diet-plans",
+    exercisePlans: "/lifestyle/exercise-plans",
+    dietLogs: "/lifestyle/diet",
+    exerciseLogs: "/lifestyle/exercise",
   },
 } as const;
 

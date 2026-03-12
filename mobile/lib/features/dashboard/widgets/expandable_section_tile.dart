@@ -94,7 +94,11 @@ class _ExpandableSectionTileState extends State<ExpandableSectionTile>
           padding: const EdgeInsets.all(20.0),
           child: Row(
             children: [
-              Icon(widget.icon, color: context.theme.colors.foreground, size: 28),
+              Icon(
+                widget.icon,
+                color: context.theme.colors.foreground,
+                size: 28,
+              ),
               const SizedBox(width: 20),
               Expanded(
                 child: Column(
@@ -138,7 +142,11 @@ class _ExpandableSectionTileState extends State<ExpandableSectionTile>
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Row(
                     children: [
-                      Icon(widget.icon, color: context.theme.colors.foreground, size: 28),
+                      Icon(
+                        widget.icon,
+                        color: context.theme.colors.foreground,
+                        size: 28,
+                      ),
                       const SizedBox(width: 20),
                       Expanded(
                         child: Column(
@@ -231,7 +239,11 @@ class _ExpandableSectionTileState extends State<ExpandableSectionTile>
                 ),
               ),
               const SizedBox(width: 4),
-              Icon(Icons.arrow_forward_ios, color: context.theme.colors.mutedForeground, size: 12),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: context.theme.colors.mutedForeground,
+                size: 12,
+              ),
             ],
           ),
         ),
@@ -277,9 +289,7 @@ class _ExpandableSectionTileState extends State<ExpandableSectionTile>
     return Container(
       decoration: BoxDecoration(
         color: context.theme.colors.muted,
-        borderRadius: BorderRadius.circular(
-          16,
-        ),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08), // Subtle shadow
@@ -298,7 +308,10 @@ class _ExpandableSectionTileState extends State<ExpandableSectionTile>
                 width: double.infinity,
                 decoration: BoxDecoration(
                   border: Border(
-                    top: BorderSide(color: context.theme.colors.border, width: 1),
+                    top: BorderSide(
+                      color: context.theme.colors.border,
+                      width: 1,
+                    ),
                   ),
                 ),
                 child: widget.expandedChild,

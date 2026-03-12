@@ -6,7 +6,7 @@ import { ActorContext } from '../common/services/access-control.service';
 
 @Injectable()
 export class VitalsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   /**
    * Map app enum to database kindCode
@@ -98,25 +98,35 @@ export class VitalsService {
    * Create vital measurement
    */
   async create(context: ActorContext, createDto: CreateVitalDto) {
-    const { type, value, timestamp, notes } = createDto;
-    const { value1, value2, valueText } = this.parseValue(type, value);
+    try {
+      const { type, value, timestamp, notes } = createDto;
 
-    const measurement = await this.prisma.vitalMeasurement.create({
-      data: {
-        elderUserId: context.elderUserId,
-        kindCode: this.typeToKindCode(type),
-        unitCode: this.getUnitCode(type),
-        value1: value1,
-        value2: value2,
-        valueText: valueText,
-        recordedAt: new Date(timestamp),
-        source: 'manual',
-        notes: notes || null,
-        recordedByUserId: context.actorUserId,
-      },
-    });
+      // Ensure value is a string for parsing
+      const valueStr = typeof value === 'string' ? value : String(value);
+      const { value1, value2, valueText } = this.parseValue(type, valueStr);
 
-    return this.mapToResponse(measurement);
+      const measurement = await this.prisma.vitalMeasurement.create({
+        data: {
+          elderUserId: context.elderUserId,
+          kindCode: this.typeToKindCode(type),
+          unitCode: this.getUnitCode(type),
+          value1: value1,
+          value2: value2,
+          valueText: valueText,
+          recordedAt: new Date(timestamp),
+          source: 'manual',
+          notes: notes || null,
+          recordedByUserId: context.actorUserId,
+        },
+      });
+
+      return this.mapToResponse(measurement);
+    } catch (error) {
+      console.error('Error in VitalsService.create:', error);
+      console.error('Context:', context);
+      console.error('DTO:', createDto);
+      throw error;
+    }
   }
 
   /**
@@ -252,33 +262,90 @@ export class VitalsService {
   }
 
   /**
-   * Get 7-day trends (use database view)
+   * Get trends for vital measurements
    */
-  async getTrends(context: ActorContext, kindCode?: string) {
+  async getTrends(context: ActorContext, kindCode?: string, days: number = 7) {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    const where: any = {
+      elderUserId: context.elderUserId,
+      recordedAt: {
+        gte: cutoffDate,
+      },
+    };
+
     if (kindCode) {
-      const results = await this.prisma.$queryRaw`
-        SELECT * FROM "v_vitals_trend_7d"
-        WHERE "elderUserId" = ${context.elderUserId}::bigint
-        AND "kindCode" = ${kindCode}
-      `;
-      return (results as any[]).map((r) => ({
-        kindCode: r.kindCode,
-        average: parseFloat(r.average?.toString() || '0'),
-        count: parseInt(r.count?.toString() || '0', 10),
-        measurements: r.measurements || [],
-      }));
-    } else {
-      const results = await this.prisma.$queryRaw`
-        SELECT * FROM "v_vitals_trend_7d"
-        WHERE "elderUserId" = ${context.elderUserId}::bigint
-      `;
-      return (results as any[]).map((r) => ({
-        kindCode: r.kindCode,
-        average: parseFloat(r.average?.toString() || '0'),
-        count: parseInt(r.count?.toString() || '0', 10),
-        measurements: r.measurements || [],
-      }));
+      where.kindCode = kindCode;
     }
+
+    const measurements = await this.prisma.vitalMeasurement.findMany({
+      where,
+      orderBy: {
+        recordedAt: 'asc',
+      },
+    });
+
+    if (measurements.length === 0) {
+      return kindCode
+        ? [
+          {
+            kindCode,
+            average: 0,
+            count: 0,
+            hasAbnormal: false,
+            measurements: [],
+          },
+        ]
+        : [];
+    }
+
+    // Group by kindCode
+    const grouped = new Map<string, any[]>();
+    for (const m of measurements) {
+      if (!grouped.has(m.kindCode)) {
+        grouped.set(m.kindCode, []);
+      }
+      grouped.get(m.kindCode)!.push(m);
+    }
+
+    const results: any[] = [];
+
+    for (const [code, vitals] of grouped.entries()) {
+      // Calculate average (handle different value types)
+      let sum = 0;
+      let count = 0;
+      const hasAbnormal = vitals.some((v) => this.isAbnormal(v));
+
+      for (const vital of vitals) {
+        if (vital.value1 !== null) {
+          sum += parseFloat(vital.value1.toString());
+          count++;
+        } else if (vital.valueText) {
+          // For blood pressure, parse "120/80" format
+          const parts = vital.valueText.split('/');
+          if (parts.length === 2) {
+            const systolic = parseFloat(parts[0]);
+            if (!isNaN(systolic)) {
+              sum += systolic;
+              count++;
+            }
+          }
+        }
+      }
+
+      const average = count > 0 ? sum / count : 0;
+
+      results.push({
+        kindCode: code,
+        average: Math.round(average * 100) / 100,
+        count: vitals.length,
+        hasAbnormal,
+        measurements: vitals.map((v) => this.mapToResponse(v)),
+      });
+    }
+
+    return results;
   }
 
   /**
@@ -361,7 +428,46 @@ export class VitalsService {
       timestamp: measurement.recordedAt.toISOString(),
       notes: measurement.notes || null,
       userId: measurement.elderUserId.toString(),
+      value1: measurement.value1,
+      value2: measurement.value2,
+      status: this.getStatus(measurement),
     };
+  }
+
+  /**
+   * Get clinical status for a measurement
+   */
+  private getStatus(measurement: any): string {
+    const kindCode = measurement.kindCode.toLowerCase();
+    const v1 = measurement.value1 ? parseFloat(measurement.value1.toString()) : null;
+    const v2 = measurement.value2 ? parseFloat(measurement.value2.toString()) : null;
+
+    if (kindCode === "bp" && v1 && v2) {
+      if (v1 > 140 || v2 > 90) return "High";
+      if (v1 < 90 || v2 < 60) return "Low";
+      return "In range";
+    }
+    if (kindCode === "hr" && v1) {
+      if (v1 > 100) return "High";
+      if (v1 < 60) return "Low";
+      return "In range";
+    }
+    if (kindCode === "bs" && v1) {
+      if (v1 > 140) return "High";
+      if (v1 < 70) return "Low";
+      return "In range";
+    }
+    if (kindCode === "o2" && v1) {
+      if (v1 < 95) return "Low";
+      return "In range";
+    }
+    if (kindCode === "temp" && v1) {
+      if (v1 > 100.4) return "High";
+      if (v1 < 97) return "Low";
+      return "In range";
+    }
+
+    return "Stable";
   }
 }
 

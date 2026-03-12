@@ -5,6 +5,7 @@ import {
   IsDateString,
   IsEnum,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum VitalType {
@@ -21,6 +22,7 @@ export class CreateVitalDto {
     example: '1',
     description: 'Target elder user ID (required when caregiver)',
   })
+  @Transform(({ value }) => value != null ? String(value) : undefined)
   @IsString()
   @IsOptional()
   elderUserId?: string;
@@ -33,6 +35,7 @@ export class CreateVitalDto {
     example: '120/80',
     description: 'Value as string. For blood pressure use "systolic/diastolic" format',
   })
+  @Transform(({ value }) => String(value))
   @IsString()
   @IsNotEmpty()
   value!: string;

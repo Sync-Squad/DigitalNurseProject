@@ -66,3 +66,8 @@ node_modules/
 .next/
 web/portal/dist.zip
 node_modules
+
+# Auto Claude data directory
+.auto-claude/
+backend/tmpclaude-91f7-cwd
+mobile/lib/tmpclaude-0b89-cwd

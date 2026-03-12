@@ -5,6 +5,7 @@ import '../../../core/providers/document_provider.dart';
 import '../../../core/models/document_model.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
+import '../../../core/utils/timezone_util.dart';
 import 'expandable_section_tile.dart';
 
 class DocumentsSection extends StatelessWidget {
@@ -35,7 +36,9 @@ class DocumentsSection extends StatelessWidget {
                     child: Text(
                       'dashboard.noDocuments'.tr(),
                       style: TextStyle(
-                        color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.6),
+                        color: ModernSurfaceTheme.deepTeal.withValues(
+                          alpha: 0.6,
+                        ),
                         fontSize: 14,
                       ),
                     ),
@@ -44,9 +47,9 @@ class DocumentsSection extends StatelessWidget {
                   Text(
                     'dashboard.recentDocuments'.tr(),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: ModernSurfaceTheme.deepTeal,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: ModernSurfaceTheme.deepTeal,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   ...recentDocuments.map((document) {
@@ -91,9 +94,11 @@ class DocumentsSection extends StatelessWidget {
                                         ),
                                   ),
                                   Text(
-                                    DateFormat(
-                                      'MMM d, yyyy',
-                                    ).format(document.uploadDate),
+                                    DateFormat('MMM d, yyyy').format(
+                                      TimezoneUtil.toPakistanTime(
+                                        document.uploadDate,
+                                      ),
+                                    ),
                                     style: Theme.of(context).textTheme.bodySmall
                                         ?.copyWith(
                                           color: ModernSurfaceTheme.deepTeal
@@ -113,11 +118,13 @@ class DocumentsSection extends StatelessWidget {
                     const SizedBox(height: 8),
                     Center(
                       child: Text(
-                        'dashboard.moreDocuments'.tr(namedArgs: {
-                          'count': '${documents.length - 3}'
-                        }),
+                        'dashboard.moreDocuments'.tr(
+                          namedArgs: {'count': '${documents.length - 3}'},
+                        ),
                         style: TextStyle(
-                          color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.6),
+                          color: ModernSurfaceTheme.deepTeal.withValues(
+                            alpha: 0.6,
+                          ),
                           fontSize: 12,
                           fontStyle: FontStyle.italic,
                         ),

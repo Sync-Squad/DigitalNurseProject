@@ -19,7 +19,7 @@ class PatientUpcomingMedicationsCard extends StatelessWidget {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final medicationProvider = context.watch<MedicationProvider>();
     final upcoming = [...medicationProvider.upcomingReminders]
       ..sort((a, b) {
@@ -47,10 +47,7 @@ class PatientUpcomingMedicationsCard extends StatelessWidget {
       routeForViewDetails: '/medications',
       expandedChild: nextReminders.isEmpty
           ? Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 18.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
               decoration: CaregiverDashboardTheme.tintedCard(
                 context,
                 CaregiverDashboardTheme.primaryTeal,
@@ -71,16 +68,16 @@ class PatientUpcomingMedicationsCard extends StatelessWidget {
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
-                child: Text(
-                  'patient.noUpcomingDoses'.tr(),
-                  style: context.theme.typography.sm.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: CaregiverDashboardTheme.tintedForegroundColor(
-                      CaregiverDashboardTheme.primaryTeal,
-                      brightness: brightness,
+                    child: Text(
+                      'patient.noUpcomingDoses'.tr(),
+                      style: context.theme.typography.sm.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: CaregiverDashboardTheme.tintedForegroundColor(
+                          CaregiverDashboardTheme.primaryTeal,
+                          brightness: brightness,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
                   ),
                 ],
               ),
@@ -128,7 +125,7 @@ class _UpcomingReminderRow extends StatelessWidget {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final accent = isSoon
         ? CaregiverDashboardTheme.accentCoral
         : CaregiverDashboardTheme.accentBlue;
@@ -138,10 +135,10 @@ class _UpcomingReminderRow extends StatelessWidget {
     final relative = diff.inMinutes <= 0
         ? 'patient.dueNow'.tr()
         : diff.inMinutes < 60
-            ? 'patient.inMinutes'.tr(namedArgs: {'count': '${diff.inMinutes}'})
-            : diff.inHours < 24
-                ? 'patient.inHours'.tr(namedArgs: {'count': '${diff.inHours}'})
-                : 'patient.inDays'.tr(namedArgs: {'count': '${diff.inDays}'});
+        ? 'patient.inMinutes'.tr(namedArgs: {'count': '${diff.inMinutes}'})
+        : diff.inHours < 24
+        ? 'patient.inHours'.tr(namedArgs: {'count': '${diff.inHours}'})
+        : 'patient.inDays'.tr(namedArgs: {'count': '${diff.inDays}'});
 
     final brightness = Theme.of(context).brightness;
     final onTint = CaregiverDashboardTheme.tintedForegroundColor(
@@ -195,10 +192,7 @@ class _UpcomingReminderRow extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10.w,
-                  vertical: 6.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                 decoration: CaregiverDashboardTheme.frostedChip(
                   context,
                   baseColor: Colors.white,
@@ -219,9 +213,7 @@ class _UpcomingReminderRow extends StatelessWidget {
             children: [
               Text(
                 '$dayLabel • $timeLabel',
-                style: context.theme.typography.xs.copyWith(
-                  color: onTintMuted,
-                ),
+                style: context.theme.typography.xs.copyWith(color: onTintMuted),
               ),
               TextButton(
                 onPressed: () => context.push('/medications'),
@@ -231,7 +223,9 @@ class _UpcomingReminderRow extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                child: Text(isSoon ? 'patient.remindNow'.tr() : 'patient.details'.tr()),
+                child: Text(
+                  isSoon ? 'patient.remindNow'.tr() : 'patient.details'.tr(),
+                ),
               ),
             ],
           ),

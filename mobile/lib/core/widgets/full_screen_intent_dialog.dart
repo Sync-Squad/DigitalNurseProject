@@ -12,7 +12,7 @@ class FullScreenIntentDialog extends StatelessWidget {
   static Future<void> showIfNeeded(BuildContext context) async {
     final fcmService = FCMService();
     final hasPermission = await fcmService.checkFullScreenIntentPermission();
-    
+
     if (!hasPermission && context.mounted) {
       await showDialog(
         context: context,
@@ -25,9 +25,7 @@ class FullScreenIntentDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20.r),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
       title: Row(
         children: [
           Container(
@@ -46,9 +44,7 @@ class FullScreenIntentDialog extends StatelessWidget {
           const Expanded(
             child: Text(
               'Enable Medicine Alarms',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -59,10 +55,7 @@ class FullScreenIntentDialog extends StatelessWidget {
         children: [
           Text(
             'To show medicine reminder alarms automatically (like a wake-up alarm), please enable "Display over other apps" permission.',
-            style: TextStyle(
-              fontSize: 14.sp,
-              height: 1.5,
-            ),
+            style: TextStyle(fontSize: 14.sp, height: 1.5),
           ),
           SizedBox(height: 16.h),
           Container(
@@ -70,17 +63,11 @@ class FullScreenIntentDialog extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.blue.withOpacity(0.1),
               borderRadius: BorderRadius.circular(12.r),
-              border: Border.all(
-                color: Colors.blue.withOpacity(0.3),
-              ),
+              border: Border.all(color: Colors.blue.withOpacity(0.3)),
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.info_outline,
-                  color: Colors.blue,
-                  size: 20.w,
-                ),
+                Icon(Icons.info_outline, color: Colors.blue, size: 20.w),
                 SizedBox(width: 8.w),
                 Expanded(
                   child: Text(
@@ -99,12 +86,7 @@ class FullScreenIntentDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(
-            'Later',
-            style: TextStyle(
-              color: Colors.grey.shade600,
-            ),
-          ),
+          child: Text('Later', style: TextStyle(color: Colors.grey.shade600)),
         ),
         ElevatedButton(
           onPressed: () async {
@@ -120,10 +102,7 @@ class FullScreenIntentDialog extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.r),
             ),
-            padding: EdgeInsets.symmetric(
-              horizontal: 20.w,
-              vertical: 12.h,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
           ),
           child: const Text('Open Settings'),
         ),
@@ -172,10 +151,7 @@ class _FullScreenIntentBannerState extends State<FullScreenIntentBanner> {
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Colors.orange.shade400,
-            Colors.orange.shade600,
-          ],
+          colors: [Colors.orange.shade400, Colors.orange.shade600],
         ),
         borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
@@ -241,4 +217,3 @@ class _FullScreenIntentBannerState extends State<FullScreenIntentBanner> {
     );
   }
 }
-

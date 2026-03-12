@@ -1,5 +1,6 @@
-import { Controller, Get, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Put, Body, NotFoundException } from '@nestjs/common';
 import { AppConfigService } from './config.service';
+import { UpdateGeminiApiKeyDto } from './dto/update-gemini-api-key.dto';
 
 @Controller('config')
 export class AppConfigController {
@@ -22,6 +23,25 @@ export class AppConfigController {
       apiKey,
       config_key: 'gemini_api_key',
       config_value: apiKey,
+    };
+  }
+
+  /**
+   * PUT /config/gemini-api-key
+   * Updates the Gemini API key in the database
+   * This endpoint requires authentication (JWT guard is applied globally)
+   */
+  @Put('gemini-api-key')
+  async updateGeminiApiKey(@Body() dto: UpdateGeminiApiKeyDto) {
+    await this.configService.upsertConfig(
+      'gemini_api_key',
+      dto.apiKey,
+      'Google Gemini API key for AI features',
+    );
+
+    return {
+      message: 'Gemini API key updated successfully',
+      config_key: 'gemini_api_key',
     };
   }
 

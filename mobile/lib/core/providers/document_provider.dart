@@ -52,6 +52,7 @@ class DocumentProvider with ChangeNotifier {
     required DocumentVisibility visibility,
     String? description,
     String? elderUserId,
+    DateTime? uploadDate,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -64,6 +65,7 @@ class DocumentProvider with ChangeNotifier {
         visibility: visibility,
         description: description,
         elderUserId: elderUserId,
+        uploadDate: uploadDate,
       );
       _documents.insert(0, uploaded);
       _error = null;

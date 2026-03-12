@@ -6,6 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/providers/caregiver_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/modern_scaffold.dart';
+import '../../../core/theme/modern_surface_theme.dart';
 
 class AddCaregiverScreen extends StatefulWidget {
   const AddCaregiverScreen({super.key});
@@ -156,59 +158,163 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FScaffold(
-      header: FHeader.nested(
-        title: const Text('Add Caregiver'),
-        prefixes: [FHeaderAction.back(onPress: () => context.pop())],
+    final caregiverProvider = context.watch<CaregiverProvider>();
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final onPrimary = colorScheme.onPrimary;
+
+    return ModernScaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: IconThemeData(color: onPrimary),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
+        ),
+        title: Text(
+          'Add Caregiver',
+          style: textTheme.titleLarge?.copyWith(
+            color: onPrimary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
-      child: SafeArea(
+      body: Center(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.w),
+          padding: ModernSurfaceTheme.screenPadding(),
           child: Form(
             key: _formKey,
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  'Invite someone to help manage your care',
-                  style: context.theme.typography.base,
-                ),
-                SizedBox(height: 24.h),
+                SizedBox(height: 40.h),
 
-                FTextField(
-                  controller: _emailController,
-                  label: const Text('Email'),
-                  hint: 'caregiver@example.com',
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                SizedBox(height: 16.h),
+                // Hero section with logo/title
+                Container(
+                  decoration: ModernSurfaceTheme.heroDecoration(context),
+                  padding: ModernSurfaceTheme.heroPadding(),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 20.h),
+                      // Logo/Icon
+                      Icon(FIcons.userPlus, size: 80.r, color: Colors.white),
+                      SizedBox(height: ModernSurfaceTheme.heroSpacing()),
 
-                FTextField(
-                  controller: _phoneController,
-                  label: const Text('Phone Number'),
-                  hint: '+1234567890',
-                  keyboardType: TextInputType.phone,
+                      // Title
+                      Text(
+                        'Add Caregiver',
+                        style: Theme.of(context).textTheme.headlineLarge
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 8.h),
+                      Text(
+                        'Invite someone to help manage your care',
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: Colors.white.withOpacity(0.9)),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 20.h),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 16.h),
+                SizedBox(height: 32.h),
 
-                FTextField(
-                  controller: _nameController,
-                  label: const Text('Name (Optional)'),
-                  hint: 'Caregiver name',
-                ),
-                SizedBox(height: 16.h),
+                // Form container with glassmorphic card
+                Container(
+                  decoration: ModernSurfaceTheme.glassCard(
+                    context,
+                    highlighted: true,
+                  ),
+                  padding: ModernSurfaceTheme.cardPadding(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Email field
+                      FTextField(
+                        controller: _emailController,
+                        label: const Text('Email'),
+                        hint: 'caregiver@example.com',
+                        keyboardType: TextInputType.emailAddress,
+                      ),
+                      SizedBox(height: 20.h),
 
-                FTextField(
-                  controller: _relationshipController,
-                  label: const Text('Relationship (Optional)'),
-                  hint: 'e.g., Daughter, Son, Friend',
-                ),
-                SizedBox(height: 24.h),
+                      // Phone field
+                      FTextField(
+                        controller: _phoneController,
+                        label: const Text('Phone Number'),
+                        hint: '+1234567890',
+                        keyboardType: TextInputType.phone,
+                      ),
+                      SizedBox(height: 20.h),
 
-                FButton(
-                  onPress: _handleAdd,
-                  child: const Text('Send Invitation'),
+                      // Name field (Optional)
+                      FTextField(
+                        controller: _nameController,
+                        label: const Text('Name (Optional)'),
+                        hint: 'Caregiver name',
+                      ),
+                      SizedBox(height: 20.h),
+
+                      // Relationship field (Optional)
+                      FTextField(
+                        controller: _relationshipController,
+                        label: const Text('Relationship (Optional)'),
+                        hint: 'e.g., Daughter, Son, Friend',
+                      ),
+                      SizedBox(height: 28.h),
+
+                      // Send Invitation button with modern pill style
+                      Container(
+                        decoration: ModernSurfaceTheme.pillButton(
+                          context,
+                          AppTheme.appleGreen,
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: caregiverProvider.isLoading
+                                ? null
+                                : _handleAdd,
+                            borderRadius: BorderRadius.circular(30),
+                            child: Container(
+                              padding: EdgeInsets.symmetric(vertical: 16.h),
+                              alignment: Alignment.center,
+                              child: caregiverProvider.isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
+                                      ),
+                                    )
+                                  : Text(
+                                      'Send Invitation',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                SizedBox(height: 40.h),
               ],
             ),
           ),

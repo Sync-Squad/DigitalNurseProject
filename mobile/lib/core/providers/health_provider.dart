@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/vital_measurement_model.dart';
 import '../services/vitals_service.dart';
+import '../utils/timezone_util.dart';
 
 class HealthProvider with ChangeNotifier {
   final VitalsService _vitalsService = VitalsService();
@@ -11,6 +12,7 @@ class HealthProvider with ChangeNotifier {
   List<VitalMeasurementModel> get vitals => _vitals;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  int get abnormalVitalsCount => _vitals.where((v) => v.isAbnormal()).length;
 
   // Load vitals
   Future<void> loadVitals(String userId, {String? elderUserId}) async {
@@ -118,14 +120,11 @@ class HealthProvider with ChangeNotifier {
     );
   }
 
-  // Get vitals for a specific date
+  // Get vitals for a specific date (compares in Pakistan timezone)
   List<VitalMeasurementModel> getVitalsForDate(DateTime date) {
     return _vitals.where((vital) {
-      final vitalDate = DateTime(
-        vital.timestamp.year,
-        vital.timestamp.month,
-        vital.timestamp.day,
-      );
+      final pktTime = TimezoneUtil.toPakistanTime(vital.timestamp);
+      final vitalDate = DateTime(pktTime.year, pktTime.month, pktTime.day);
       final targetDate = DateTime(date.year, date.month, date.day);
       return vitalDate.isAtSameMomentAs(targetDate);
     }).toList();

@@ -62,7 +62,9 @@ class CaregiverService {
         _log('✅ Fetched ${assignments.length} caregiver assignments');
         return assignments;
       } else {
-        _log('❌ Failed to fetch caregiver assignments: ${response.statusMessage}');
+        _log(
+          '❌ Failed to fetch caregiver assignments: ${response.statusMessage}',
+        );
         throw Exception(
           'Failed to fetch caregiver assignments: ${response.statusMessage}',
         );
@@ -188,6 +190,82 @@ class CaregiverService {
     }
   }
 
+  // Get pending invitations for logged-in caregiver
+  Future<List<Map<String, dynamic>>> getPendingInvitations() async {
+    _log('📋 Fetching pending invitations for caregiver');
+    try {
+      final response = await _apiService.get('/caregivers/invitations/pending');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data is List ? response.data : [];
+        final invitations = data
+            .map(
+              (json) => json is Map<String, dynamic>
+                  ? json
+                  : Map<String, dynamic>.from(json),
+            )
+            .toList();
+        _log('✅ Fetched ${invitations.length} pending invitations');
+        return invitations;
+      } else {
+        _log(
+          '❌ Failed to fetch pending invitations: ${response.statusMessage}',
+        );
+        throw Exception(
+          'Failed to fetch pending invitations: ${response.statusMessage}',
+        );
+      }
+    } catch (e) {
+      _log('❌ Error fetching pending invitations: $e');
+      throw Exception(e.toString());
+    }
+  }
+
+  // Accept invitation by code
+  Future<Map<String, dynamic>> acceptInvitationByCode(String inviteCode) async {
+    _log('✅ Accepting invitation by code: $inviteCode');
+    try {
+      final response = await _apiService.post(
+        '/caregivers/invitations/accept-by-code',
+        data: {'inviteCode': inviteCode},
+      );
+
+      if (response.statusCode == 200) {
+        _log('✅ Invitation accepted successfully by code');
+        return response.data is Map<String, dynamic>
+            ? response.data
+            : Map<String, dynamic>.from(response.data);
+      } else {
+        _log(
+          '❌ Failed to accept invitation by code: ${response.statusMessage}',
+        );
+        throw Exception(
+          'Failed to accept invitation by code: ${response.statusMessage}',
+        );
+      }
+    } catch (e) {
+      _log('❌ Error accepting invitation by code: $e');
+      // Parse error message for user-friendly messages
+      final errorString = e.toString().toLowerCase();
+      if (errorString.contains('already processed') ||
+          errorString.contains('already been processed')) {
+        throw Exception(
+          'This invitation has already been accepted or declined. Please check your patient list.',
+        );
+      } else if (errorString.contains('expired')) {
+        throw Exception(
+          'This invitation has expired. Please ask for a new invitation.',
+        );
+      } else if (errorString.contains('not found') ||
+          errorString.contains('invalid')) {
+        throw Exception(
+          'Invalid invitation code. Please check the code and try again.',
+        );
+      }
+      throw Exception(e.toString());
+    }
+  }
+
   // Decline caregiver invitation
   Future<void> declineInvitation(String invitationId) async {
     _log('❌ Declining invitation: $invitationId');
@@ -227,6 +305,62 @@ class CaregiverService {
     } catch (e) {
       _log('❌ Error removing caregiver: $e');
       throw Exception(e.toString());
+    }
+  }
+
+  // Toggle caregiver access status
+  Future<bool> toggleCaregiverStatus(
+    String assignmentId,
+    bool isActive,
+  ) async {
+    _log('🔄 Toggling caregiver status: $assignmentId to $isActive');
+    try {
+      final response = await _apiService.patch(
+        '/caregivers/$assignmentId/toggle-status',
+        data: {'isActive': isActive},
+      );
+
+      _log('📡 Toggle response: ${response.statusCode} - ${response.data}');
+
+      if (response.statusCode == 200) {
+        _log('✅ Caregiver status updated successfully');
+        return response.data['isActive'] ?? isActive;
+      } else {
+        _log('❌ Failed to update caregiver status: ${response.statusCode} ${response.statusMessage}');
+        _log('📦 Error response: ${response.data}');
+        throw Exception(
+          'Failed to update caregiver status: ${response.statusMessage}',
+        );
+      }
+    } catch (e) {
+      _log('❌ Error toggling caregiver status: $e');
+      if (e is Exception) rethrow;
+      throw Exception(e.toString());
+    }
+  }
+
+  // Contact caregiver via email
+  Future<void> contactCaregiver(String assignmentId, String message,
+      {String? subject}) async {
+    _log('📧 Sending message to caregiver for assignment: $assignmentId');
+    try {
+      final response = await _apiService.post(
+        '/caregivers/$assignmentId/contact',
+        data: {
+          'message': message,
+          if (subject != null) 'subject': subject,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _log('✅ Message sent to caregiver successfully');
+      } else {
+        _log('❌ Failed to send message: ${response.statusMessage}');
+        throw Exception('Failed to send message: ${response.statusMessage}');
+      }
+    } catch (e) {
+      _log('❌ Error sending message to caregiver: $e');
+      rethrow;
     }
   }
 
@@ -299,6 +433,68 @@ class CaregiverService {
     } catch (e) {
       _log('❌ Error fetching caregiver by ID: $e');
       return null;
+    }
+  }
+
+  // Get user details for a patient (including avatarUrl and age)
+  Future<Map<String, dynamic>> getUserDetails(String userId) async {
+    _log('📋 Fetching user details for: $userId');
+    try {
+      final response = await _apiService.get('/users/$userId');
+      _log('📡 API Response status: ${response.statusCode}');
+      _log('📡 API Response data type: ${response.data.runtimeType}');
+
+      if (response.statusCode == 200) {
+        final data = response.data is Map<String, dynamic>
+            ? response.data
+            : Map<String, dynamic>.from(response.data);
+        _log('✅ Fetched user details successfully');
+        _log('📦 Response data keys: ${data.keys.toList()}');
+        _log('📦 Full response: $data');
+        return data;
+      } else {
+        _log('❌ Failed to fetch user details: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch user details: ${response.statusMessage}',
+        );
+      }
+    } catch (e, stackTrace) {
+      _log('❌ Error fetching user details: $e');
+      _log('   Stack trace: $stackTrace');
+      throw Exception(e.toString());
+    }
+  }
+
+  // Get patient status summary (vitals, medications, activity)
+  Future<Map<String, dynamic>> getPatientStatusSummary(String elderId) async {
+    _log('📋 Fetching patient status summary for: $elderId');
+    try {
+      final response = await _apiService.get(
+        '/caregivers/assignments/$elderId/status',
+      );
+
+      if (response.statusCode == 200) {
+        _log('✅ Fetched patient status summary successfully');
+        return response.data is Map<String, dynamic>
+            ? response.data
+            : Map<String, dynamic>.from(response.data);
+      } else {
+        _log('❌ Failed to fetch patient status: ${response.statusMessage}');
+        // Return empty status if endpoint doesn't exist yet
+        return {
+          'hasAbnormalVitals': false,
+          'hasMissedMedications': false,
+          'lastActivityTime': null,
+        };
+      }
+    } catch (e) {
+      _log('⚠️ Patient status endpoint may not exist, returning default: $e');
+      // Return default status if endpoint doesn't exist
+      return {
+        'hasAbnormalVitals': false,
+        'hasMissedMedications': false,
+        'lastActivityTime': null,
+      };
     }
   }
 }

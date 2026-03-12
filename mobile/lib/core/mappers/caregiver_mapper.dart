@@ -67,22 +67,21 @@ class CaregiverMapper {
     }
 
     return CaregiverModel(
-      id:
+      id: json['elderAssignmentId']?.toString() ??
           json['id']?.toString() ??
-          json['elderAssignmentId']?.toString() ??
           json['assignmentId']?.toString() ??
           '',
       name: name,
       phone: phone,
       status: status,
       relationship: json['relationship']?.toString(),
-      linkedPatientId:
-          json['linkedPatientId']?.toString() ??
+      linkedPatientId: json['linkedPatientId']?.toString() ??
           json['elderUserId']?.toString() ??
           json['patientId']?.toString() ??
           '',
       invitedAt: invitedAt,
       acceptedAt: acceptedAt,
+      isActive: json['isActive'] ?? true,
     );
   }
 
@@ -144,7 +143,10 @@ class CaregiverMapper {
     }
 
     return CaregiverModel(
-      id: json['id']?.toString() ?? json['invitationId']?.toString() ?? '',
+      id: json['elderAssignmentId']?.toString() ??
+          json['id']?.toString() ??
+          json['invitationId']?.toString() ??
+          '',
       name: name,
       phone: phone,
       status: status,
@@ -155,6 +157,7 @@ class CaregiverMapper {
           '',
       invitedAt: invitedAt,
       acceptedAt: acceptedAt,
+      isActive: json['isActive'] ?? true,
     );
   }
 

@@ -27,7 +27,8 @@ import {
   Shield,
   Users,
 } from "lucide-react"
-import { NavLink, useLocation } from "react-router-dom"
+import { NavLink, useNavigate, useLocation } from "react-router-dom"
+import { useAuth } from "@/contexts/auth-context"
 
 type NavItem = {
   title: string
@@ -52,17 +53,17 @@ const mainNav: NavItem[] = [
     icon: HeartPulse,
     to: "/caregivers",
   },
-  {
-    title: "Notifications",
-    icon: Bell,
-    to: "/notifications",
-    badge: "12",
-  },
-  {
-    title: "Documents",
-    icon: FileText,
-    to: "/documents",
-  },
+  // {
+  //   title: "Notifications",
+  //   icon: Bell,
+  //   to: "/notifications",
+  //   badge: "12",
+  // },
+  // {
+  //   title: "Documents",
+  //   icon: FileText,
+  //   to: "/documents",
+  // },
 ]
 
 const operationsNav: NavItem[] = [
@@ -71,25 +72,55 @@ const operationsNav: NavItem[] = [
     icon: ClipboardList,
     to: "/subscriptions",
   },
-  {
-    title: "Reports",
-    icon: FileBarChart,
-    to: "/reports",
-  },
-  {
-    title: "Settings",
-    icon: Settings,
-    to: "/settings",
-  },
-  {
-    title: "Audit Trail",
-    icon: Shield,
-    to: "/audit",
-  },
+  // {
+  //   title: "Reports",
+  //   icon: FileBarChart,
+  //   to: "/reports",
+  // },
+  // {
+  //   title: "Settings",
+  //   icon: Settings,
+  //   to: "/settings",
+  // },
+  // {
+  //   title: "Audit Trail",
+  //   icon: Shield,
+  //   to: "/audit",
+  // },
 ]
 
 export function AppSidebar() {
+  const { user, logout } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
+
+  const role = user?.role?.toLowerCase() || "patient"
+  const isSuperAdmin = role === "super_admin"
+  const isAdmin = ["super_admin", "admin", "clinician", "coordinator", "provider"].includes(role)
+  const isCaregiver = role === "caregiver"
+
+  // Filter navigation items based on role
+  const filteredMainNav = mainNav.filter(item => {
+    if (item.to === "/caregivers") {
+      return isAdmin // Only admins see caregivers list
+    }
+    if (item.to === "/patients") {
+      return isAdmin || isCaregiver // Admins and caregivers see patients roster
+    }
+    return true // Everyone sees dashboard
+  })
+
+  const filteredOperationsNav = operationsNav.filter(item => {
+    if (item.to === "/subscriptions") {
+      return isAdmin // Only admins see subscriptions
+    }
+    return isAdmin
+  })
+
+  const handleLogout = () => {
+    logout()
+    navigate("/login")
+  }
 
   const renderNav = (items: NavItem[]) =>
     items.map((item) => {
@@ -166,24 +197,27 @@ export function AppSidebar() {
             Main
           </SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu className="gap-1.5">{renderNav(mainNav)}</SidebarMenu>
+            <SidebarMenu className="gap-1.5">{renderNav(filteredMainNav)}</SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-[0.65rem] uppercase tracking-wide text-white group-data-[collapsible=icon]/sidebar:hidden">
-            Operations
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-1.5">
-              {renderNav(operationsNav)}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel className="text-[0.65rem] uppercase tracking-wide text-white group-data-[collapsible=icon]/sidebar:hidden">
+              Operations
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-1.5">
+                {renderNav(filteredOperationsNav)}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarFooter className="mt-auto px-3 pb-4 group-data-[collapsible=icon]/sidebar:px-1">
         <Separator className="mb-3 group-data-[collapsible=icon]/sidebar:hidden" />
         <Button
           variant="ghost"
+          onClick={handleLogout}
           className={cn(
             "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left hover:bg-sidebar-accent/70",
             "transition-all duration-200 ease-linear",
@@ -191,20 +225,20 @@ export function AppSidebar() {
           )}
         >
           <Avatar className="size-10 rounded-2xl group-data-[collapsible=icon]/sidebar:size-12">
-            <AvatarFallback className="rounded-2xl bg-sidebar-primary/20 text-white">
-              AC
+            <AvatarFallback className="rounded-2xl bg-sidebar-primary/20 text-white uppercase">
+              {user?.name?.charAt(0) || "U"}
             </AvatarFallback>
           </Avatar>
           <div className="flex min-w-0 flex-1 flex-col text-xs group-data-[collapsible=icon]/sidebar:hidden">
             <span className="truncate font-medium text-white">
-              Ayesha Chaudhry
+              {user?.name || "User"}
             </span>
-            <span className="truncate text-white">
-              Clinical Admin · Care Portal
+            <span className="truncate text-white/70 capitalize">
+              {isSuperAdmin ? "Super Admin" : user?.role || "Basic User"}
             </span>
           </div>
           <span className="hidden text-xs font-medium text-sidebar-primary group-data-[collapsible=icon]/sidebar:block">
-            AC
+            LO
           </span>
         </Button>
       </SidebarFooter>

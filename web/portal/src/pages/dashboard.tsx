@@ -1,21 +1,13 @@
-import { Fragment } from "react"
-import {
-  dashboardAlerts,
-  dashboardMetrics,
-  documents,
-  patientRoster,
-  patientGrowth7Days,
-  patientGrowth30Days,
-  subscriptionBreakdown,
-} from "@/mocks/data"
+import { Fragment, useState } from "react"
+import { useDashboardData } from "@/hooks/use-dashboard-data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DashboardMetricCard } from "@/components/dashboard/dashboard-metric-card"
 import { PatientsGrowthCard } from "@/components/dashboard/patients-growth-card"
 import { SubscriptionBreakdownCard } from "@/components/dashboard/subscription-breakdown-card"
-import { AlertsCard } from "@/components/dashboard/alerts-card"
-import { DocumentsSummaryCard } from "@/components/dashboard/documents-summary-card"
+import { CityPatientsBarChart } from "@/components/dashboard/city-patients-bar-chart"
+import { CityRevenueGrid } from "@/components/dashboard/city-revenue-grid"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
@@ -27,6 +19,18 @@ const riskTone = {
 } as const
 
 export default function DashboardPage() {
+  const [timeframe, setTimeframe] = useState<"7" | "30" | "90">("30")
+  const {
+    metrics,
+    patientGrowth7Days,
+    patientGrowth30Days,
+    subscriptionBreakdown,
+    cityPatients,
+    cityRevenue,
+    loading,
+    error,
+  } = useDashboardData()
+
   return (
     <section className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -37,19 +41,19 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Select defaultValue="30">
+          <Select value={timeframe} onValueChange={(value) => setTimeframe(value as "7" | "30" | "90")}>
             <SelectTrigger className="w-36">
               <SelectValue placeholder="Timeframe" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="7">Last 7 days</SelectItem>
               <SelectItem value="30">Last 30 days</SelectItem>
-              <SelectItem value="90">Last quarter</SelectItem>
+              {/* <SelectItem value="90">Last quarter</SelectItem> */}
             </SelectContent>
           </Select>
-          <Button variant="outline" className="gap-2">
+          {/* <Button variant="outline" className="gap-2">
             Export Insights
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -63,7 +67,7 @@ export default function DashboardPage() {
       </Tabs> */}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {dashboardMetrics.map((metric) => (
+        {(loading ? [] : metrics).map((metric) => (
           <DashboardMetricCard key={metric.title} metric={metric} />
         ))}
       </div>
@@ -72,16 +76,29 @@ export default function DashboardPage() {
         <PatientsGrowthCard
           data7Days={patientGrowth7Days}
           data30Days={patientGrowth30Days}
+          timeframe={timeframe}
+          onTimeframeChange={(value) => setTimeframe(value)}
         />
         <SubscriptionBreakdownCard data={subscriptionBreakdown} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <AlertsCard alerts={dashboardAlerts} />
-        <DocumentsSummaryCard documents={documents.slice(0, 3)} />
+        <CityPatientsBarChart data={cityPatients} />
+        <CityRevenueGrid data={cityRevenue} />
       </div>
 
-      <Card>
+      {error ? (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
+          {error}
+        </div>
+      ) : null}
+
+      {/* <div className="grid gap-4 lg:grid-cols-2">
+        <AlertsCard alerts={dashboardAlerts} />
+        <DocumentsSummaryCard documents={documents.slice(0, 3)} />
+      </div> */}
+
+      {/* <Card>
         <CardHeader className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle className="text-sm font-semibold text-muted-foreground">
@@ -151,7 +168,7 @@ export default function DashboardPage() {
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+      </Card> */}
     </section>
   )
 }

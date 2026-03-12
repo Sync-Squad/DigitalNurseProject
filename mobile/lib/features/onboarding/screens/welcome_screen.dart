@@ -25,11 +25,7 @@ class WelcomeScreen extends StatelessWidget {
                 children: [
                   SizedBox(height: 10.h),
                   // App logo/icon
-                  Icon(
-                    FIcons.heartPulse,
-                    size: 60.h,
-                    color: Colors.white,
-                  ),
+                  Icon(FIcons.heartPulse, size: 60.h, color: Colors.white),
                   SizedBox(height: 12.h),
 
                   // App name
@@ -79,32 +75,47 @@ class WelcomeScreen extends StatelessWidget {
                   Flexible(
                     child: _FeatureItem(
                       icon: FIcons.pill,
-                      title: 'onboarding.welcome.features.medicineReminders.title'.tr(),
-                      description: 'onboarding.welcome.features.medicineReminders.description'.tr(),
+                      title:
+                          'onboarding.welcome.features.medicineReminders.title'
+                              .tr(),
+                      description:
+                          'onboarding.welcome.features.medicineReminders.description'
+                              .tr(),
                     ),
                   ),
                   SizedBox(height: 8.h),
                   Flexible(
                     child: _FeatureItem(
                       icon: FIcons.activity,
-                      title: 'onboarding.welcome.features.healthTracking.title'.tr(),
-                      description: 'onboarding.welcome.features.healthTracking.description'.tr(),
+                      title: 'onboarding.welcome.features.healthTracking.title'
+                          .tr(),
+                      description:
+                          'onboarding.welcome.features.healthTracking.description'
+                              .tr(),
                     ),
                   ),
                   SizedBox(height: 8.h),
                   Flexible(
                     child: _FeatureItem(
                       icon: FIcons.users,
-                      title: 'onboarding.welcome.features.caregiverCoordination.title'.tr(),
-                      description: 'onboarding.welcome.features.caregiverCoordination.description'.tr(),
+                      title:
+                          'onboarding.welcome.features.caregiverCoordination.title'
+                              .tr(),
+                      description:
+                          'onboarding.welcome.features.caregiverCoordination.description'
+                              .tr(),
                     ),
                   ),
                   SizedBox(height: 8.h),
                   Flexible(
                     child: _FeatureItem(
                       icon: FIcons.fileText,
-                      title: 'onboarding.welcome.features.documentManagement.title'.tr(),
-                      description: 'onboarding.welcome.features.documentManagement.description'.tr(),
+                      title:
+                          'onboarding.welcome.features.documentManagement.title'
+                              .tr(),
+                      description:
+                          'onboarding.welcome.features.documentManagement.description'
+                              .tr(),
                     ),
                   ),
                 ],
@@ -115,14 +126,20 @@ class WelcomeScreen extends StatelessWidget {
 
             // Get started button with modern pill style
             Container(
-              decoration: ModernSurfaceTheme.pillButton(context, ModernSurfaceTheme.primaryTeal),
+              decoration: ModernSurfaceTheme.pillButton(
+                context,
+                ModernSurfaceTheme.primaryTeal,
+              ),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () => context.go('/register'),
                   borderRadius: BorderRadius.circular(30),
                   child: Container(
-                    padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 32.w),
+                    padding: EdgeInsets.symmetric(
+                      vertical: 14.h,
+                      horizontal: 32.w,
+                    ),
                     alignment: Alignment.center,
                     child: Text(
                       'onboarding.welcome.getStarted'.tr(),
@@ -179,13 +196,12 @@ class _FeatureItem extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            decoration: ModernSurfaceTheme.iconBadge(context, ModernSurfaceTheme.primaryTeal),
-            padding: EdgeInsets.all(8.w),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 20.h,
+            decoration: ModernSurfaceTheme.iconBadge(
+              context,
+              ModernSurfaceTheme.primaryTeal,
             ),
+            padding: EdgeInsets.all(8.w),
+            child: Icon(icon, color: Colors.white, size: 20.h),
           ),
           SizedBox(width: 12.w),
           Expanded(

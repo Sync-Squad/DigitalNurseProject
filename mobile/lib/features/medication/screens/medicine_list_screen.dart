@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -21,17 +22,36 @@ class MedicineListScreen extends StatefulWidget {
   State<MedicineListScreen> createState() => _MedicineListScreenState();
 }
 
-class _MedicineListScreenState extends State<MedicineListScreen> {
+class _MedicineListScreenState extends State<MedicineListScreen>
+    with WidgetsBindingObserver {
   DateTime _selectedDate = DateTime.now();
   String? _lastContextKey;
+  int _refreshKey = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Defer data loading until after the build phase
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadMedicines();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh when app comes back to foreground
+      setState(() {
+        _refreshKey++;
+      });
+    }
   }
 
   Future<void> _loadMedicines() async {
@@ -119,18 +139,18 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Medications',
+              'medication.title'.tr(),
               style: textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: onPrimary,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: onPrimary,
+              ),
             ),
             if (isCaregiver && careContext?.selectedRecipient != null)
               Text(
-                'for ${careContext!.selectedRecipient!.name}',
+                'medication.forPatient'.tr(namedArgs: {'name': careContext!.selectedRecipient!.name}),
                 style: textTheme.bodySmall?.copyWith(
-                      color: onPrimary.withValues(alpha: 0.7),
-                    ),
+                  color: onPrimary.withValues(alpha: 0.7),
+                ),
               ),
           ],
         ),
@@ -179,9 +199,8 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.users,
-          title: 'No patients assigned yet',
-          message:
-              'Once a patient connects you as their caregiver, their medicines will appear here.',
+          title: 'medication.noPatientsAssigned'.tr(),
+          message: 'medication.noPatientsDesc'.tr(),
         );
       }
 
@@ -189,7 +208,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.info,
-          title: 'Unable to load patients',
+          title: 'medication.unableToLoadPatients'.tr(),
           message: careContextError,
           onRetry: _loadMedicines,
         );
@@ -199,9 +218,8 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.userSearch,
-          title: 'Select a patient to continue',
-          message:
-              'Choose a patient from the dashboard to review their medication schedule.',
+          title: 'medication.selectPatientContinue'.tr(),
+          message: 'medication.selectPatientDesc'.tr(),
         );
       }
     }
@@ -210,10 +228,14 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    final medicinesForDate = medicationProvider.getMedicinesForDate(
+      _selectedDate,
+    );
+
     return Column(
       children: [
         _HeroSummary(
-          medicinesCount: medicines.length,
+          medicinesCount: medicinesForDate.length,
           isCaregiver: isCaregiver,
           selectedDate: _selectedDate,
         ),
@@ -234,7 +256,11 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
         Expanded(
           child: medicines.isEmpty
               ? _buildEmptyState(context, isCaregiver: isCaregiver)
-              : _buildMedicineSchedule(context, medicationProvider),
+              : _buildMedicineSchedule(
+                  context,
+                  medicationProvider,
+                  medicinesForDate,
+                ),
         ),
       ],
     );
@@ -252,28 +278,22 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            FIcons.pill,
-            size: 48,
-            color: colorScheme.primary,
-          ),
+          Icon(FIcons.pill, size: 48, color: colorScheme.primary),
           SizedBox(height: 12.h),
           Text(
-            'No medicines added yet',
+            'medication.noMedicinesAdded'.tr(),
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
             isCaregiver
-                ? 'This patient has no medicines recorded yet.'
-                : 'Tap the button below to add your first medicine',
+                ? 'medication.patientNoMedicines'.tr()
+                : 'medication.addFirstMedicine'.tr(),
             textAlign: TextAlign.center,
-            style: textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
+            style: textTheme.bodySmall?.copyWith(color: muted),
           ),
           if (!isCaregiver) ...[
             SizedBox(height: 20.h),
@@ -290,7 +310,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                 ),
                 onPressed: () => context.push('/medicine/add'),
                 child: Text(
-                  'Add Medicine',
+                  'medication.addMedicine'.tr(),
                   style: textTheme.labelLarge?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -307,10 +327,8 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
   Widget _buildMedicineSchedule(
     BuildContext context,
     MedicationProvider medicationProvider,
+    List<MedicineModel> medicinesForDate,
   ) {
-    final medicinesForDate = medicationProvider.getMedicinesForDate(
-      _selectedDate,
-    );
     final categorized = medicationProvider.categorizeMedicinesByTimeOfDay(
       medicinesForDate,
     );
@@ -327,12 +345,12 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No medicines for ${_getFormattedDate(_selectedDate)}',
+              'medication.noMedicinesForDate'.tr(namedArgs: {'date': _getFormattedDate(_selectedDate)}),
               style: context.theme.typography.lg,
             ),
             const SizedBox(height: 8),
             Text(
-              'Select another date or add medicines',
+              'medication.selectAnotherDate'.tr(),
               style: context.theme.typography.sm.copyWith(
                 color: context.theme.colors.mutedForeground,
               ),
@@ -347,31 +365,40 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
         children: [
           if (categorized['morning']!.isNotEmpty)
             MedicineScheduleCard(
+              key: ValueKey('morning-$_refreshKey'),
               timeOfDay: MedicineTimeOfDay.morning,
               medicines: categorized['morning']!,
               selectedDate: _selectedDate,
               onStatusChanged: () {
-                setState(() {});
+                setState(() {
+                  _refreshKey++;
+                });
               },
             ),
           if (categorized['afternoon']!.isNotEmpty) SizedBox(height: 12.h),
           if (categorized['afternoon']!.isNotEmpty)
             MedicineScheduleCard(
+              key: ValueKey('afternoon-$_refreshKey'),
               timeOfDay: MedicineTimeOfDay.afternoon,
               medicines: categorized['afternoon']!,
               selectedDate: _selectedDate,
               onStatusChanged: () {
-                setState(() {});
+                setState(() {
+                  _refreshKey++;
+                });
               },
             ),
           if (categorized['evening']!.isNotEmpty) SizedBox(height: 12.h),
           if (categorized['evening']!.isNotEmpty)
             MedicineScheduleCard(
+              key: ValueKey('evening-$_refreshKey'),
               timeOfDay: MedicineTimeOfDay.evening,
               medicines: categorized['evening']!,
               selectedDate: _selectedDate,
               onStatusChanged: () {
-                setState(() {});
+                setState(() {
+                  _refreshKey++;
+                });
               },
             ),
           SizedBox(height: 16.h),
@@ -381,21 +408,26 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
   }
 
   String _getFormattedDate(DateTime date) {
+    final month = _monthLabel(date.month);
+    return '$month ${date.day}, ${date.year}';
+  }
+
+  String _monthLabel(int month) {
     final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'medication.months.jan'.tr(),
+      'medication.months.feb'.tr(),
+      'medication.months.mar'.tr(),
+      'medication.months.apr'.tr(),
+      'medication.months.may'.tr(),
+      'medication.months.jun'.tr(),
+      'medication.months.jul'.tr(),
+      'medication.months.aug'.tr(),
+      'medication.months.sep'.tr(),
+      'medication.months.oct'.tr(),
+      'medication.months.nov'.tr(),
+      'medication.months.dec'.tr(),
     ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    return months[month - 1];
   }
 
   Widget _buildCaregiverNotice(
@@ -422,17 +454,15 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
           Text(
             title,
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onSurface,
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 8.h),
           Text(
             message,
-            style: textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
+            style: textTheme.bodySmall?.copyWith(color: muted),
             textAlign: TextAlign.center,
           ),
           if (onRetry != null) ...[
@@ -448,7 +478,7 @@ class _MedicineListScreenState extends State<MedicineListScreen> {
                 ),
               ),
               child: Text(
-                'Retry',
+                'medication.retry'.tr(),
                 style: textTheme.labelLarge?.copyWith(
                   color: onPrimary,
                   fontWeight: FontWeight.w600,
@@ -482,15 +512,15 @@ class _ErrorBanner extends StatelessWidget {
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: errorColor,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: errorColor,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           TextButton(
             onPressed: onRetry,
             style: TextButton.styleFrom(foregroundColor: errorColor),
-            child: const Text('Retry'),
+            child: Text('medication.retry'.tr()),
           ),
         ],
       ),
@@ -517,73 +547,123 @@ class _HeroSummary extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final onPrimary = colorScheme.onPrimary;
 
-    return Container(
-      width: double.infinity,
-      decoration: ModernSurfaceTheme.heroDecoration(context),
-      padding: ModernSurfaceTheme.heroPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            isCaregiver ? 'Care schedule' : 'Today\'s plan',
-            style: textTheme.titleMedium?.copyWith(
-                  color: onPrimary.withValues(alpha: 0.85),
+    // Compute left-only padding: keep top/bottom/left from heroPadding but
+    // reserve the right half for the image.
+    final h = ModernSurfaceTheme.heroPadding();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final halfWidth = constraints.maxWidth * 0.4;
+          return Container(
+            width: double.infinity,
+            decoration: ModernSurfaceTheme.heroDecoration(context),
+            child: Stack(
+              children: [
+                // ── Right 50%: image pinned to right edge with padding ─────────────
+                Positioned(
+                  right: 12.w,
+                  top: 12.h,
+                  bottom: 12.h,
+                  width: halfWidth - 12.w,
+                  child: Image.asset(
+                    'assets/images/medicine.png',
+                    fit: BoxFit.contain,
+                    alignment: Alignment.centerRight,
+                  ),
                 ),
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(22),
-                  color: AppTheme.appleGreen,
-                ),
-                child: Text(
-                  '$medicinesCount',
-                  style: textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
+                // ── Left side: text column drives card height ─────────
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: h.left,
+                    top: h.top,
+                    bottom: h.bottom,
+                    right: halfWidth + h.right,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min, // Keep column compact
+                    children: [
+                      Text(
+                        isCaregiver 
+                            ? 'medication.hero.careSchedule'.tr() 
+                            : 'medication.hero.todaysPlan'.tr(),
+                        style: textTheme.titleMedium?.copyWith(
+                          color: onPrimary.withValues(alpha: 0.85),
+                          fontSize: 14.sp,
+                        ),
                       ),
+                      SizedBox(height: 4.h), // Reduced spacing
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 4.h,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(18),
+                              color: AppTheme.appleGreen,
+                            ),
+                            child: Text(
+                              '$medicinesCount',
+                              style: textTheme.titleLarge?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18.sp,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 8.w),
+                          Expanded( // Use Expanded inside Row for better wrapping
+                            child: Text(
+                              'medication.hero.medicinesOnDate'.tr(namedArgs: {'date': dateLabel}),
+                                style: textTheme.headlineSmall?.copyWith(
+                                color: onPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15.sp,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!isCaregiver) ...[
+                        SizedBox(height: 8.h),
+                        _HeroChip(
+                          icon: Icons.add_circle_outline,
+                          label: 'medication.addMedicine'.tr(),
+                          onTap: () => context.push('/medicine/add'),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(width: 12.w),
-              Text(
-                'Medicines on $dateLabel',
-                style: textTheme.headlineSmall?.copyWith(
-                      color: onPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-            ],
-          ),
-          if (!isCaregiver) ...[
-            SizedBox(height: 12.h),
-            _HeroChip(
-              icon: Icons.add_circle_outline,
-              label: 'Add medicine',
-              onTap: () => context.push('/medicine/add'),
+              ],
             ),
-          ],
-        ],
+          );
+        },
       ),
     );
   }
 
   String _monthLabel(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+    final months = [
+      'medication.months.jan'.tr(),
+      'medication.months.feb'.tr(),
+      'medication.months.mar'.tr(),
+      'medication.months.apr'.tr(),
+      'medication.months.may'.tr(),
+      'medication.months.jun'.tr(),
+      'medication.months.jul'.tr(),
+      'medication.months.aug'.tr(),
+      'medication.months.sep'.tr(),
+      'medication.months.oct'.tr(),
+      'medication.months.nov'.tr(),
+      'medication.months.dec'.tr(),
     ];
     return months[month - 1];
   }
@@ -594,11 +674,7 @@ class _HeroChip extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
 
-  const _HeroChip({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
+  const _HeroChip({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -616,9 +692,9 @@ class _HeroChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

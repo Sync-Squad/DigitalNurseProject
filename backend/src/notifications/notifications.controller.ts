@@ -41,16 +41,28 @@ export class NotificationsController {
   @Get()
   @ApiOperation({ summary: 'Get all notifications for the current user' })
   @ApiQuery({ name: 'isRead', required: false, type: Boolean })
+  @ApiQuery({ name: 'type', required: false, type: String })
+  @ApiQuery({ name: 'startDate', required: false, type: String })
+  @ApiQuery({ name: 'endDate', required: false, type: String })
   @ApiQuery({ name: 'elderUserId', required: false, type: String })
   @ApiResponse({ status: 200, description: 'List of notifications' })
   async findAll(
     @CurrentUser() user: any,
     @Query('isRead') isRead?: string,
+    @Query('type') type?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
     @Query('elderUserId') elderUserId?: string,
   ) {
     const context = await this.resolveContext(user, elderUserId);
     const isReadBool = isRead === 'true' ? true : isRead === 'false' ? false : undefined;
-    return this.notificationsService.findAll(context, isReadBool);
+    return this.notificationsService.findAll(
+      context,
+      isReadBool,
+      type,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
+    );
   }
 
   @Get('unread')

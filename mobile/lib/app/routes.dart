@@ -19,14 +19,27 @@ import '../features/health/screens/abnormal_vitals_screen.dart';
 import '../features/caregiver/screens/add_caregiver_screen.dart';
 import '../features/caregiver/screens/caregiver_list_screen.dart';
 import '../features/caregiver/screens/invitation_accept_screen.dart';
+import '../features/caregiver/screens/accept_invitation_code_screen.dart';
+import '../features/caregiver/screens/patient_detail_screen.dart';
+import '../features/caregiver/screens/medication_management_screen.dart';
+import '../features/caregiver/screens/patient_reports_screen.dart';
+import '../features/caregiver/screens/contact_caregiver_screen.dart';
 import '../features/lifestyle/screens/diet_exercise_log_screen.dart';
 import '../features/lifestyle/screens/add_meal_screen.dart';
 import '../features/lifestyle/screens/add_workout_screen.dart';
+import '../features/lifestyle/screens/weekly_plans_screen.dart';
+import '../features/lifestyle/screens/create_weekly_plan_screen.dart';
+import '../features/lifestyle/screens/plan_compliance_screen.dart';
 import '../features/documents/screens/upload_document_screen.dart';
 import '../features/documents/screens/document_viewer_screen.dart';
 import '../features/profile/screens/settings_screen.dart';
 import '../core/services/notification_test.dart';
 import '../features/notifications/screens/notifications_screen.dart';
+import '../features/ai/screens/ai_assistant_screen.dart';
+import '../features/ai/screens/ai_insights_screen.dart';
+import '../features/ai/screens/health_analysis_screen.dart';
+import '../features/ai/screens/semantic_search_screen.dart';
+import '../features/ai/screens/document_qa_screen.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/welcome',
@@ -49,7 +62,8 @@ final goRouter = GoRouter(
     );
 
     // If user is logged in and on a public route, redirect to dashboard
-    if (isLoggedIn && isPublicRoute) {
+    // BUT allow access to /register even when logged in (for registering new accounts)
+    if (isLoggedIn && isPublicRoute && state.matchedLocation != '/register') {
       return '/home';
     }
 
@@ -77,6 +91,17 @@ final goRouter = GoRouter(
     return null;
   },
   routes: [
+    GoRoute(
+      path: '/contact-caregiver-email/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        final name = state.uri.queryParameters['name'];
+        return ContactCaregiverScreen(
+          assignmentId: id,
+          caregiverName: name,
+        );
+      },
+    ),
     // Authentication routes
     GoRoute(
       path: '/welcome',
@@ -91,7 +116,8 @@ final goRouter = GoRouter(
       path: '/email-verification',
       builder: (context, state) {
         final email = state.uri.queryParameters['email'] ?? '';
-        return EmailVerificationScreen(email: email);
+        final token = state.uri.queryParameters['token'];
+        return EmailVerificationScreen(email: email, token: token);
       },
     ),
 
@@ -136,7 +162,21 @@ final goRouter = GoRouter(
       path: '/medicine/:id',
       builder: (context, state) {
         final id = state.pathParameters['id']!;
-        return MedicineDetailScreen(medicineId: id);
+        final selectedDateStr = state.uri.queryParameters['selectedDate'];
+        final reminderTimeStr = state.uri.queryParameters['reminderTime'];
+        DateTime? selectedDate;
+        if (selectedDateStr != null) {
+          try {
+            selectedDate = DateTime.parse(selectedDateStr);
+          } catch (e) {
+            // If parsing fails, use null (will default to today)
+          }
+        }
+        return MedicineDetailScreen(
+          medicineId: id,
+          selectedDate: selectedDate,
+          reminderTime: reminderTimeStr,
+        );
       },
     ),
 
@@ -168,6 +208,27 @@ final goRouter = GoRouter(
       builder: (context, state) => const CaregiverListScreen(),
     ),
     GoRoute(
+      path: '/caregiver/patient/:elderId',
+      builder: (context, state) {
+        final elderId = state.pathParameters['elderId']!;
+        return PatientDetailScreen(elderId: elderId);
+      },
+    ),
+    GoRoute(
+      path: '/caregiver/patient/:elderId/medications',
+      builder: (context, state) {
+        final elderId = state.pathParameters['elderId']!;
+        return MedicationManagementScreen(elderId: elderId);
+      },
+    ),
+    GoRoute(
+      path: '/caregiver/patient/:elderId/reports',
+      builder: (context, state) {
+        final elderId = state.pathParameters['elderId']!;
+        return PatientReportsScreen(elderId: elderId);
+      },
+    ),
+    GoRoute(
       path: '/caregiver/add',
       redirect: (context, state) {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -186,6 +247,17 @@ final goRouter = GoRouter(
         return InvitationAcceptScreen(caregiverId: caregiverId);
       },
     ),
+    GoRoute(
+      path: '/caregiver/accept-invitation-code',
+      builder: (context, state) {
+        final extra = state.extra as Map<String, dynamic>?;
+        return AcceptInvitationCodeScreen(
+          inviteCode: extra?['inviteCode'] as String?,
+          invitation: extra?['invitation'] as Map<String, dynamic>?,
+          notificationId: extra?['notificationId'] as String?,
+        );
+      },
+    ),
 
     // Lifestyle routes
     GoRoute(
@@ -194,11 +266,74 @@ final goRouter = GoRouter(
     ),
     GoRoute(
       path: '/lifestyle/meal/add',
-      builder: (context, state) => const AddMealScreen(),
+      builder: (context, state) {
+        final selectedDateStr = state.uri.queryParameters['selectedDate'];
+        DateTime? selectedDate;
+        if (selectedDateStr != null) {
+          try {
+            selectedDate = DateTime.parse(selectedDateStr);
+          } catch (e) {
+            // If parsing fails, use null (will default to today)
+          }
+        }
+        return AddMealScreen(selectedDate: selectedDate);
+      },
     ),
     GoRoute(
       path: '/lifestyle/workout/add',
-      builder: (context, state) => const AddWorkoutScreen(),
+      builder: (context, state) {
+        final selectedDateStr = state.uri.queryParameters['selectedDate'];
+        DateTime? selectedDate;
+        if (selectedDateStr != null) {
+          try {
+            selectedDate = DateTime.parse(selectedDateStr);
+          } catch (e) {
+            // If parsing fails, use null (will default to today)
+          }
+        }
+        return AddWorkoutScreen(selectedDate: selectedDate);
+      },
+    ),
+    GoRoute(
+      path: '/lifestyle/plans',
+      builder: (context, state) => const WeeklyPlansScreen(),
+    ),
+    GoRoute(
+      path: '/lifestyle/plans/diet/create',
+      builder: (context, state) =>
+          const CreateWeeklyPlanScreen(isDietPlan: true),
+    ),
+    GoRoute(
+      path: '/lifestyle/plans/diet/edit/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return CreateWeeklyPlanScreen(isDietPlan: true, planId: id);
+      },
+    ),
+    GoRoute(
+      path: '/lifestyle/plans/exercise/create',
+      builder: (context, state) =>
+          const CreateWeeklyPlanScreen(isDietPlan: false),
+    ),
+    GoRoute(
+      path: '/lifestyle/plans/exercise/edit/:id',
+      builder: (context, state) {
+        final id = state.pathParameters['id']!;
+        return CreateWeeklyPlanScreen(isDietPlan: false, planId: id);
+      },
+    ),
+    GoRoute(
+      path: '/lifestyle/plans/compliance',
+      builder: (context, state) {
+        final isDietPlan = state.uri.queryParameters['isDietPlan'] == 'true';
+        final planId = state.uri.queryParameters['planId'] ?? '';
+        final planName = state.uri.queryParameters['planName'] ?? 'Plan';
+        return PlanComplianceScreen(
+          isDietPlan: isDietPlan,
+          planId: planId,
+          planName: Uri.decodeComponent(planName),
+        );
+      },
     ),
 
     // Document routes
@@ -247,6 +382,28 @@ final goRouter = GoRouter(
           payload: payload,
         );
       },
+    ),
+
+    // AI Routes
+    GoRoute(
+      path: '/ai/assistant',
+      builder: (context, state) => const AIAssistantScreen(),
+    ),
+    GoRoute(
+      path: '/ai/insights',
+      builder: (context, state) => const AIInsightsScreen(),
+    ),
+    GoRoute(
+      path: '/ai/analysis',
+      builder: (context, state) => const HealthAnalysisScreen(),
+    ),
+    GoRoute(
+      path: '/ai/search',
+      builder: (context, state) => const SemanticSearchScreen(),
+    ),
+    GoRoute(
+      path: '/ai/document-qa',
+      builder: (context, state) => const DocumentQAScreen(),
     ),
   ],
 );

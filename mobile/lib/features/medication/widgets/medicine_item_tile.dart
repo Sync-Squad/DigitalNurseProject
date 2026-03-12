@@ -34,7 +34,9 @@ class MedicineItemTile extends StatelessWidget {
     final onSurface = colorScheme.onSurface;
     final muted = colorScheme.onSurfaceVariant;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final tileColor = colorScheme.surfaceVariant.withValues(alpha: isDark ? 0.55 : 0.35);
+    final tileColor = colorScheme.surfaceVariant.withValues(
+      alpha: isDark ? 0.55 : 0.35,
+    );
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: 6.h),
@@ -47,7 +49,15 @@ class MedicineItemTile extends StatelessWidget {
         children: [
           Expanded(
             child: InkWell(
-              onTap: () => context.push('/medicine/${medicine.id}'),
+              onTap: () {
+                // Pass the selected date and reminder time as query parameters
+                final dateStr =
+                    '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+                final timeStr = Uri.encodeComponent(reminderTime);
+                context.push(
+                  '/medicine/${medicine.id}?selectedDate=$dateStr&reminderTime=$timeStr',
+                );
+              },
               borderRadius: BorderRadius.circular(12),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 6.h),
@@ -57,16 +67,14 @@ class MedicineItemTile extends StatelessWidget {
                     Text(
                       medicine.name,
                       style: textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: onSurface,
-                          ),
+                        fontWeight: FontWeight.w600,
+                        color: onSurface,
+                      ),
                     ),
                     SizedBox(height: 4.h),
                     Text(
                       '${medicine.dosage} • $timeDisplay',
-                      style: textTheme.bodySmall?.copyWith(
-                            color: muted,
-                          ),
+                      style: textTheme.bodySmall?.copyWith(color: muted),
                     ),
                   ],
                 ),
@@ -88,10 +96,8 @@ class MedicineItemTile extends StatelessWidget {
           icon: FIcons.check,
         );
       case IntakeStatus.missed:
-        return _StatusChip(
-          color: AppTheme.getErrorColor(context),
-          icon: FIcons.x,
-        );
+        // Don't show any icon for missed medications
+        return const SizedBox.shrink();
       case IntakeStatus.pending:
         final now = DateTime.now();
         final parts = reminderTime.split(':');
@@ -106,11 +112,8 @@ class MedicineItemTile extends StatelessWidget {
         );
 
         if (scheduledTime.isBefore(now)) {
-          // Past time, show missed status
-          return _StatusChip(
-            color: AppTheme.getWarningColor(context),
-            icon: FIcons.x,
-          );
+          // Past time, don't show icon (status will be shown in header)
+          return const SizedBox.shrink();
         } else {
           return SizedBox(
             width: 38.w,

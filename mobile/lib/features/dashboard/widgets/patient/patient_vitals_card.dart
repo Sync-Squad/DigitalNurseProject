@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/models/vital_measurement_model.dart';
+import '../../../../core/extensions/vital_status_extensions.dart';
 import '../../../../core/providers/health_provider.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../dashboard_theme.dart';
@@ -21,7 +22,7 @@ class PatientVitalsCard extends StatelessWidget {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final healthProvider = context.watch<HealthProvider>();
     final recentVitals = healthProvider.vitals.take(5).toList();
     final abnormalVitals = healthProvider.vitals
@@ -41,10 +42,7 @@ class PatientVitalsCard extends StatelessWidget {
       routeForViewDetails: '/health',
       expandedChild: recentVitals.isEmpty
           ? Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 18.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
               decoration: CaregiverDashboardTheme.tintedCard(
                 context,
                 CaregiverDashboardTheme.primaryTeal,
@@ -65,16 +63,16 @@ class PatientVitalsCard extends StatelessWidget {
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
-                child: Text(
-                  'patient.noVitalsRecorded'.tr(),
-                  style: context.theme.typography.sm.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: CaregiverDashboardTheme.tintedForegroundColor(
-                      CaregiverDashboardTheme.primaryTeal,
-                      brightness: brightness,
+                    child: Text(
+                      'patient.noVitalsRecorded'.tr(),
+                      style: context.theme.typography.sm.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: CaregiverDashboardTheme.tintedForegroundColor(
+                          CaregiverDashboardTheme.primaryTeal,
+                          brightness: brightness,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
                   ),
                 ],
               ),
@@ -87,13 +85,9 @@ class PatientVitalsCard extends StatelessWidget {
                   final vital = entry.value;
                   final isAbnormal = vital.isAbnormal();
                   final status = vital.getHealthStatus();
-                  final statusColor = switch (status) {
-                    VitalHealthStatus.danger =>
-                      AppTheme.getErrorColor(context),
-                    VitalHealthStatus.warning =>
-                      AppTheme.getWarningColor(context),
-                    _ => CaregiverDashboardTheme.primaryTeal,
-                  };
+                  final statusColor = status == VitalHealthStatus.normal
+                      ? CaregiverDashboardTheme.primaryTeal
+                      : status.getStatusColor(context);
                   final isLast = index == recentVitals.length - 1;
                   return Padding(
                     padding: EdgeInsets.only(bottom: isLast ? 0 : 14.h),
@@ -128,7 +122,7 @@ class _VitalRow extends StatelessWidget {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final brightness = Theme.of(context).brightness;
     final onTint = CaregiverDashboardTheme.tintedForegroundColor(
       accent,
@@ -196,9 +190,7 @@ class _VitalRow extends StatelessWidget {
           SizedBox(height: 12.h),
           Text(
             DateFormat('MMM d, h:mm a').format(vital.timestamp),
-            style: context.theme.typography.xs.copyWith(
-              color: onTintMuted,
-            ),
+            style: context.theme.typography.xs.copyWith(color: onTintMuted),
           ),
         ],
       ),

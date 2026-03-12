@@ -42,10 +42,7 @@ class CaregiverUpcomingMedicationsCard extends StatelessWidget {
       routeForViewDetails: '/medications',
       expandedChild: nextReminders.isEmpty
           ? Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 18.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
               decoration: CaregiverDashboardTheme.tintedCard(
                 context,
                 CaregiverDashboardTheme.primaryTeal,
@@ -66,16 +63,16 @@ class CaregiverUpcomingMedicationsCard extends StatelessWidget {
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
-                child: Text(
-                  'No upcoming doses scheduled.',
-                  style: context.theme.typography.sm.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: CaregiverDashboardTheme.tintedForegroundColor(
-                      CaregiverDashboardTheme.primaryTeal,
-                      brightness: brightness,
+                    child: Text(
+                      'No upcoming doses scheduled.',
+                      style: context.theme.typography.sm.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: CaregiverDashboardTheme.tintedForegroundColor(
+                          CaregiverDashboardTheme.primaryTeal,
+                          brightness: brightness,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
                   ),
                 ],
               ),
@@ -129,10 +126,10 @@ class _UpcomingReminderRow extends StatelessWidget {
     final relative = diff.inMinutes <= 0
         ? 'Due now'
         : diff.inMinutes < 60
-            ? 'In ${diff.inMinutes} min'
-            : diff.inHours < 24
-                ? 'In ${diff.inHours} hrs'
-                : 'In ${diff.inDays} days';
+        ? 'In ${diff.inMinutes} min'
+        : diff.inHours < 24
+        ? 'In ${diff.inHours} hrs'
+        : 'In ${diff.inDays} days';
 
     final brightness = Theme.of(context).brightness;
     final onTint = CaregiverDashboardTheme.tintedForegroundColor(
@@ -186,10 +183,7 @@ class _UpcomingReminderRow extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 10.w,
-                  vertical: 6.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
                 decoration: CaregiverDashboardTheme.frostedChip(
                   context,
                   baseColor: Colors.white,
@@ -210,9 +204,7 @@ class _UpcomingReminderRow extends StatelessWidget {
             children: [
               Text(
                 '$dayLabel • $timeLabel',
-                style: context.theme.typography.xs.copyWith(
-                  color: onTintMuted,
-                ),
+                style: context.theme.typography.xs.copyWith(color: onTintMuted),
               ),
               TextButton(
                 onPressed: () {
@@ -241,4 +233,3 @@ class _UpcomingReminderRow extends StatelessWidget {
     );
   }
 }
-

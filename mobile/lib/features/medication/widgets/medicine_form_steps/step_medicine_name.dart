@@ -57,11 +57,6 @@ class _StepMedicineNameState extends State<StepMedicineName> {
     _nameController.addListener(() {
       provider.setMedicineName(_nameController.text);
     });
-
-    // Auto-focus on the text field
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
-    });
   }
 
   @override

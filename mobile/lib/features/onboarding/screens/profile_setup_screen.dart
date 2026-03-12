@@ -71,10 +71,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
         ),
         title: const Text(
           'Complete Your Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
       body: SingleChildScrollView(
@@ -85,7 +82,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               SizedBox(height: 20.h),
-              
+
               // Hero section
               Container(
                 decoration: ModernSurfaceTheme.heroDecoration(context),
@@ -95,10 +92,11 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                     SizedBox(height: 20.h),
                     Text(
                       'Help us personalize your experience',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: 12.h),
@@ -117,7 +115,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
               // Form container with glassmorphic card
               Container(
-                decoration: ModernSurfaceTheme.glassCard(context, highlighted: true),
+                decoration: ModernSurfaceTheme.glassCard(
+                  context,
+                  highlighted: true,
+                ),
                 padding: ModernSurfaceTheme.cardPadding(),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -166,7 +167,9 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: authProvider.isLoading ? null : _handleContinue,
+                          onTap: authProvider.isLoading
+                              ? null
+                              : _handleContinue,
                           borderRadius: BorderRadius.circular(30),
                           child: Container(
                             padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -203,7 +206,10 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
               TextButton(
                 onPressed: () => context.go('/subscription-plans'),
                 style: TextButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 24.w),
+                  padding: EdgeInsets.symmetric(
+                    vertical: 12.h,
+                    horizontal: 24.w,
+                  ),
                 ),
                 child: Text(
                   'Skip for now',

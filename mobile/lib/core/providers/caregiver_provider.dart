@@ -9,6 +9,10 @@ class CaregiverProvider with ChangeNotifier {
   String? _error;
 
   List<CaregiverModel> get caregivers => _caregivers;
+  List<CaregiverModel> get activeCaregivers =>
+      _caregivers.where((c) => c.isActive).toList();
+  List<CaregiverModel> get inactiveCaregivers =>
+      _caregivers.where((c) => !c.isActive).toList();
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -70,9 +74,8 @@ class CaregiverProvider with ChangeNotifier {
       await _caregiverService.acceptInvitation(invitationId);
 
       // Reload caregivers to get updated status
-      final patientId = _caregivers.isNotEmpty
-          ? _caregivers.first.linkedPatientId
-          : '';
+      final patientId =
+          _caregivers.isNotEmpty ? _caregivers.first.linkedPatientId : '';
       if (patientId.isNotEmpty) {
         await loadCaregivers(patientId);
       }
@@ -89,7 +92,7 @@ class CaregiverProvider with ChangeNotifier {
     }
   }
 
-  // Remove caregiver
+  // Remove caregiver (Hard delete)
   Future<bool> removeCaregiver(String caregiverId) async {
     _isLoading = true;
     notifyListeners();
@@ -109,11 +112,61 @@ class CaregiverProvider with ChangeNotifier {
     }
   }
 
-  // Initialize mock data (deprecated - no longer needed with API integration)
-  @Deprecated('Mock data initialization no longer supported')
-  Future<void> initializeMockData(String patientId) async {
-    // Mock data initialization removed - data now comes from API
-    await loadCaregivers(patientId);
+  // Toggle caregiver status (Enable/Disable)
+  Future<bool> toggleCaregiverStatus(String assignmentId, bool isActive) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final updatedStatus = await _caregiverService.toggleCaregiverStatus(
+        assignmentId,
+        isActive,
+      );
+
+      // Update local state
+      final index = _caregivers.indexWhere((c) => c.id == assignmentId);
+      if (index != -1) {
+        _caregivers[index] =
+            _caregivers[index].copyWith(isActive: updatedStatus);
+      }
+
+      _error = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Contact caregiver (Email)
+  Future<bool> contactCaregiver({
+    required String assignmentId,
+    required String message,
+    String? subject,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _caregiverService.contactCaregiver(
+        assignmentId,
+        message,
+        subject: subject,
+      );
+      _error = null;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   // Clear error

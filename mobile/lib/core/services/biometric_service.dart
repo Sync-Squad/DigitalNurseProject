@@ -20,10 +20,11 @@ class BiometricService {
 
       final canCheckBiometrics = await _localAuth.canCheckBiometrics;
       final availableBiometrics = await getAvailableBiometrics();
-      
+
       // Primary check: canCheckBiometrics OR available biometrics exist
-      final hasBiometricCapability = canCheckBiometrics || availableBiometrics.isNotEmpty;
-      
+      final hasBiometricCapability =
+          canCheckBiometrics || availableBiometrics.isNotEmpty;
+
       // Secondary check: isDeviceSupported (may fail on some devices even when biometrics work)
       bool isDeviceSupported = false;
       try {
@@ -32,14 +33,16 @@ class BiometricService {
         _log('⚠️ isDeviceSupported() check failed (non-critical): $e');
         // Don't fail if this check fails - use other indicators
       }
-      
+
       // Consider biometrics available if:
       // 1. canCheckBiometrics is true, OR
       // 2. availableBiometrics list is non-empty, OR
       // 3. isDeviceSupported is true (if check succeeded)
       final isAvailable = hasBiometricCapability || isDeviceSupported;
-      
-      _log('🔍 Biometric check - canCheck: $canCheckBiometrics, availableTypes: ${availableBiometrics.length}, deviceSupported: $isDeviceSupported, final: $isAvailable');
+
+      _log(
+        '🔍 Biometric check - canCheck: $canCheckBiometrics, availableTypes: ${availableBiometrics.length}, deviceSupported: $isDeviceSupported, final: $isAvailable',
+      );
       return isAvailable;
     } catch (e) {
       _log('❌ Error checking biometric availability: $e');
@@ -76,8 +79,8 @@ class BiometricService {
 
       final didAuthenticate = Platform.isAndroid
           ? await _localAuth.authenticate(
-              localizedReason: localizedReason ?? 
-                  'Authenticate to access your account',
+              localizedReason:
+                  localizedReason ?? 'Authenticate to access your account',
               options: AuthenticationOptions(
                 useErrorDialogs: useErrorDialogs,
                 stickyAuth: stickyAuth,
@@ -91,13 +94,14 @@ class BiometricService {
                   biometricNotRecognized: 'Not recognized. Try again.',
                   biometricSuccess: 'Success',
                   deviceCredentialsRequiredTitle: 'Device Credentials Required',
-                  deviceCredentialsSetupDescription: 'Device credentials required',
+                  deviceCredentialsSetupDescription:
+                      'Device credentials required',
                 ),
               ],
             )
           : await _localAuth.authenticate(
-              localizedReason: localizedReason ?? 
-                  'Authenticate to access your account',
+              localizedReason:
+                  localizedReason ?? 'Authenticate to access your account',
               options: AuthenticationOptions(
                 useErrorDialogs: useErrorDialogs,
                 stickyAuth: stickyAuth,
@@ -113,9 +117,13 @@ class BiometricService {
 
       return didAuthenticate;
     } on PlatformException catch (e) {
-      _log('❌ PlatformException during biometric authentication: ${e.code} - ${e.message}');
+      _log(
+        '❌ PlatformException during biometric authentication: ${e.code} - ${e.message}',
+      );
       if (e.code == 'no_fragment_activity') {
-        _log('❌ CRITICAL: MainActivity must extend FlutterFragmentActivity, not FlutterActivity');
+        _log(
+          '❌ CRITICAL: MainActivity must extend FlutterFragmentActivity, not FlutterActivity',
+        );
       }
       return false;
     } catch (e) {
@@ -134,4 +142,3 @@ class BiometricService {
     }
   }
 }
-

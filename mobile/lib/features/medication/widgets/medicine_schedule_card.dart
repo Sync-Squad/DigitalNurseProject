@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:provider/provider.dart';
 import '../../../core/models/medicine_model.dart';
@@ -36,6 +37,36 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
   void initState() {
     super.initState();
     _loadStatuses();
+    // Listen to medication provider changes to refresh statuses
+    _setupProviderListener();
+  }
+
+  void _setupProviderListener() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final medicationProvider = context.read<MedicationProvider>();
+        medicationProvider.addListener(_onMedicationProviderUpdate);
+      }
+    });
+  }
+
+  void _onMedicationProviderUpdate() {
+    if (mounted) {
+      _loadStatuses();
+    }
+  }
+
+  @override
+  void dispose() {
+    // Remove the listener when disposing
+    try {
+      context.read<MedicationProvider>().removeListener(
+        _onMedicationProviderUpdate,
+      );
+    } catch (e) {
+      // Ignore if already disposed
+    }
+    super.dispose();
   }
 
   @override
@@ -75,8 +106,9 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
     if (widget.medicines.isEmpty) return const SizedBox.shrink();
 
     final timeInfo = _getTimeInfo(context);
-    final chipForeground =
-        ModernSurfaceTheme.chipForegroundColor(timeInfo.color);
+    final chipForeground = ModernSurfaceTheme.chipForegroundColor(
+      timeInfo.color,
+    );
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final onSurface = colorScheme.onSurface;
@@ -101,12 +133,11 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
                 children: [
                   Container(
                     padding: EdgeInsets.all(12.w),
-                    decoration: ModernSurfaceTheme.iconBadge(context, timeInfo.color),
-                    child: Icon(
-                      timeInfo.icon,
-                      color: onPrimary,
-                      size: 20,
+                    decoration: ModernSurfaceTheme.iconBadge(
+                      context,
+                      timeInfo.color,
                     ),
+                    child: Icon(timeInfo.icon, color: onPrimary, size: 20),
                   ),
                   SizedBox(width: 16.w),
                   Expanded(
@@ -116,16 +147,14 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
                         Text(
                           timeInfo.label,
                           style: textTheme.titleMedium?.copyWith(
-                                color: onSurface,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            color: onSurface,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                         SizedBox(height: 4.h),
                         Text(
                           _getStatusText(context),
-                          style: textTheme.bodySmall?.copyWith(
-                                color: muted,
-                              ),
+                          style: textTheme.bodySmall?.copyWith(color: muted),
                         ),
                       ],
                     ),
@@ -133,7 +162,10 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
                   _buildStatusIcon(context),
                   SizedBox(width: 12.w),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 14.w,
+                      vertical: 6.h,
+                    ),
                     decoration: ModernSurfaceTheme.frostedChip(
                       context,
                       baseColor: timeInfo.color,
@@ -143,8 +175,9 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
                       children: [
                         Text(
                           widget.medicines.length.toString(),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: chipForeground,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: chipForeground,
                                 fontWeight: FontWeight.bold,
                               ),
                         ),
@@ -152,7 +185,7 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
                         Icon(
                           _isExpanded ? FIcons.chevronUp : FIcons.chevronDown,
                           size: 14,
-                      color: chipForeground,
+                          color: chipForeground,
                         ),
                       ],
                     ),
@@ -162,10 +195,7 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
             ),
           ),
           if (_isExpanded) ...[
-            Divider(
-              height: 24.h,
-              color: onSurface.withValues(alpha: 0.08),
-            ),
+            Divider(height: 24.h, color: onSurface.withValues(alpha: 0.08)),
             Column(
               children: widget.medicines
                   .map((medicine) {
@@ -217,19 +247,81 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
   }
 
   Widget _buildStatusIcon(BuildContext context) {
-    final statuses = _medicineStatuses.values.toSet();
+    if (_medicineStatuses.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-    if (statuses.contains(IntakeStatus.missed)) {
-        return _StatusBadge(
-          color: AppTheme.getErrorColor(context),
-          icon: FIcons.x,
-        );
-    } else if (statuses.contains(IntakeStatus.pending)) {
+    final statusList = _medicineStatuses.values.toList();
+    final takenCount = statusList.where((s) => s == IntakeStatus.taken).length;
+    final missedCount = statusList
+        .where((s) => s == IntakeStatus.missed)
+        .length;
+    final pendingCount = statusList
+        .where((s) => s == IntakeStatus.pending)
+        .length;
+    final total = statusList.length;
+
+    // If all taken, show check icon
+    if (takenCount == total) {
+      return _StatusBadge(
+        color: AppTheme.getSuccessColor(context),
+        icon: FIcons.check,
+      );
+    }
+
+    // If any explicitly marked as missed, don't show an icon
+    if (missedCount > 0) {
+      return const SizedBox.shrink();
+    }
+
+    // Check if we're looking at today's date to determine if pending items are overdue
+    final isToday =
+        widget.selectedDate.year == DateTime.now().year &&
+        widget.selectedDate.month == DateTime.now().month &&
+        widget.selectedDate.day == DateTime.now().day;
+
+    // Only check for overdue if we're viewing today's medications
+    if (isToday && pendingCount > 0) {
+      final now = DateTime.now();
+      int overdueCount = 0;
+
+      for (final entry in _medicineStatuses.entries) {
+        if (entry.value == IntakeStatus.pending) {
+          final timePart = entry.key.split('_').last;
+          final parts = timePart.split(':');
+          if (parts.length == 2) {
+            final hour = int.tryParse(parts[0]) ?? 0;
+            final minute = int.tryParse(parts[1]) ?? 0;
+            final scheduledTime = DateTime(
+              widget.selectedDate.year,
+              widget.selectedDate.month,
+              widget.selectedDate.day,
+              hour,
+              minute,
+            );
+            if (scheduledTime.isBefore(now)) {
+              overdueCount++;
+            }
+          }
+        }
+      }
+
+      // If any are overdue, don't show an icon (text will show "Missed")
+      if (overdueCount > 0) {
+        return const SizedBox.shrink();
+      }
+    }
+
+    // If any pending (not overdue), show clock icon
+    if (pendingCount > 0) {
       return _StatusBadge(
         color: context.theme.colors.primary,
         icon: FIcons.clock,
       );
-    } else if (statuses.contains(IntakeStatus.taken)) {
+    }
+
+    // If any taken but not all, show check icon
+    if (takenCount > 0) {
       return _StatusBadge(
         color: AppTheme.getSuccessColor(context),
         icon: FIcons.check,
@@ -240,17 +332,82 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
   }
 
   String _getStatusText(BuildContext context) {
-    final statuses = _medicineStatuses.values.toSet();
-
-    if (statuses.contains(IntakeStatus.missed)) {
-      return 'Missed';
-    } else if (statuses.contains(IntakeStatus.pending)) {
-      return 'Upcoming';
-    } else if (statuses.contains(IntakeStatus.taken)) {
-      return 'Taken';
+    if (_medicineStatuses.isEmpty) {
+      return 'medication.status.noMedicines'.tr();
     }
 
-    return 'No medicines';
+    final statusList = _medicineStatuses.values.toList();
+    final takenCount = statusList.where((s) => s == IntakeStatus.taken).length;
+    final missedCount = statusList
+        .where((s) => s == IntakeStatus.missed)
+        .length;
+    final pendingCount = statusList
+        .where((s) => s == IntakeStatus.pending)
+        .length;
+    final total = statusList.length;
+
+    // If all taken, show "Taken"
+    if (takenCount == total) {
+      return 'medication.status.taken'.tr();
+    }
+
+    // If any explicitly marked as missed, show "Missed"
+    if (missedCount > 0) {
+      return 'medication.status.missed'.tr();
+    }
+
+    // Check if we're looking at today's date to determine if pending items are overdue
+    final isToday =
+        widget.selectedDate.year == DateTime.now().year &&
+        widget.selectedDate.month == DateTime.now().month &&
+        widget.selectedDate.day == DateTime.now().day;
+
+    // Only check for overdue if we're viewing today's medications
+    if (isToday && pendingCount > 0) {
+      final now = DateTime.now();
+      int overdueCount = 0;
+
+      for (final entry in _medicineStatuses.entries) {
+        if (entry.value == IntakeStatus.pending) {
+          final timePart = entry.key.split('_').last;
+          final parts = timePart.split(':');
+          if (parts.length == 2) {
+            final hour = int.tryParse(parts[0]) ?? 0;
+            final minute = int.tryParse(parts[1]) ?? 0;
+            final scheduledTime = DateTime(
+              widget.selectedDate.year,
+              widget.selectedDate.month,
+              widget.selectedDate.day,
+              hour,
+              minute,
+            );
+            if (scheduledTime.isBefore(now)) {
+              overdueCount++;
+            }
+          }
+        }
+      }
+
+      // If any are overdue, show "Missed"
+      if (overdueCount > 0) {
+        return 'medication.status.missed'.tr();
+      }
+    }
+
+    // If any pending (not overdue), show "Upcoming"
+    if (pendingCount > 0) {
+      return 'medication.status.upcoming'.tr();
+    }
+
+    // If any taken but not all
+    if (takenCount > 0) {
+      return 'medication.status.partialTaken'.tr(namedArgs: {
+        'taken': takenCount.toString(),
+        'total': total.toString(),
+      });
+    }
+
+    return 'medication.status.upcoming'.tr();
   }
 
   ({String label, IconData icon, Color color}) _getTimeInfo(
@@ -258,13 +415,25 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
   ) {
     switch (widget.timeOfDay) {
       case MedicineTimeOfDay.morning:
-        return (label: 'Morning', icon: FIcons.sunrise, color: ModernSurfaceTheme.accentYellow);
+        return (
+          label: 'medication.timeOfDay.morning'.tr(),
+          icon: FIcons.sunrise,
+          color: ModernSurfaceTheme.accentYellow,
+        );
       case MedicineTimeOfDay.afternoon:
         // Use a more vibrant teal for better visibility in the chip
         // Using a brighter, more saturated teal (similar vibrancy to accentYellow/accentBlue)
-        return (label: 'Afternoon', icon: FIcons.sun, color: const Color(0xFF14C4B3));
+        return (
+          label: 'medication.timeOfDay.afternoon'.tr(),
+          icon: FIcons.sun,
+          color: const Color(0xFF14C4B3),
+        );
       case MedicineTimeOfDay.evening:
-        return (label: 'Evening', icon: FIcons.moon, color: ModernSurfaceTheme.accentBlue);
+        return (
+          label: 'medication.timeOfDay.evening'.tr(),
+          icon: FIcons.moon,
+          color: ModernSurfaceTheme.accentBlue,
+        );
     }
   }
 }

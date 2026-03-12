@@ -1,4 +1,3 @@
-import { useState } from "react"
 import {
   CartesianGrid,
   Legend,
@@ -14,17 +13,22 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { PatientGrowthPoint } from "@/mocks/data"
 
-const lineColor = "#2563eb"
+const lineColor = "#7FD991" // appleGreen
 
 export function PatientsGrowthCard({
   data7Days,
   data30Days,
+  timeframe,
+  onTimeframeChange,
 }: {
   data7Days: PatientGrowthPoint[]
   data30Days: PatientGrowthPoint[]
+  timeframe: "7" | "30" | "90"
+  onTimeframeChange: (value: "7" | "30" | "90") => void
 }) {
-  const [selectedRange, setSelectedRange] = useState<"7" | "30">("30")
-  const currentData = selectedRange === "7" ? data7Days : data30Days
+  // Map timeframe to available data (90 days defaults to 30 days data)
+  const effectiveTimeframe = timeframe === "90" ? "30" : timeframe
+  const currentData = effectiveTimeframe === "7" ? data7Days : data30Days
 
   return (
     <Card className="col-span-1 lg:col-span-2">
@@ -32,13 +36,17 @@ export function PatientsGrowthCard({
         <CardTitle className="text-sm font-semibold text-muted-foreground">
           Patients Growth
         </CardTitle>
-        <Select value={selectedRange} onValueChange={(value) => setSelectedRange(value as "7" | "30")}>
+        <Select
+          value={timeframe}
+          onValueChange={(value) => onTimeframeChange(value as "7" | "30" | "90")}
+        >
           <SelectTrigger className="w-32">
             <SelectValue placeholder="Timeframe" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="7">Last 7 days</SelectItem>
             <SelectItem value="30">Last 30 days</SelectItem>
+            {/* <SelectItem value="90">Last quarter</SelectItem> */}
           </SelectContent>
         </Select>
       </CardHeader>

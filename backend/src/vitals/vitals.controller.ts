@@ -26,7 +26,7 @@ export class VitalsController {
   constructor(
     private readonly vitalsService: VitalsService,
     private readonly accessControlService: AccessControlService,
-  ) {}
+  ) { }
 
   private async resolveContext(user: any, elderUserId?: string) {
     return this.accessControlService.resolveActorContext(user, elderUserId);
@@ -36,8 +36,17 @@ export class VitalsController {
   @ApiOperation({ summary: 'Create a new vital measurement' })
   @ApiResponse({ status: 201, description: 'Vital measurement created successfully' })
   async create(@CurrentUser() user: any, @Body() createDto: CreateVitalDto) {
-    const context = await this.resolveContext(user, createDto.elderUserId);
-    return this.vitalsService.create(context, createDto);
+    try {
+      // Ensure elderUserId is a string if provided
+      const elderUserId = createDto.elderUserId
+        ? String(createDto.elderUserId)
+        : undefined;
+      const context = await this.resolveContext(user, elderUserId);
+      return this.vitalsService.create(context, createDto);
+    } catch (error) {
+      console.error('Error creating vital:', error);
+      throw error;
+    }
   }
 
   @Get()
@@ -75,17 +84,22 @@ export class VitalsController {
   }
 
   @Get('trends')
-  @ApiOperation({ summary: 'Get 7-day trends for vital measurements' })
+  @ApiOperation({ summary: 'Get trends for vital measurements' })
   @ApiQuery({ name: 'kindCode', required: false, type: String })
+  @ApiQuery({ name: 'period', required: false, type: String, description: 'weekly or monthly' })
+  @ApiQuery({ name: 'days', required: false, type: String })
   @ApiQuery({ name: 'elderUserId', required: false, type: String })
   @ApiResponse({ status: 200, description: 'Trend data' })
   async getTrends(
     @CurrentUser() user: any,
     @Query('kindCode') kindCode?: string,
+    @Query('period') period?: string,
+    @Query('days') days?: string,
     @Query('elderUserId') elderUserId?: string,
   ) {
     const context = await this.resolveContext(user, elderUserId);
-    return this.vitalsService.getTrends(context, kindCode);
+    const daysNum = days ? parseInt(days, 10) : period === 'monthly' ? 30 : 7;
+    return this.vitalsService.getTrends(context, kindCode, daysNum);
   }
 
   @Get('abnormal')

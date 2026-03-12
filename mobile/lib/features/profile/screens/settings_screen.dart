@@ -27,7 +27,10 @@ class SettingsScreen extends StatelessWidget {
         ),
         title: Text(
           'settings.title'.tr(),
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       body: ListView(
@@ -47,14 +50,16 @@ class SettingsScreen extends StatelessWidget {
                 _ModernSwitchTile(
                   title: 'settings.notifications.medicineReminders.title'.tr(),
                   subtitle:
-                      'settings.notifications.medicineReminders.description'.tr(),
+                      'settings.notifications.medicineReminders.description'
+                          .tr(),
                   value: true,
                   onChanged: (_) {},
                 ),
                 const Divider(height: 1),
                 _ModernSwitchTile(
                   title: 'settings.notifications.healthAlerts.title'.tr(),
-                  subtitle: 'settings.notifications.healthAlerts.description'.tr(),
+                  subtitle: 'settings.notifications.healthAlerts.description'
+                      .tr(),
                   value: true,
                   onChanged: (_) {},
                 ),
@@ -62,7 +67,8 @@ class SettingsScreen extends StatelessWidget {
                 _ModernSwitchTile(
                   title: 'settings.notifications.caregiverUpdates.title'.tr(),
                   subtitle:
-                      'settings.notifications.caregiverUpdates.description'.tr(),
+                      'settings.notifications.caregiverUpdates.description'
+                          .tr(),
                   value: false,
                   onChanged: (_) {},
                 ),
@@ -90,11 +96,14 @@ class SettingsScreen extends StatelessWidget {
                         ListTile(
                           leading: Icon(
                             FIcons.languages,
-                            color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.7),
+                            color: ModernSurfaceTheme.deepTeal.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                           title: Text(
                             option.name,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
                                   color: ModernSurfaceTheme.deepTeal,
                                   fontWeight: isSelected
                                       ? FontWeight.bold
@@ -182,14 +191,14 @@ class SettingsScreen extends StatelessWidget {
                   title: Text(
                     'settings.about.appVersion'.tr(),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: ModernSurfaceTheme.deepTeal,
-                        ),
+                      color: ModernSurfaceTheme.deepTeal,
+                    ),
                   ),
                   trailing: Text(
-                    '1.0.0 (Phase 1)',
+                    '2.0.0',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.6),
-                        ),
+                      color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.6),
+                    ),
                   ),
                 ),
                 const Divider(height: 1),
@@ -222,9 +231,9 @@ class SettingsScreen extends StatelessWidget {
             SizedBox(height: 24.h),
             Text(
               'settings.debug.title'.tr(),
-              style: ModernSurfaceTheme.sectionTitleStyle(context).copyWith(
-                    color: AppTheme.getWarningColor(context),
-                  ),
+              style: ModernSurfaceTheme.sectionTitleStyle(
+                context,
+              ).copyWith(color: AppTheme.getWarningColor(context)),
             ),
             SizedBox(height: 12.h),
             Container(
@@ -240,15 +249,15 @@ class SettingsScreen extends StatelessWidget {
                 title: Text(
                   'settings.debug.testNotifications.title'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: ModernSurfaceTheme.deepTeal,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    color: ModernSurfaceTheme.deepTeal,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 subtitle: Text(
                   'settings.debug.testNotifications.description'.tr(),
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.65),
-                      ),
+                    color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.65),
+                  ),
                 ),
                 trailing: Icon(
                   FIcons.chevronsRight,
@@ -285,15 +294,15 @@ class _ModernSwitchTile extends StatelessWidget {
       title: Text(
         title,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: ModernSurfaceTheme.deepTeal,
-              fontWeight: FontWeight.w600,
-            ),
+          color: ModernSurfaceTheme.deepTeal,
+          fontWeight: FontWeight.w600,
+        ),
       ),
       subtitle: Text(
         subtitle,
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.65),
-            ),
+          color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.65),
+        ),
       ),
       value: value,
       onChanged: onChanged,
@@ -315,13 +324,16 @@ class _ModernListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.7)),
+      leading: Icon(
+        icon,
+        color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.7),
+      ),
       title: Text(
         title,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: ModernSurfaceTheme.deepTeal,
-              fontWeight: FontWeight.w600,
-            ),
+          color: ModernSurfaceTheme.deepTeal,
+          fontWeight: FontWeight.w600,
+        ),
       ),
       trailing: Icon(
         FIcons.chevronsRight,
@@ -431,9 +443,7 @@ class _MedicineRemindersDiagnosticState
             if (_diagnosticInfo != null) ...[
               _DiagnosticItem(
                 label: 'FCM Initialized',
-                value: _diagnosticInfo!['isInitialized'] == true
-                    ? 'Yes'
-                    : 'No',
+                value: _diagnosticInfo!['isInitialized'] == true ? 'Yes' : 'No',
                 isGood: _diagnosticInfo!['isInitialized'] == true,
               ),
               const Divider(height: 1),
@@ -455,25 +465,26 @@ class _MedicineRemindersDiagnosticState
               title: Text(
                 'Reschedule All Medicine Reminders',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: ModernSurfaceTheme.deepTeal,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: ModernSurfaceTheme.deepTeal,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               subtitle: _rescheduleMessage != null
                   ? Text(
                       _rescheduleMessage!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: _rescheduleMessage!.contains('success')
-                                ? Colors.green
-                                : Colors.red,
-                          ),
+                        color: _rescheduleMessage!.contains('success')
+                            ? Colors.green
+                            : Colors.red,
+                      ),
                     )
                   : Text(
                       'Reschedule all medicine reminders for the next 7 days',
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color:
-                                ModernSurfaceTheme.deepTeal.withValues(alpha: 0.65),
-                          ),
+                        color: ModernSurfaceTheme.deepTeal.withValues(
+                          alpha: 0.65,
+                        ),
+                      ),
                     ),
               trailing: _isLoading
                   ? const SizedBox(
@@ -515,9 +526,9 @@ class _DiagnosticItem extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: ModernSurfaceTheme.deepTeal,
-                  fontWeight: FontWeight.w500,
-                ),
+              color: ModernSurfaceTheme.deepTeal,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           Row(
             children: [
@@ -530,11 +541,11 @@ class _DiagnosticItem extends StatelessWidget {
               Text(
                 value,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isGood
-                          ? Colors.green
-                          : ModernSurfaceTheme.deepTeal.withValues(alpha: 0.7),
-                      fontWeight: FontWeight.w500,
-                    ),
+                  color: isGood
+                      ? Colors.green
+                      : ModernSurfaceTheme.deepTeal.withValues(alpha: 0.7),
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),

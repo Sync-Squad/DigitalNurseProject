@@ -17,6 +17,10 @@
       "loginButton": "لاگ ان",
       "noAccount": "اکاؤنٹ نہیں ہے؟ ",
       "registerLink": "رجسٹر کریں",
+      "emailRequired": "ای میل کی ضرورت ہے",
+      "passwordRequired": "پاس ورڈ کی ضرورت ہے",
+      "forgotPassword": "پاس ورڈ بھول گئے؟",
+      "emailSent": "تصدیقی ای میل بھیج دی گئی ہے",
       "failed": "لاگ ان ناکام",
       "ok": "ٹھیک ہے"
     },
@@ -153,6 +157,168 @@
       "selectLanguage": "زبان منتخب کریں"
     }
   },
+  "caregiver": {
+    "contactTitle": "نگہبان سے رابطہ کریں",
+    "contacting": "رابطہ کر رہے ہیں",
+    "myCaregiver": "میرا نگہبان",
+    "messageFormTitle": "پیغام بھیجیں",
+    "subjectLabel": "موضوع (اختیاری)",
+    "subjectHint": "موضوع درج کریں",
+    "messageLabel": "پیغام",
+    "messageHint": "اپنا پیغام یہاں ٹائپ کریں...",
+    "sendButton": "پیغام بھیجیں",
+    "sending": "بھیجا جا رہا ہے...",
+    "sentSuccess": "پیغام کامیابی سے بھیج دیا گیا",
+    "sentError": "پیغام بھیجنے میں ناکامی",
+    "noCaregivers": "کاش آپ کا کوئی نگہبان مقرر ہوتا۔"
+  },
+  "ai": {
+    "title": "اے آئی مشورے",
+    "subtitle": "اے آئی سے تیار کردہ آپ کی صحت کے لیے مشورے",
+    "subtitleEmpty": "تجزیہ جاری ہے...",
+    "failedToLoad": "مشورے لوڈ کرنے میں ناکامی",
+    "retry": "دوبارہ کوشش کریں",
+    "noInsightsYet": "ابھی تک کوئی مشورے نہیں",
+    "noInsightsDescription": "جیسے ہی ہم آپ کی صحت کے ڈیٹا کا تجزیہ کریں گے، اے آئی مشورے یہاں ظاہر ہوں گے",
+    "generateInsights": "مشورے تیار کریں",
+    "defaultInsightTitle": "مشورہ",
+    "recommendations": "سفارشات",
+    "markRead": "پڑھ لیا",
+    "archive": "محفوظ کریں",
+    "analyzing": "مشوروں کا تجزیہ جاری ہے...",
+    "yourInsights": "آپ کے مشورے",
+    "insightsAvailable": "{count} مشورے دستیاب ہیں",
+    "clearAll": "سب صاف کریں",
+    "filterInsights": "فلٹر کریں",
+    "type": "قسم",
+    "priorityLabel": "ترجیح",
+    "clear": "صاف کریں",
+    "apply": "لاگو کریں",
+    "filterOptions": {
+      "all": "تمام",
+      "medication": "دوائی",
+      "healthTrend": "صحت کا رجحان",
+      "recommendation": "سفارش",
+      "alert": "انتباہ"
+    },
+    "errors": {
+      "loadFailed": "مشورے لوڈ کرنے میں ناکامی: {error}",
+      "markReadFailed": "پڑھنے کے نشان لگانے میں ناکامی: {error}",
+      "archiveFailed": "محفوظ کرنے میں ناکامی: {error}"
+    },
+    "nav": {
+      "title": "اے آئی خصوصیات",
+      "subtitle": "اے آئی سے چلنے والے صحت کے ٹولز تلاش کریں",
+      "chatTitle": "اے آئی چیٹ",
+      "chatDesc": "صحت کے سوالات پوچھیں",
+      "analysisTitle": "تجزیہ",
+      "analysisDesc": "صحت کا تجزیہ",
+      "searchTitle": "تلاش",
+      "searchDesc": "صحت کی تلاش",
+      "docQaTitle": "دستاویزی سوال جواب",
+      "docQaDesc": "دستاویزات کے بارے میں پوچھیں"
+    },
+    "priority": {
+      "critical": "انتہائی اہم",
+      "high": "اعلی",
+      "medium": "درمیانہ",
+      "low": "کم"
+    },
+    "time": {
+      "minutesAgo": "{count}ٹ پہلے",
+      "hoursAgo": "{count} گھنٹے پہلے",
+      "yesterday": "کل",
+      "daysAgo": "{count} دن پہلے"
+    }
+  },
+  "medication": {
+    "title": "دوائیاں",
+    "forPatient": "{name} کے لیے",
+    "noPatientsAssigned": "ابھی تک کوئی مریض مقرر نہیں ہوا",
+    "noPatientsDesc": "جب کوئی مریض آپ کو اپنے نگہبان کے طور پر شامل کرے گا، تو ان کی دوائیاں یہاں ظاہر ہوں گی۔",
+    "unableToLoadPatients": "مریضوں کو لوڈ کرنے میں ناکامی",
+    "selectPatientContinue": "جاری رکھنے کے لیے مریض منتخب کریں",
+    "selectPatientDesc": "ان کی دوائیوں کا شیڈول دیکھنے کے لیے ڈیش بورڈ سے ایک مریض منتخب کریں۔",
+    "noMedicinesAdded": "ابھی تک کوئی دوا شامل نہیں کی گئی",
+    "patientNoMedicines": "اس مریض کی ابھی تک کوئی دوائی ریکارڈ نہیں ہوئی ہے۔",
+    "addFirstMedicine": "اپنی پہلی دوا شامل کرنے کے لیے نیچے والا بٹن دبائیں",
+    "addMedicine": "دوا شامل کریں",
+    "noMedicinesForDate": "{date} کے لیے کوئی دوا نہیں",
+    "selectAnotherDate": "کوئی اور تاریخ منتخب کریں یا دوائیاں شامل کریں",
+    "scheduleOverview": "شیڈول کا جائزہ",
+    "retry": "دوبارہ کوشش کریں",
+    "hero": {
+      "todaysPlan": "آج کا منصوبہ",
+      "careSchedule": "دیکھ بھال کا شیڈول",
+      "medicinesOnDate": "{date} کو دوائیاں"
+    },
+    "status": {
+      "taken": "لے لی",
+      "missed": "رہ گئی",
+      "upcoming": "آنے والی",
+      "noMedicines": "کوئی دوا نہیں",
+      "partialTaken": "{total} میں سے {taken} لے لیں"
+    },
+    "timeOfDay": {
+      "morning": "صبح",
+      "afternoon": "دوپہر",
+      "evening": "شام"
+    },
+    "months": {
+      "jan": "جنوری",
+      "feb": "فروری",
+      "mar": "مارچ",
+      "apr": "اپریل",
+      "may": "مئی",
+      "jun": "جون",
+      "jul": "جولائی",
+      "aug": "اگست",
+      "sep": "ستمبر",
+      "oct": "اکتوبر",
+      "nov": "نومبر",
+      "dec": "دسمبر"
+    },
+    "add": {
+      "title": "دوا شامل کریں",
+      "step": "{total} میں سے مرحلہ {current}",
+      "next": "آگے",
+      "back": "پیچھے",
+      "save": "دوا محفوظ کریں",
+      "success": "دوا کامیابی سے شامل ہو گئی!",
+      "fail": "دوا شامل کرنے میں ناکامی",
+      "validationError": "براہ کرم تمام مطلوبہ فیلڈز پُر کریں",
+      "steps": {
+        "name": "دوا کا نام",
+        "nameDesc": "آئیے بنیادی باتوں سے شروع کریں",
+        "form": "دوا کی قسم",
+        "formDesc": "آپ کی دوا کس شکل میں ہے؟",
+        "frequency": "تعدد",
+        "frequencyDesc": "آپ اسے کتنی بار لیتے ہیں؟",
+        "reminders": "یاد دہانی کے اوقات",
+        "remindersDesc": "اپنی یاد دہانی کے اوقات مقرر کریں",
+        "startDate": "شروع کرنے کی تاریخ",
+        "startDateDesc": "آپ کب شروع کریں گے؟",
+        "dose": "خوراک اور مقدار",
+        "doseDesc": "خوراک اور طاقت کی تفصیلات",
+        "review": "جائزہ",
+        "reviewDesc": "محفوظ کرنے سے پہلے جائزہ لیں",
+        "endDate": "ختم ہونے کی تاریخ",
+        "notes": "نوٹس"
+      }
+    },
+    "detail": {
+      "intakeHistory": "دوائی لینے کی تاریخ",
+      "noHistory": "ابھی تک کوئی ہسٹری نہیں ہے",
+      "marked": "{status} کے طور پر نشان زد کیا گیا",
+      "alreadyMarked": "یہ دوا پہلے ہی {time} کے لیے {status} کے طور پر نشان زد ہے",
+      "atThisTime": "اس وقت",
+      "logFail": "دوائی ریکارڈ کرنے میں ناکامی۔ براہ کرم دوبارہ کوشش کریں۔",
+      "deleteTitle": "دوا حذف کریں",
+      "deleteConfirm": "کیا آپ واقعی اس دوا کو حذف کرنا چاہتے ہیں؟",
+      "deleteSuccess": "دوا کامیابی سے حذف ہو گئی",
+      "deleteFail": "دوا حذف کرنے میں ناکامی"
+    }
+  },
   "common": {
     "cancel": "منسوخ",
     "ok": "ٹھیک ہے",
@@ -170,13 +336,27 @@
   },
   "patient": {
     "welcomeBack": "خوش آمدید، {name}!",
+    "welcomeBackOnly": "خوش آمدید",
     "heroDescription": "اپنی صحت کے سفر پر قائم رہیں۔ دوائیوں، حیاتیات اور تندرستی کی نگرانی ایک ہی جگہ کریں۔",
     "healthOverview": "صحت کا جائزہ",
     "overviewDescription": "آپ کی پابندی، انتباہات اور حیاتیات کا فوری جائزہ۔",
     "adherence": "پابندی",
     "adherenceDescription": "پچھلے 7 دنوں میں وقت پر خوراکیں۔",
     "adherenceRate": "{percent}% پابندی کی شرح",
+    "heroHealthSubtitle": "آئیے آج اپنی صحت کا خیال رکھیں—ایک وقت میں ایک قدم۔",
+    "adherencePercentLabel": "{percent}% پابندی",
+    "adherenceGreat": "اس ہفتے بہت اچھا کام کیا!",
+    "adherenceMissed": "آپ نے اس ہفتے کچھ خوراکیں چھوڑ دی ہیں۔",
+    "improveTogether": "آئیے مل کر بہتری لائیں",
     "alerts": "انتباہات",
+    "alertsTitle": "انتباہات",
+    "vitalsNeedCheck": "{count} حیاتیات کو فوری چیک کرنے کی ضرورت ہے",
+    "allVitalsGood": "تمام حیاتیات ٹھیک لگ رہے ہیں!",
+    "tapToReviewAbnormal": "اپنے غیر معمولی حیاتیات کا محفوظ طریقے سے جائزہ لینے کے لیے تھپتھپائیں۔",
+    "keepUpGreatWork": "بہت اچھا کام جاری رکھیں!",
+    "bloodPressureTitle": "بلڈ پریشر",
+    "noRecordsYet": "ابھی تک کوئی ریکارڈ نہیں",
+    "mmHg": "ایم ایم ایچ جی",
     "alertsDescription": "غیر معمولی حیاتیات جن پر توجہ درکار ہے۔",
     "lastVital": "آخری حیاتی",
     "lastVitalDescription": "حالیہ ترین ریکارڈنگ۔",
@@ -218,6 +398,135 @@
     "exercise": "ورزش",
     "comingSoon": "{action} جلد آ رہا ہے",
     "caregiverDashboard": "دیکھ بھال کرنے والے کا ڈیش بورڈ"
+  },
+  "vitals": {
+    "title": "صحت کی حیاتیات",
+    "hero": {
+      "patientVitalsOverview": "مریض کی حیاتیات کا جائزہ",
+      "todaysVitalsSnapshot": "آج کی حیاتیات کا سنیپ شاٹ",
+      "checksOn": "{date} کو چیکس",
+      "stable": "مستحکم {count}",
+      "needsAttention": "توجہ طلب {count}"
+    },
+    "actions": {
+      "logVital": "حیاتیات لاگ کریں",
+      "viewTrends": "رجحانات دیکھیں"
+    },
+    "emptyState": {
+      "noVitalsLoggedYet": "ابھی تک کوئی حیاتیات لاگ نہیں کی گئی",
+      "patientNoVitalsRecorded": "اس مریض کی ابھی تک کوئی حیاتیات ریکارڈ نہیں ہوئی ہے۔",
+      "startTracking": "اپنی صحت کی حیاتیات کو ٹریک کرنا شروع کریں",
+      "noVitalsForDate": "{date} کے لیے کوئی حیاتیات نہیں",
+      "selectAnotherDate": "کوئی اور تاریخ منتخب کریں یا حیاتیات شامل کریں"
+    },
+    "caregiverNotice": {
+      "noPatientsAssigned": "ابھی تک کوئی مریض مقرر نہیں ہوا",
+      "noPatientsAssignedDesc": "جب آپ کو دیکھ بھال کرنے والے کے طور پر شامل کیا جائے گا، تو آپ یہاں اپنے مریضوں کی حیاتیات کا جائزہ لے سکتے ہیں۔",
+      "unableToLoadPatients": "مریضوں کو لوڈ کرنے میں ناکامی",
+      "selectPatientContinue": "جاری رکھنے کے لیے مریض منتخب کریں",
+      "selectPatientContinueDesc": "ان کی تازہ ترین حیاتیات کا جائزہ لینے کے لیے ڈیش بورڈ سے ایک مریض منتخب کریں۔"
+    },
+    "delete": {
+      "title": "حیاتیات کی پیمائش حذف کریں",
+      "confirm": "کیا آپ واقعی اس حیاتیات کی پیمائش کو حذف کرنا چاہتے ہیں؟",
+      "cancel": "منسوخ",
+      "success": "حیاتیات کی پیمائش کامیابی سے حذف ہو گئی",
+      "failed": "حیاتیات کی پیمائش حذف کرنے میں ناکامی"
+    },
+    "status": {
+      "normal": {
+        "label": "نارمل",
+        "message": "بلڈ پریشر نارمل ہے۔"
+      },
+      "warning": {
+        "label": "انتباہ",
+        "message": "بلڈ پریشر تھوڑا زیادہ ہے، براہِ کرم نظر رکھیں۔"
+      },
+      "danger": {
+        "label": "خطرہ",
+        "message": "بلڈ پریشر زیادہ ہے، ڈاکٹر سے مشورہ کریں۔"
+      },
+      "emergency": {
+        "label": "ایمرجنسی",
+        "message": "بلڈ پریشر بہت زیادہ ہے، فوراً مدد حاصل کریں۔"
+      },
+      "lowBP": {
+        "label": "کم بلڈ پریشر",
+        "message": "بلڈ پریشر کم ہے، احتیاط کریں۔"
+      }
+    }
+  },
+  "documents": {
+    "title": "صحت کی دستاویزات",
+    "yourHealthVault": "آپ کا ہیلتھ والٹ",
+    "sharedRecords": "مشترکہ ریکارڈز",
+    "documentsCount": "دستاویزات",
+    "upload": "اپ لوڈ",
+    "actions": {
+      "uploadDocument": "دستاویز اپ لوڈ کریں",
+      "retry": "دوبارہ کوشش کریں"
+    },
+    "emptyState": {
+      "noDocumentsUploadedYet": "ابھی تک کوئی دستاویز اپ لوڈ نہیں کی گئی",
+      "patientNotShared": "اس مریض نے کوئی ریکارڈ شیئر نہیں کیا ہے۔",
+      "uploadPrescriptions": "نسخے، لیب رپورٹس، اور مزید اپ لوڈ کریں۔"
+    },
+    "caregiverNotice": {
+      "noPatientsAssigned": "ابھی تک کوئی مریض مقرر نہیں ہوا",
+      "noPatientsAssignedDesc": "جب کوئی مریض آپ کے ساتھ اپنے ریکارڈز شیئر کرے گا، تو ان کی دستاویزات یہاں دکھائی دیں گی۔",
+      "unableToLoadPatients": "مریضوں کو لوڈ کرنے میں ناکام",
+      "selectPatientContinue": "جاری رکھنے کے لیے مریض منتخب کریں",
+      "selectPatientContinueDesc": "اپنے مشترکہ دستاویزات کا جائزہ لینے کے لیے ڈیش بورڈ سے ایک مریض منتخب کریں۔"
+    },
+    "uploadScreen": {
+      "title": "دستاویز اپ لوڈ کریں",
+      "documentType": "دستاویز کی قسم",
+      "selectDocumentType": "دستاویز کی قسم منتخب کریں",
+      "documentTitle": "دستاویز کا عنوان",
+      "documentTitleHint": "تفصیلی عنوان درج کریں",
+      "date": "تاریخ",
+      "notesOptional": "نوٹس (اختیاری)",
+      "notesHint": "کوئی اضافی تفصیلات شامل کریں...",
+      "visibility": "مرئیت",
+      "private": "نجی (صرف میں)",
+      "sharedWithCaregiver": "دیکھ بھال کرنے والے کے ساتھ شیئر کیا گیا",
+      "public": "عوامی",
+      "selectFileOrImage": "فائل یا تصویر منتخب کریں",
+      "noFileSelected": "کوئی فائل منتخب نہیں کی گئی",
+      "selectedFile": "منتخب فائل: {name}",
+      "changeFile": "فائل تبدیل کریں",
+      "uploadDocumentButton": "دستاویز اپ لوڈ کریں",
+      "success": "دستاویز کامیابی سے اپ لوڈ ہو گئی",
+      "fail": "دستاویز اپ لوڈ کرنے میں ناکامی",
+      "uploading": "دستاویز اپ لوڈ ہو رہی ہے...",
+      "selectTypeWarning": "براہ کرم دستاویز کی قسم منتخب کریں",
+      "enterTitleWarning": "براہ کرم عنوان درج کریں",
+      "selectFileWarning": "براہ کرم اپ لوڈ کرنے کے لیے فائل منتخب کریں"
+    },
+    "viewerScreen": {
+      "details": "تفصیلات",
+      "uploadedOn": "اپ لوڈ کی تاریخ: {date}",
+      "notes": "نوٹس",
+      "noNotes": "کوئی نوٹس فراہم نہیں کیے گئے۔",
+      "actions": "اقدامات",
+      "share": "شیئر کریں",
+      "download": "ڈاؤن لوڈ کریں",
+      "delete": "حذف کریں",
+      "errorLoading": "دستاویز لوڈ کرنے میں خرابی",
+      "fileNotFound": "دستاویز کی فائل نہیں ملی",
+      "deleteTitle": "دستاویز حذف کریں",
+      "deleteConfirm": "کیا آپ واقعی اس دستاویز کو حذف کرنا چاہتے ہیں؟ یہ عمل واپس نہیں کیا جاسکتا۔",
+      "deleteSuccess": "دستاویز کامیابی سے حذف ہو گئی",
+      "deleteFail": "دستاویز حذف کرنے میں ناکامی"
+    },
+    "types": {
+      "prescription": "نسخہ",
+      "labReport": "لیب رپورٹ",
+      "xray": "ایکس رے",
+      "scan": "اسکین",
+      "discharge": "ڈسچارج سمری",
+      "insurance": "انشورنس",
+      "other": "دیگر"
+    }
   }
 }
-

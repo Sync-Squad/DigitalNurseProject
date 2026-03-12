@@ -4,14 +4,72 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/providers/auth_provider.dart';
-import '../../../core/providers/theme_provider.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
+import '../../../core/widgets/professional_avatar.dart';
+import '../../../core/services/document_picker_service.dart';
+import '../widgets/profile_image_picker_bottom_sheet.dart';
 
-class ProfileViewScreen extends StatelessWidget {
+class ProfileViewScreen extends StatefulWidget {
   const ProfileViewScreen({super.key});
+
+  @override
+  State<ProfileViewScreen> createState() => _ProfileViewScreenState();
+}
+
+class _ProfileViewScreenState extends State<ProfileViewScreen> {
+  bool _isUploading = false;
+
+  Future<void> _handleImageSelection(BuildContext context) async {
+    ProfileImagePickerBottomSheet.show(context, (option) async {
+      DocumentPickerResult? result;
+
+      if (option == ProfileImageOption.camera) {
+        result = await DocumentPickerService.pickImageFromCamera(context);
+      } else {
+        result = await DocumentPickerService.pickImageFromGallery(context);
+      }
+
+      if (result != null && mounted) {
+        await _uploadImage(result.filePath);
+      }
+    });
+  }
+
+  Future<void> _uploadImage(String filePath) async {
+    setState(() {
+      _isUploading = true;
+    });
+
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.uploadProfilePicture(filePath);
+
+    if (mounted) {
+      setState(() {
+        _isUploading = false;
+      });
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Profile picture updated successfully'),
+            backgroundColor: AppTheme.getSuccessColor(context),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              authProvider.error ?? 'Failed to update profile picture',
+            ),
+            backgroundColor: AppTheme.getErrorColor(context),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,76 +119,121 @@ class ProfileViewScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  ClipOval(
-                    child: Container(
-                      width: 96,
-                      height: 96,
-                      color: onPrimary.withValues(alpha: 0.15),
-                      child: Image.network(
-                        'https://randomuser.me/api/portraits/${user.name.hashCode % 2 == 0 ? 'men' : 'women'}/${user.name.hashCode % 99}.jpg',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Center(
-                            child: Text(
-                              user.name[0].toUpperCase(),
-                              style: textTheme.headlineMedium?.copyWith(
-                                    color: onPrimary,
-                                    fontWeight: FontWeight.bold,
+                  Stack(
+                    children: [
+                      GestureDetector(
+                        onTap:
+                            _isUploading
+                                ? null
+                                : () => _handleImageSelection(context),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: onPrimary.withValues(alpha: 0.2),
+                              width: 3,
+                            ),
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              ProfessionalAvatar(
+                                name: user.name,
+                                userId: user.id.isNotEmpty ? user.id : null,
+                                avatarUrl: user.avatarUrl,
+                                size: 96,
+                              ),
+                              if (_isUploading)
+                                Container(
+                                  width: 96,
+                                  height: 96,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.3),
+                                    shape: BoxShape.circle,
                                   ),
-                            ),
-                          );
-                        },
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) {
-                            return child;
-                          }
-                          return Center(
-                            child: CircularProgressIndicator(
-                              value: loadingProgress.expectedTotalBytes != null
-                                  ? loadingProgress.cumulativeBytesLoaded /
-                                      loadingProgress.expectedTotalBytes!
-                                  : null,
-                              color: onPrimary,
-                              strokeWidth: 2,
-                            ),
-                          );
-                        },
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 3,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: GestureDetector(
+                          onTap:
+                              _isUploading
+                                  ? null
+                                  : () => _handleImageSelection(context),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppTheme.appleGreen,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 16.h),
                   Text(
                     user.name,
                     style: textTheme.headlineSmall?.copyWith(
-                          color: onPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: onPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 4.h),
                   Text(
                     user.email,
                     style: textTheme.bodySmall?.copyWith(
-                          color: onPrimary.withValues(alpha: 0.85),
-                        ),
+                      color: onPrimary.withValues(alpha: 0.85),
+                    ),
                   ),
                   SizedBox(height: 16.h),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-                    decoration: user.subscriptionTier == SubscriptionTier.premium
-                        ? ModernSurfaceTheme.frostedChip(context)
-                        : BoxDecoration(
-                            color: AppTheme.appleGreen,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 8.h,
+                    ),
+                    decoration:
+                        user.subscriptionTier == SubscriptionTier.premium
+                            ? ModernSurfaceTheme.frostedChip(context)
+                            : BoxDecoration(
+                              color: AppTheme.appleGreen,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
                     child: Text(
                       user.subscriptionTier == SubscriptionTier.premium
                           ? 'Premium Member'
                           : 'Free Plan',
                       style: TextStyle(
-                        color: user.subscriptionTier == SubscriptionTier.premium
-                            ? ModernSurfaceTheme.chipForegroundColor(Colors.white)
-                            : Colors.white,
+                        color:
+                            user.subscriptionTier == SubscriptionTier.premium
+                                ? ModernSurfaceTheme.chipForegroundColor(
+                                  Colors.white,
+                                )
+                                : Colors.white,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -177,9 +280,7 @@ class ProfileViewScreen extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             'Tap "Edit Profile" to add your details',
-                            style: textTheme.bodySmall?.copyWith(
-                              color: muted,
-                            ),
+                            style: textTheme.bodySmall?.copyWith(color: muted),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -258,9 +359,10 @@ class ProfileViewScreen extends StatelessWidget {
                       _ModernListTile(
                         icon: FIcons.creditCard,
                         title: 'Subscription',
-                        subtitle: user.subscriptionTier == SubscriptionTier.premium
-                            ? 'Manage your premium subscription'
-                            : 'Upgrade to Premium',
+                        subtitle:
+                            user.subscriptionTier == SubscriptionTier.premium
+                                ? 'Manage your premium subscription'
+                                : 'Upgrade to Premium',
                         onTap: () => context.push('/subscription-plans'),
                       ),
                       const Divider(height: 1),
@@ -269,10 +371,7 @@ class ProfileViewScreen extends StatelessWidget {
                         title: 'Manage Caregivers',
                         onTap: () => context.push('/caregivers'),
                       ),
-                      const Divider(height: 1),
-                  ],
-                    _ThemeSelectorTile(),
-                    const Divider(height: 1),
+                    ],
                     _ModernListTile(
                       icon: FIcons.settings,
                       title: 'Settings',
@@ -288,34 +387,41 @@ class ProfileViewScreen extends StatelessWidget {
               onPressed: () async {
                 final confirm = await showDialog<bool>(
                   context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text(
-                      'Logout',
-                      style: TextStyle(color: context.theme.colors.foreground),
-                    ),
-                    content: Text(
-                      'Are you sure you want to logout?',
-                      style: TextStyle(color: context.theme.colors.foreground),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: Text(
-                          'Cancel',
+                  builder:
+                      (context) => AlertDialog(
+                        title: Text(
+                          'Logout',
                           style: TextStyle(
                             color: context.theme.colors.foreground,
                           ),
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: Text(
-                          'Logout',
-                          style: TextStyle(color: context.theme.colors.primary),
+                        content: Text(
+                          'Are you sure you want to logout?',
+                          style: TextStyle(
+                            color: context.theme.colors.foreground,
+                          ),
                         ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(false),
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                color: context.theme.colors.foreground,
+                              ),
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(true),
+                            child: Text(
+                              'Logout',
+                              style: TextStyle(
+                                color: context.theme.colors.primary,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
                 );
 
                 if (confirm == true && context.mounted) {
@@ -330,7 +436,7 @@ class ProfileViewScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 14.h),
                 backgroundColor: AppTheme.appleGreen,
-              foregroundColor: onPrimary,
+                foregroundColor: onPrimary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(28),
                 ),
@@ -376,12 +482,7 @@ class _ProfileInfoRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
-              ),
+              Text(label, style: textTheme.bodySmall?.copyWith(color: muted)),
               SizedBox(height: 2),
               Text(
                 value,
@@ -394,71 +495,6 @@ class _ProfileInfoRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _ThemeSelectorTile extends StatelessWidget {
-  const _ThemeSelectorTile();
-
-  @override
-  Widget build(BuildContext context) {
-    final themeProvider = context.watch<ThemeProvider>();
-
-    return ListTile(
-      leading: Icon(
-        FIcons.palette,
-        color: context.theme.colors.mutedForeground,
-      ),
-      title: Text(
-        'Theme',
-        style: context.theme.typography.sm.copyWith(
-          color: context.theme.colors.foreground,
-        ),
-      ),
-      subtitle: Text(
-        themeProvider.themeModeDisplayName,
-        style: context.theme.typography.xs.copyWith(
-          color: context.theme.colors.mutedForeground,
-        ),
-      ),
-      trailing: Icon(
-        FIcons.chevronsRight,
-        color: context.theme.colors.mutedForeground,
-      ),
-      onTap: () => _showThemeSelector(context, themeProvider),
-    );
-  }
-
-  void _showThemeSelector(BuildContext context, ThemeProvider themeProvider) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Choose Theme'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: themeProvider.themeModeOptions.map((option) {
-            return RadioListTile<ThemeMode>(
-              title: Text(option.name),
-              subtitle: Text(option.description),
-              value: option.mode,
-              groupValue: themeProvider.themeMode,
-              onChanged: (value) {
-                if (value != null) {
-                  themeProvider.setThemeMode(value);
-                  Navigator.of(context).pop();
-                }
-              },
-            );
-          }).toList(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -484,18 +520,19 @@ class _ModernListTile extends StatelessWidget {
       title: Text(
         title,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: onSurface,
-              fontWeight: FontWeight.w600,
-            ),
+          color: onSurface,
+          fontWeight: FontWeight.w600,
+        ),
       ),
-      subtitle: subtitle == null
-          ? null
-          : Text(
-              subtitle!,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: onSurface.withValues(alpha: 0.65),
-                  ),
-            ),
+      subtitle:
+          subtitle == null
+              ? null
+              : Text(
+                subtitle!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: onSurface.withValues(alpha: 0.65),
+                ),
+              ),
       trailing: Icon(
         FIcons.chevronsRight,
         color: onSurface.withValues(alpha: 0.4),

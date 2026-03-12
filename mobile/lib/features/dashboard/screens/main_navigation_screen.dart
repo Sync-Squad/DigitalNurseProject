@@ -78,19 +78,35 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             children: navigationEntries.map((entry) => entry.page).toList(),
           ),
         ),
-        bottomNavigationBar: SafeArea(
-          child: FBottomNavigationBar(
-            index: _currentIndex,
-            onChange: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
-            children: [
-              for (final entry in navigationEntries) entry.navigationItem,
-            ],
-          ),
-        ),
+        // Bottom navigation commented out for caregivers
+        // bottomNavigationBar: SafeArea(
+        //   child: FBottomNavigationBar(
+        //     index: _currentIndex,
+        //     onChange: (index) {
+        //       setState(() {
+        //         _currentIndex = index;
+        //       });
+        //     },
+        //     children: [
+        //       for (final entry in navigationEntries) entry.navigationItem,
+        //     ],
+        //   ),
+        // ),
+        bottomNavigationBar: isCaregiver
+            ? null
+            : SafeArea(
+                child: FBottomNavigationBar(
+                  index: _currentIndex,
+                  onChange: (index) {
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                  },
+                  children: [
+                    for (final entry in navigationEntries) entry.navigationItem,
+                  ],
+                ),
+              ),
       ),
     );
   }

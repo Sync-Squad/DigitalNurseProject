@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git log:*)",
+      "Bash(find:*)",
+      "mcp__postgresql__read_query"
+    ]
+  }
+}

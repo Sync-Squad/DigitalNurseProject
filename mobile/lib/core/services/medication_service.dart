@@ -9,13 +9,22 @@ class MedicationService {
   final FCMService _fcmService = FCMService();
 
   void _log(String message) {
-    // print('🔍 [MEDICATION] $message');
+    print('🔍 [MEDICATION] $message');
   }
 
   // Helper method to check if error is unauthorized (user logging out)
   bool _isUnauthorizedError(dynamic error) {
     final errorMessage = error.toString();
-    return errorMessage.contains('Unauthorized') || errorMessage.contains('401');
+    return errorMessage.contains('Unauthorized') ||
+        errorMessage.contains('401');
+  }
+
+  // Helper method to check if error is forbidden (caregiver not assigned to elder)
+  bool _isForbiddenError(dynamic error) {
+    final errorMessage = error.toString();
+    return errorMessage.contains('Forbidden') ||
+        errorMessage.contains('403') ||
+        errorMessage.contains('not assigned to the requested elder');
   }
 
   // Get all medicines for a user
@@ -27,22 +36,38 @@ class MedicationService {
     try {
       final response = await _apiService.get(
         '/medications',
-        queryParameters: elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
         final medicines = data
-            .map((json) => MedicationMapper.fromApiResponse(
-                json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json)))
+            .map(
+              (json) => MedicationMapper.fromApiResponse(
+                json is Map<String, dynamic>
+                    ? json
+                    : Map<String, dynamic>.from(json),
+              ),
+            )
             .toList();
         _log('✅ Fetched ${medicines.length} medications');
         return medicines;
       } else {
         _log('❌ Failed to fetch medications: ${response.statusMessage}');
-        throw Exception('Failed to fetch medications: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch medications: ${response.statusMessage}',
+        );
       }
     } catch (e) {
+      // Handle Forbidden errors gracefully (caregiver not assigned to elder)
+      if (_isForbiddenError(e)) {
+        _log(
+          '⚠️ Forbidden error during medications fetch (caregiver may not have access to this elder)',
+        );
+        return []; // Return empty list instead of throwing
+      }
       _log('❌ Error fetching medications: $e');
       throw Exception(e.toString());
     }
@@ -111,7 +136,9 @@ class MedicationService {
         return updatedMedicine;
       } else {
         _log('❌ Failed to update medication: ${response.statusMessage}');
-        throw Exception('Failed to update medication: ${response.statusMessage}');
+        throw Exception(
+          'Failed to update medication: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       _log('❌ Error updating medication: $e');
@@ -120,16 +147,14 @@ class MedicationService {
   }
 
   // Delete medicine
-  Future<void> deleteMedicine(
-    String medicineId, {
-    String? elderUserId,
-  }) async {
+  Future<void> deleteMedicine(String medicineId, {String? elderUserId}) async {
     _log('🗑️ Deleting medication: $medicineId');
     try {
       final response = await _apiService.delete(
         '/medications/$medicineId',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
@@ -143,9 +168,18 @@ class MedicationService {
         }
       } else {
         _log('❌ Failed to delete medication: ${response.statusMessage}');
-        throw Exception('Failed to delete medication: ${response.statusMessage}');
+        throw Exception(
+          'Failed to delete medication: ${response.statusMessage}',
+        );
       }
     } catch (e) {
+      // Handle Forbidden errors gracefully (caregiver not assigned to elder)
+      if (_isForbiddenError(e)) {
+        _log(
+          '⚠️ Forbidden error during medication deletion (caregiver may not have access to this elder)',
+        );
+        return; // Complete successfully instead of throwing
+      }
       _log('❌ Error deleting medication: $e');
       throw Exception(e.toString());
     }
@@ -160,8 +194,9 @@ class MedicationService {
     try {
       final response = await _apiService.get(
         '/medications/$medicineId',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
@@ -173,6 +208,13 @@ class MedicationService {
         return null;
       }
     } catch (e) {
+      // Handle Forbidden errors gracefully (caregiver not assigned to elder)
+      if (_isForbiddenError(e)) {
+        _log(
+          '⚠️ Forbidden error during medication fetch (caregiver may not have access to this elder)',
+        );
+        return null; // Return null instead of throwing
+      }
       _log('❌ Error fetching medication: $e');
       return null;
     }
@@ -185,7 +227,9 @@ class MedicationService {
     required IntakeStatus status,
     String? elderUserId,
   }) async {
-    _log('📝 Logging intake for medication: $medicineId');
+    _log(
+      '📝 Logging intake for medication: $medicineId, status: $status, elderUserId: $elderUserId',
+    );
     try {
       final intake = MedicineIntake(
         id: '', // Will be set by backend
@@ -199,24 +243,78 @@ class MedicationService {
         intake,
         elderUserId: elderUserId,
       );
+
+      _log('📤 Sending request to: /medications/$medicineId/intakes');
+      _log('📤 Request data: $requestData');
+      _log('📤 Scheduled time (local): ${intake.scheduledTime}');
+      _log('📤 Scheduled time (UTC): ${intake.scheduledTime.toUtc()}');
+      _log(
+        '📤 Scheduled time (ISO): ${intake.scheduledTime.toUtc().toIso8601String()}',
+      );
+      _log(
+        '📤 Query params: ${elderUserId != null ? {'elderUserId': elderUserId} : null}',
+      );
+
       final response = await _apiService.post(
         '/medications/$medicineId/intakes',
         data: requestData,
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
+      _log('📥 Response status: ${response.statusCode}');
+      _log('📥 Response data: ${response.data}');
+
       if (response.statusCode == 201 || response.statusCode == 200) {
-        final loggedIntake = MedicationMapper.intakeFromApiResponse(response.data);
+        final loggedIntake = MedicationMapper.intakeFromApiResponse(
+          response.data,
+        );
         _log('✅ Intake logged successfully');
         return loggedIntake;
       } else {
-        _log('❌ Failed to log intake: ${response.statusMessage}');
-        throw Exception('Failed to log intake: ${response.statusMessage}');
+        _log(
+          '❌ Failed to log intake: ${response.statusCode} - ${response.statusMessage}',
+        );
+        _log('❌ Response data: ${response.data}');
+        final errorMessage = response.data is Map
+            ? (response.data['message'] ??
+                  response.data['error'] ??
+                  response.statusMessage)
+            : response.statusMessage;
+        throw Exception('Failed to log intake: $errorMessage');
       }
-    } catch (e) {
-      _log('❌ Error logging intake: $e');
-      throw Exception(e.toString());
+    } catch (e, stackTrace) {
+      _log('❌ Exception caught: $e');
+      _log('❌ Stack trace: $stackTrace');
+
+      // Handle Forbidden errors with clearer message (caregiver not assigned to elder)
+      if (_isForbiddenError(e)) {
+        _log(
+          '⚠️ Forbidden error during intake logging (caregiver may not have access to this elder)',
+        );
+        throw Exception(
+          'You do not have permission to log intake for this patient.',
+        );
+      }
+
+      // Extract a cleaner error message
+      String errorMessage = 'An error occurred. Please try again.';
+      final errorString = e.toString();
+
+      if (errorString.contains('SocketException') ||
+          errorString.contains('Failed host lookup')) {
+        errorMessage = 'Network error. Please check your internet connection.';
+      } else if (errorString.contains('TimeoutException')) {
+        errorMessage = 'Request timed out. Please try again.';
+      } else if (errorString.contains('Exception: ')) {
+        errorMessage = errorString.replaceAll('Exception: ', '');
+      } else if (errorString.isNotEmpty) {
+        errorMessage = errorString;
+      }
+
+      _log('❌ Throwing error: $errorMessage');
+      throw Exception(errorMessage);
     }
   }
 
@@ -229,27 +327,45 @@ class MedicationService {
     try {
       final response = await _apiService.get(
         '/medications/$medicineId/intakes',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
-        final intakes = data
-            .map((json) => MedicationMapper.intakeFromApiResponse(
-                json is Map<String, dynamic> ? json : Map<String, dynamic>.from(json)))
-            .toList()
-          ..sort((a, b) => b.scheduledTime.compareTo(a.scheduledTime));
+        final intakes =
+            data
+                .map(
+                  (json) => MedicationMapper.intakeFromApiResponse(
+                    json is Map<String, dynamic>
+                        ? json
+                        : Map<String, dynamic>.from(json),
+                  ),
+                )
+                .toList()
+              ..sort((a, b) => b.scheduledTime.compareTo(a.scheduledTime));
         _log('✅ Fetched ${intakes.length} intake records');
         return intakes;
       } else {
         _log('❌ Failed to fetch intake history: ${response.statusMessage}');
-        throw Exception('Failed to fetch intake history: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch intake history: ${response.statusMessage}',
+        );
       }
     } catch (e) {
       // Handle Unauthorized errors gracefully (user might be logging out)
       if (_isUnauthorizedError(e)) {
-        _log('⚠️ Unauthorized error during intake history fetch (user may be logging out)');
+        _log(
+          '⚠️ Unauthorized error during intake history fetch (user may be logging out)',
+        );
+        return []; // Return empty list instead of throwing
+      }
+      // Handle Forbidden errors gracefully (caregiver not assigned to elder)
+      if (_isForbiddenError(e)) {
+        _log(
+          '⚠️ Forbidden error during intake history fetch (caregiver may not have access to this elder)',
+        );
         return []; // Return empty list instead of throwing
       }
       _log('❌ Error fetching intake history: $e');
@@ -266,26 +382,41 @@ class MedicationService {
     try {
       final response = await _apiService.get(
         '/medications/upcoming',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
         final reminders = data.map((item) {
-          final map = item is Map<String, dynamic> ? item : Map<String, dynamic>.from(item);
+          final map = item is Map<String, dynamic>
+              ? item
+              : Map<String, dynamic>.from(item);
           return {
             'medicine': MedicationMapper.fromApiResponse(map['medicine'] ?? {}),
-            'reminderTime': DateTime.parse(map['reminderTime']?.toString() ?? DateTime.now().toIso8601String()),
+            'reminderTime': DateTime.parse(
+              map['reminderTime']?.toString() ??
+                  DateTime.now().toIso8601String(),
+            ),
           };
         }).toList();
         _log('✅ Fetched ${reminders.length} upcoming reminders');
         return reminders;
       } else {
         _log('❌ Failed to fetch upcoming reminders: ${response.statusMessage}');
-        throw Exception('Failed to fetch upcoming reminders: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch upcoming reminders: ${response.statusMessage}',
+        );
       }
     } catch (e) {
+      // Handle Forbidden errors gracefully (caregiver not assigned to elder)
+      if (_isForbiddenError(e)) {
+        _log(
+          '⚠️ Forbidden error during upcoming reminders fetch (caregiver may not have access to this elder)',
+        );
+        return []; // Return empty list instead of throwing
+      }
       _log('❌ Error fetching upcoming reminders: $e');
       throw Exception(e.toString());
     }
@@ -298,20 +429,19 @@ class MedicationService {
     String? elderUserId,
   }) async {
     _log(
-        '📊 Calculating adherence percentage for user: $userId (last $days days)');
-
-    final medicines = await getMedicines(
-      userId,
-      elderUserId: elderUserId,
+      '📊 Calculating adherence percentage for user: $userId (last $days days)',
     );
+
+    final medicines = await getMedicines(userId, elderUserId: elderUserId);
     if (medicines.isEmpty) {
       _log('✅ No medications found, returning 100% adherence');
       return 100.0;
     }
 
-    // Calculate overall adherence across all medications
-    double totalPercentage = 0.0;
-    int medicationCount = 0;
+    // Calculate overall adherence using global method (all intakes combined)
+    // This matches the backend calculation and is more medically accurate
+    int totalIntakes = 0;
+    int takenIntakes = 0;
 
     for (var medicine in medicines) {
       try {
@@ -325,9 +455,10 @@ class MedicationService {
 
         if (response.statusCode == 200) {
           final data = response.data;
-          final percentage = (data['percentage'] ?? 100.0).toDouble();
-          totalPercentage += percentage;
-          medicationCount++;
+          final total = (data['total'] ?? 0) as int;
+          final taken = (data['taken'] ?? 0) as int;
+          totalIntakes += total;
+          takenIntakes += taken;
         }
       } catch (e) {
         _log('⚠️ Warning: Failed to get adherence for ${medicine.id}: $e');
@@ -335,26 +466,22 @@ class MedicationService {
       }
     }
 
-    if (medicationCount == 0) {
+    if (totalIntakes == 0) {
       return 100.0;
     }
 
-    final averagePercentage = totalPercentage / medicationCount;
-    _log('✅ Overall adherence: ${averagePercentage.toStringAsFixed(1)}%');
-    return averagePercentage;
+    final adherencePercentage = (takenIntakes / totalIntakes) * 100;
+    _log(
+      '✅ Overall adherence: ${adherencePercentage.toStringAsFixed(1)}% ($takenIntakes/$totalIntakes)',
+    );
+    return adherencePercentage;
   }
 
   // Get adherence streak (consecutive days with 100% adherence)
-  Future<int> getAdherenceStreak(
-    String userId, {
-    String? elderUserId,
-  }) async {
+  Future<int> getAdherenceStreak(String userId, {String? elderUserId}) async {
     _log('🔥 Calculating adherence streak for user: $userId');
 
-    final medicines = await getMedicines(
-      userId,
-      elderUserId: elderUserId,
-    );
+    final medicines = await getMedicines(userId, elderUserId: elderUserId);
     if (medicines.isEmpty) {
       _log('✅ No medications found, returning 0 streak');
       return 0;
@@ -366,8 +493,9 @@ class MedicationService {
     try {
       final response = await _apiService.get(
         '/medications/${medicines.first.id}/streak',
-        queryParameters:
-            elderUserId != null ? {'elderUserId': elderUserId} : null,
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
       );
 
       if (response.statusCode == 200) {
@@ -384,7 +512,9 @@ class MedicationService {
   }
 
   // Test immediate notification (for debugging)
-  Future<Map<String, dynamic>> testImmediateNotification(String medicineName) async {
+  Future<Map<String, dynamic>> testImmediateNotification(
+    String medicineName,
+  ) async {
     final result = <String, dynamic>{
       'success': false,
       'message': '',
@@ -413,9 +543,12 @@ class MedicationService {
       }
 
       // Check exact alarm permission
-      final canScheduleExact = await _fcmService.canScheduleExactNotifications();
+      final canScheduleExact = await _fcmService
+          .canScheduleExactNotifications();
       if (canScheduleExact == false) {
-        result['errors'].add('Exact alarm permission not granted - notification may be delayed');
+        result['errors'].add(
+          'Exact alarm permission not granted - notification may be delayed',
+        );
       }
 
       final testTime = DateTime.now().add(const Duration(seconds: 10));
@@ -424,11 +557,14 @@ class MedicationService {
         title: 'Test Medicine Reminder',
         body: 'Time to take $medicineName - This is a test notification',
         scheduledDate: testTime,
-        payload: '{"type": "test_notification", "medicineName": "$medicineName"}',
+        payload:
+            '{"type": "test_notification", "medicineName": "$medicineName"}',
         type: NotificationType.medicineReminder,
       );
-      
-      _log('✅ Test notification scheduled for 10 seconds from now (${testTime.toString()})');
+
+      _log(
+        '✅ Test notification scheduled for 10 seconds from now (${testTime.toString()})',
+      );
       result['success'] = true;
       result['message'] = 'Test notification scheduled for 10 seconds from now';
       if (canScheduleExact == false) {
@@ -444,10 +580,12 @@ class MedicationService {
   }
 
   // Reschedule all medicine reminders (for app start)
-  Future<int> rescheduleAllMedicineReminders(List<MedicineModel> medicines) async {
+  Future<int> rescheduleAllMedicineReminders(
+    List<MedicineModel> medicines,
+  ) async {
     _log('🔄 Rescheduling reminders for ${medicines.length} medicines');
     int scheduledCount = 0;
-    
+
     try {
       // Check if FCM service is initialized
       if (!_fcmService.isInitialized) {
@@ -461,9 +599,12 @@ class MedicationService {
       }
 
       // Check exact alarm permission and warn if not available
-      final canScheduleExact = await _fcmService.canScheduleExactNotifications();
+      final canScheduleExact = await _fcmService
+          .canScheduleExactNotifications();
       if (canScheduleExact == false) {
-        _log('⚠️ Warning: Exact alarm permission not granted. Notifications may be delayed.');
+        _log(
+          '⚠️ Warning: Exact alarm permission not granted. Notifications may be delayed.',
+        );
       }
 
       // Cancel existing notifications for all medicines first
@@ -472,7 +613,9 @@ class MedicationService {
           // Cancel by medicine ID hash (approximate, but helps clean up)
           await _fcmService.cancelNotification(medicine.id.hashCode);
         } catch (e) {
-          _log('Warning: Failed to cancel existing notifications for ${medicine.name}: $e');
+          _log(
+            'Warning: Failed to cancel existing notifications for ${medicine.name}: $e',
+          );
         }
       }
 
@@ -482,12 +625,16 @@ class MedicationService {
           await _scheduleMedicineReminders(medicine);
           scheduledCount++;
         } catch (e) {
-          _log('⚠️ Warning: Failed to reschedule reminders for ${medicine.name}: $e');
+          _log(
+            '⚠️ Warning: Failed to reschedule reminders for ${medicine.name}: $e',
+          );
           // Continue with other medicines even if one fails
         }
       }
 
-      _log('✅ Rescheduled reminders for $scheduledCount/${medicines.length} medicines');
+      _log(
+        '✅ Rescheduled reminders for $scheduledCount/${medicines.length} medicines',
+      );
       return scheduledCount;
     } catch (e) {
       _log('❌ Error rescheduling all medicine reminders: $e');
@@ -526,15 +673,24 @@ class MedicationService {
           try {
             final parts = timeStr.split(':');
             if (parts.length != 2) {
-              _log('Warning: Invalid time format: $timeStr for ${medicine.name}');
+              _log(
+                'Warning: Invalid time format: $timeStr for ${medicine.name}',
+              );
               continue;
             }
 
             final hour = int.tryParse(parts[0]);
             final minute = int.tryParse(parts[1]);
-            
-            if (hour == null || minute == null || hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-              _log('Warning: Invalid time values: $timeStr for ${medicine.name}');
+
+            if (hour == null ||
+                minute == null ||
+                hour < 0 ||
+                hour > 23 ||
+                minute < 0 ||
+                minute > 59) {
+              _log(
+                'Warning: Invalid time values: $timeStr for ${medicine.name}',
+              );
               continue;
             }
 
@@ -548,29 +704,40 @@ class MedicationService {
 
             // Only schedule if the time is in the future
             if (reminderTime.isAfter(now)) {
-              final notificationId = '${medicine.id}_${reminderTime.millisecondsSinceEpoch}'.hashCode;
-              _log('📅 Scheduling notification #$notificationId for ${medicine.name} at ${reminderTime.toString()}');
-              
+              final notificationId =
+                  '${medicine.id}_${reminderTime.millisecondsSinceEpoch}'
+                      .hashCode;
+              _log(
+                '📅 Scheduling notification #$notificationId for ${medicine.name} at ${reminderTime.toString()}',
+              );
+
               await _fcmService.scheduleLocalNotification(
                 id: notificationId,
                 title: 'Medicine Reminder',
                 body: 'Time to take ${medicine.name} ${medicine.dosage}',
                 scheduledDate: reminderTime,
-                payload: '{"medicineId": "${medicine.id}", "medicineName": "${medicine.name}", "dosage": "${medicine.dosage}", "type": "medicine_reminder"}',
+                payload:
+                    '{"medicineId": "${medicine.id}", "medicineName": "${medicine.name}", "dosage": "${medicine.dosage}", "type": "medicine_reminder"}',
                 type: NotificationType.medicineReminder,
               );
               scheduledForThisMedicine++;
             } else {
-              _log('⏭️ Skipping notification for ${medicine.name} - time ${reminderTime.toString()} is in the past');
+              _log(
+                '⏭️ Skipping notification for ${medicine.name} - time ${reminderTime.toString()} is in the past',
+              );
             }
           } catch (e) {
-            _log('⚠️ Warning: Failed to schedule reminder for time $timeStr: $e');
+            _log(
+              '⚠️ Warning: Failed to schedule reminder for time $timeStr: $e',
+            );
             // Continue with other times even if one fails
           }
         }
       }
-      
-      _log('✅ Scheduled $scheduledForThisMedicine notifications for ${medicine.name}');
+
+      _log(
+        '✅ Scheduled $scheduledForThisMedicine notifications for ${medicine.name}',
+      );
     } catch (e) {
       _log('❌ Error in _scheduleMedicineReminders for ${medicine.name}: $e');
       rethrow;
@@ -595,13 +762,16 @@ class MedicationService {
       }
 
       // Check permissions (Android only)
-      final canScheduleExact = await _fcmService.canScheduleExactNotifications();
+      final canScheduleExact = await _fcmService
+          .canScheduleExactNotifications();
       if (canScheduleExact != null) {
         report['canScheduleExact'] = canScheduleExact;
         report['exactAlarmPermission'] = canScheduleExact;
-        
+
         if (!canScheduleExact) {
-          report['errors'].add('Exact alarm permission not granted - notifications may be delayed by 5-15 minutes');
+          report['errors'].add(
+            'Exact alarm permission not granted - notifications may be delayed by 5-15 minutes',
+          );
         }
       }
 

@@ -1,4 +1,10 @@
-<!-- c51e4ec3-5cfe-44cf-9e7f-50eca3c95899 2c992815-995c-416c-a452-066bf4f1d9bb -->
+---
+name: Backend API Development - Phase 1
+overview: ""
+todos: []
+isProject: false
+---
+
 # Backend API Development - Phase 1
 
 ## Overview
@@ -165,88 +171,73 @@ Analyze Flutter app requirements, compare with database schema, identify gaps, a
 ### Database Schema Gaps Identified
 
 1. **Missing Columns:**
-
-   - `exercise_logs.description` - App needs description field
-   - `notifications.actionData` - App needs JSON field for action data
-   - `users.medicalConditions` - App expects this
-   - `users.emergencyContact` - App expects this
-
+  - `exercise_logs.description` - App needs description field
+  - `notifications.actionData` - App needs JSON field for action data
+  - `users.medicalConditions` - App expects this
+  - `users.emergencyContact` - App expects this
 2. **Enum Mappings Needed:**
-
-   - Medicine forms, frequencies, vital types, meal types, activity types, document types, notification types
-   - Create lookup service for enum ↔ DB code mappings
-
+  - Medicine forms, frequencies, vital types, meal types, activity types, document types, notification types
+  - Create lookup service for enum ↔ DB code mappings
 3. **Data Structure Differences:**
-
-   - Medications: reminderTimes array ↔ med_schedules table
-   - Vitals: single value string ↔ value1/value2/valueText
-   - Caregivers: combined model ↔ separate invitations + assignments
+  - Medications: reminderTimes array ↔ med_schedules table
+  - Vitals: single value string ↔ value1/value2/valueText
+  - Caregivers: combined model ↔ separate invitations + assignments
 
 ## Implementation Plan
 
 ### Phase 1.1: Database Schema Updates
 
 1. **Add missing columns via SQL:**
-   ```sql
+  ```sql
    ALTER TABLE exercise_logs ADD COLUMN description TEXT;
    ALTER TABLE notifications ADD COLUMN actionData JSONB;
    ALTER TABLE users ADD COLUMN medicalConditions TEXT;
    ALTER TABLE users ADD COLUMN emergencyContact TEXT;
-   ```
-
+  ```
 2. **Update Prisma schema:**
-
-   - Run `npx prisma db pull` to introspect
-   - Add missing fields manually
-   - Add relationships and indexes
-   - Generate client: `npx prisma generate`
+  - Run `npx prisma db pull` to introspect
+  - Add missing fields manually
+  - Add relationships and indexes
+  - Generate client: `npx prisma generate`
 
 ### Phase 1.2: Core Modules (Priority 1)
 
-3. **Medications Module** (`src/medications/`)
-
-   - CRUD with schedule management
-   - reminderTimes ↔ med_schedules mapping
-   - Intake logging
-   - Adherence calculations
-
-4. **Health/Vitals Module** (`src/vitals/`)
-
-   - CRUD with type/value mapping
-   - Use views for latest/trends
-   - Abnormal detection
+1. **Medications Module** (`src/medications/`)
+  - CRUD with schedule management
+  - reminderTimes ↔ med_schedules mapping
+  - Intake logging
+  - Adherence calculations
+2. **Health/Vitals Module** (`src/vitals/`)
+  - CRUD with type/value mapping
+  - Use views for latest/trends
+  - Abnormal detection
 
 ### Phase 1.3: Caregiver Module (Priority 2)
 
-5. **Caregivers Module** (`src/caregivers/`)
-
-   - Invitation flow
-   - Assignment management
-   - Join with users for names
+1. **Caregivers Module** (`src/caregivers/`)
+  - Invitation flow
+  - Assignment management
+  - Join with users for names
 
 ### Phase 1.4: Lifestyle Module (Priority 3)
 
-6. **Lifestyle Module** (`src/lifestyle/`)
-
-   - Diet and exercise CRUD
-   - Daily/weekly summaries
+1. **Lifestyle Module** (`src/lifestyle/`)
+  - Diet and exercise CRUD
+  - Daily/weekly summaries
 
 ### Phase 1.5: Documents & Notifications (Priority 4)
 
-7. **Documents Module** (`src/documents/`)
-
-   - File upload (multipart)
-   - Storage handling
-
-8. **Notifications Module** (`src/notifications/`)
-
-   - CRUD with read tracking
+1. **Documents Module** (`src/documents/`)
+  - File upload (multipart)
+  - Storage handling
+2. **Notifications Module** (`src/notifications/`)
+  - CRUD with read tracking
 
 ### Phase 1.6: Supporting Modules (Priority 5)
 
-9. **Lookups Module** (`src/lookups/`) - Enum mappings
-10. **Devices Module** (`src/devices/`) - Push registration
-11. **Update Existing** - Users, subscriptions, auth
+1. **Lookups Module** (`src/lookups/`) - Enum mappings
+2. **Devices Module** (`src/devices/`) - Push registration
+3. **Update Existing** - Users, subscriptions, auth
 
 ## Technical Decisions
 
@@ -280,3 +271,4 @@ backend/src/
 └── common/
     └── mappers/
 ```
+

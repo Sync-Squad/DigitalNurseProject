@@ -36,9 +36,11 @@ class MedicationProvider with ChangeNotifier {
         userId,
         elderUserId: elderUserId,
       );
-      _adherenceStreak =
-          await _medicationService.getAdherenceStreak(userId, elderUserId: elderUserId);
-      
+      _adherenceStreak = await _medicationService.getAdherenceStreak(
+        userId,
+        elderUserId: elderUserId,
+      );
+
       // Reschedule all medicine reminders after loading
       // Only reschedule if medicines were loaded successfully
       try {
@@ -50,7 +52,7 @@ class MedicationProvider with ChangeNotifier {
         print('Warning: Failed to reschedule reminders: $e');
         // Don't fail the entire load operation if rescheduling fails
       }
-      
+
       _error = null;
     } catch (e) {
       _error = e.toString();
@@ -61,19 +63,23 @@ class MedicationProvider with ChangeNotifier {
   }
 
   // Reschedule all reminders manually
-  Future<bool> rescheduleAllReminders(String userId, {String? elderUserId}) async {
+  Future<bool> rescheduleAllReminders(
+    String userId, {
+    String? elderUserId,
+  }) async {
     try {
       if (_medicines.isEmpty) {
         // Reload medicines first
         await loadMedicines(userId, elderUserId: elderUserId);
       }
-      
-      final scheduledCount = await _medicationService.rescheduleAllMedicineReminders(_medicines);
+
+      final scheduledCount = await _medicationService
+          .rescheduleAllMedicineReminders(_medicines);
       print('Rescheduled reminders for $scheduledCount medicines');
-      
+
       // Refresh upcoming reminders
       await _refreshReminders(userId, elderUserId: elderUserId);
-      
+
       return scheduledCount > 0;
     } catch (e) {
       print('Error rescheduling all reminders: $e');
@@ -132,8 +138,11 @@ class MedicationProvider with ChangeNotifier {
   }
 
   // Delete medicine
-  Future<bool> deleteMedicine(String medicineId, String userId,
-      {String? elderUserId}) async {
+  Future<bool> deleteMedicine(
+    String medicineId,
+    String userId, {
+    String? elderUserId,
+  }) async {
     _isLoading = true;
     notifyListeners();
 
@@ -165,18 +174,23 @@ class MedicationProvider with ChangeNotifier {
     String? elderUserId,
   }) async {
     try {
+      // Only pass elderUserId if explicitly provided (for caregivers)
+      // For patients, don't pass it - backend will use the authenticated user's ID
       await _medicationService.logIntake(
         medicineId: medicineId,
         scheduledTime: scheduledTime,
         status: status,
-        elderUserId: elderUserId ?? userId,
+        elderUserId:
+            elderUserId, // Don't default to userId - let backend handle it for patients
       );
       _adherencePercentage = await _medicationService.getAdherencePercentage(
         userId,
         elderUserId: elderUserId,
       );
-      _adherenceStreak =
-          await _medicationService.getAdherenceStreak(userId, elderUserId: elderUserId);
+      _adherenceStreak = await _medicationService.getAdherenceStreak(
+        userId,
+        elderUserId: elderUserId,
+      );
       notifyListeners();
       return true;
     } catch (e) {
@@ -187,8 +201,10 @@ class MedicationProvider with ChangeNotifier {
   }
 
   // Get intake history
-  Future<List<MedicineIntake>> getIntakeHistory(String medicineId,
-      {String? elderUserId}) async {
+  Future<List<MedicineIntake>> getIntakeHistory(
+    String medicineId, {
+    String? elderUserId,
+  }) async {
     return await _medicationService.getIntakeHistory(
       medicineId,
       elderUserId: elderUserId,
@@ -196,8 +212,7 @@ class MedicationProvider with ChangeNotifier {
   }
 
   // Refresh reminders
-  Future<void> _refreshReminders(String userId,
-      {String? elderUserId}) async {
+  Future<void> _refreshReminders(String userId, {String? elderUserId}) async {
     _upcomingReminders = await _medicationService.getUpcomingReminders(
       userId,
       elderUserId: elderUserId,

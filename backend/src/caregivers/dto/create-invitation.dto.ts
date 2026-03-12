@@ -1,11 +1,16 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsEmail } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateInvitationDto {
-  @ApiProperty({ example: '+1234567890', description: 'Phone number of caregiver to invite' })
+  @ApiPropertyOptional({ example: '+1234567890', description: 'Phone number of caregiver to invite' })
   @IsString()
-  @IsNotEmpty()
-  phone!: string;
+  @IsOptional()
+  phone?: string;
+
+  @ApiPropertyOptional({ example: 'caregiver@example.com', description: 'Email address of caregiver to invite' })
+  @IsEmail()
+  @IsOptional()
+  email?: string;
 
   @ApiPropertyOptional({ example: 'John Doe', description: 'Name of caregiver (optional)' })
   @IsString()

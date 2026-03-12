@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/providers/medication_provider.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -25,6 +26,8 @@ class AddMedicineScreen extends StatefulWidget {
 }
 
 class _AddMedicineScreenState extends State<AddMedicineScreen> {
+  bool _isSaving = false;
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -40,8 +43,8 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                 onPressed: () => _handleBack(context, formProvider),
                 color: Colors.white,
               ),
-              title: const Text(
-                'Add Medicine',
+              title: Text(
+                'medication.add.title'.tr(),
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -52,15 +55,17 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
               padding: ModernSurfaceTheme.screenPadding(),
               child: Column(
                 children: [
-                  _ProgressHeader(progress: formProvider.progress, currentStep: formProvider.currentStep, totalSteps: formProvider.totalSteps),
+                  _ProgressHeader(
+                    progress: formProvider.progress,
+                    currentStep: formProvider.currentStep,
+                    totalSteps: formProvider.totalSteps,
+                  ),
                   if (formProvider.errorMessage != null) ...[
                     SizedBox(height: 16.h),
                     _ErrorNotice(message: formProvider.errorMessage!),
                   ],
                   SizedBox(height: 16.h),
-                  Expanded(
-                    child: _buildStepContent(formProvider),
-                  ),
+                  Expanded(child: _buildStepContent(formProvider)),
                   _buildNavigationButtons(context, formProvider),
                 ],
               ),
@@ -75,50 +80,50 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     switch (formProvider.currentStep) {
       case 0:
         return FormStepContainer(
-          title: 'Medicine Name',
-          description: 'Let\'s start with the basics',
+          title: 'medication.add.steps.name'.tr(),
+          description: 'medication.add.steps.nameDesc'.tr(),
           stepNumber: 0,
           child: const StepMedicineName(),
         );
       case 1:
         return FormStepContainer(
-          title: 'Medicine Form',
-          description: 'What form is your medicine in?',
+          title: 'medication.add.steps.form'.tr(),
+          description: 'medication.add.steps.formDesc'.tr(),
           stepNumber: 1,
           child: const StepMedicineForm(),
         );
       case 2:
         return FormStepContainer(
-          title: 'Frequency',
-          description: 'How often do you take it?',
+          title: 'medication.add.steps.frequency'.tr(),
+          description: 'medication.add.steps.frequencyDesc'.tr(),
           stepNumber: 2,
           child: const StepFrequency(),
         );
       case 3:
         return FormStepContainer(
-          title: 'Reminder Times',
-          description: 'Set your reminder times',
+          title: 'medication.add.steps.reminders'.tr(),
+          description: 'medication.add.steps.remindersDesc'.tr(),
           stepNumber: 3,
           child: const StepScheduleTimes(),
         );
       case 4:
         return FormStepContainer(
-          title: 'Start Date',
-          description: 'When do you start?',
+          title: 'medication.add.steps.startDate'.tr(),
+          description: 'medication.add.steps.startDateDesc'.tr(),
           stepNumber: 4,
           child: const StepStartDate(),
         );
       case 5:
         return FormStepContainer(
-          title: 'Dosage & Strength',
-          description: 'Dosage and strength details',
+          title: 'medication.add.steps.dose'.tr(),
+          description: 'medication.add.steps.doseDesc'.tr(),
           stepNumber: 5,
           child: const StepDoseStrength(),
         );
       case 6:
         return FormStepContainer(
-          title: 'Review',
-          description: 'Review before saving',
+          title: 'medication.add.steps.review'.tr(),
+          description: 'medication.add.steps.reviewDesc'.tr(),
           stepNumber: 6,
           child: const StepSummary(),
         );
@@ -150,15 +155,17 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                       borderRadius: BorderRadius.circular(28),
                     ),
                   ),
-                  child: const Text('Back'),
+                  child: Text('medication.add.back'.tr()),
                 ),
               ),
             if (!formProvider.isFirstStep) SizedBox(width: 12.w),
             Expanded(
               child: ElevatedButton(
-                onPressed: formProvider.isLastStep
-                    ? () => _handleSave(context, formProvider)
-                    : () => formProvider.nextStep(),
+                onPressed: (_isSaving && formProvider.isLastStep)
+                    ? null
+                    : (formProvider.isLastStep
+                          ? () => _handleSave(context, formProvider)
+                          : () => formProvider.nextStep()),
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(vertical: 14.h),
                   shape: RoundedRectangleBorder(
@@ -167,9 +174,16 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
                   backgroundColor: AppTheme.appleGreen,
                   foregroundColor: Colors.white,
                 ),
-                child: Text(
-                  formProvider.isLastStep ? 'Save Medicine' : 'Next',
-                ),
+                child: (_isSaving && formProvider.isLastStep)
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Text(formProvider.isLastStep ? 'medication.add.save'.tr() : 'medication.add.next'.tr()),
               ),
             ),
           ],
@@ -190,6 +204,8 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     BuildContext context,
     MedicineFormProvider formProvider,
   ) async {
+    if (_isSaving) return;
+
     if (!formProvider.validateCurrentStep()) return;
 
     final authProvider = context.read<AuthProvider>();
@@ -198,7 +214,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('User not authenticated'),
+          content: Text('common.errors.notAuthenticated'.tr()),
           backgroundColor: AppTheme.getErrorColor(context),
         ),
       );
@@ -209,33 +225,46 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
     if (medicine == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Please complete all required fields'),
+          content: Text('medication.add.validationError'.tr()),
           backgroundColor: AppTheme.getErrorColor(context),
         ),
       );
       return;
     }
 
-    final success = await context.read<MedicationProvider>().addMedicine(
-      medicine,
-    );
+    setState(() {
+      _isSaving = true;
+    });
 
-    if (mounted) {
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Medicine added successfully!'),
-            backgroundColor: AppTheme.getSuccessColor(context),
-          ),
-        );
-        context.pop();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Failed to add medicine'),
-            backgroundColor: AppTheme.getErrorColor(context),
-          ),
-        );
+    try {
+      final success = await context.read<MedicationProvider>().addMedicine(
+        medicine,
+      );
+
+      if (mounted) {
+        if (!mounted) return;
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('medication.add.success'.tr()),
+              backgroundColor: AppTheme.getSuccessColor(context),
+            ),
+          );
+          context.pop();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('medication.add.fail'.tr()),
+              backgroundColor: AppTheme.getErrorColor(context),
+            ),
+          );
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
       }
     }
   }
@@ -265,11 +294,14 @@ class _ProgressHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Step ${currentStep + 1} of $totalSteps',
+            'medication.add.step'.tr(namedArgs: {
+              'current': (currentStep + 1).toString(),
+              'total': totalSteps.toString(),
+            }),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: ModernSurfaceTheme.deepTeal,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: ModernSurfaceTheme.deepTeal,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           SizedBox(height: 12.h),
           ClipRRect(
@@ -309,9 +341,9 @@ class _ErrorNotice extends StatelessWidget {
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

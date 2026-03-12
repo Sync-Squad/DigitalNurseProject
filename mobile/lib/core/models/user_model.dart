@@ -8,6 +8,7 @@ class UserModel {
   final String? medicalConditions;
   final String? emergencyContact;
   final String? phone;
+  final String? avatarUrl;
 
   UserModel({
     required this.id,
@@ -19,6 +20,7 @@ class UserModel {
     this.medicalConditions,
     this.emergencyContact,
     this.phone,
+    this.avatarUrl,
   });
 
   UserModel copyWith({
@@ -31,6 +33,7 @@ class UserModel {
     String? medicalConditions,
     String? emergencyContact,
     String? phone,
+    String? avatarUrl,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -42,6 +45,7 @@ class UserModel {
       medicalConditions: medicalConditions ?? this.medicalConditions,
       emergencyContact: emergencyContact ?? this.emergencyContact,
       phone: phone ?? this.phone,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
     );
   }
 
@@ -56,6 +60,7 @@ class UserModel {
       'medicalConditions': medicalConditions,
       'emergencyContact': emergencyContact,
       'phone': phone,
+      'avatarUrl': avatarUrl,
     };
   }
 
@@ -76,6 +81,7 @@ class UserModel {
       medicalConditions: json['medicalConditions'],
       emergencyContact: json['emergencyContact'],
       phone: json['phone'],
+      avatarUrl: json['avatarUrl']?.toString().trim(),
     );
   }
 }

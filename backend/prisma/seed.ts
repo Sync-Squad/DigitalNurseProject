@@ -46,6 +46,7 @@ async function upsertUserWithRole(options: {
       status: 'active',
       address: address ?? null,
       gender: gender ?? null,
+      emailVerified: true, // Auto-verify test users
     },
     create: {
       email,
@@ -55,6 +56,7 @@ async function upsertUserWithRole(options: {
       authProvider: 'password',
       address: address ?? null,
       gender: gender ?? null,
+      emailVerified: true, // Auto-verify test users
     },
   });
 
@@ -141,7 +143,7 @@ async function main() {
     email: 'patient@example.com',
     fullName: 'Demo Patient',
     phone: '+15550000001',
-    password: 'Patient@123',
+    password: 'password123',
     roleCode: 'patient',
     gender: 'female',
     address: '123 Demo Street, Springfield',
@@ -151,7 +153,7 @@ async function main() {
     email: 'caregiver@example.com',
     fullName: 'Demo Caregiver',
     phone: '+15550000002',
-    password: 'Caregiver@123',
+    password: 'password123',
     roleCode: 'caregiver',
     gender: 'female',
     address: '456 Helper Avenue, Springfield',

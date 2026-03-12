@@ -3,6 +3,7 @@ import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 import '../../../core/models/diet_log_model.dart';
 import '../../../core/providers/lifestyle_provider.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -10,9 +11,12 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
 import '../../../core/services/openai_service.dart';
+import '../../../core/utils/timezone_util.dart';
 
 class AddMealScreen extends StatefulWidget {
-  const AddMealScreen({super.key});
+  final DateTime? selectedDate;
+
+  const AddMealScreen({super.key, this.selectedDate});
 
   @override
   State<AddMealScreen> createState() => _AddMealScreenState();
@@ -26,11 +30,19 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   MealType _mealType = MealType.breakfast;
   bool _isAnalyzing = false;
+  bool _isSaving = false;
   String? _analysisError;
+  late DateTime _selectedDate;
+  late TimeOfDay _selectedTime;
 
   @override
   void initState() {
     super.initState();
+    // Initialize date and time from selectedDate or use current date/time
+    final now = TimezoneUtil.nowInPakistan();
+    _selectedDate = widget.selectedDate ?? now;
+    _selectedTime = TimeOfDay.fromDateTime(now);
+
     // Clear error when user types in description
     _descriptionController.addListener(() {
       if (_analysisError != null && mounted) {
@@ -50,7 +62,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
   Future<void> _handleAnalyze() async {
     final description = _descriptionController.text.trim();
-    
+
     if (description.isEmpty) {
       setState(() {
         _analysisError = 'Please enter a food description first';
@@ -65,14 +77,14 @@ class _AddMealScreenState extends State<AddMealScreen> {
 
     try {
       final calories = await _openAIService.analyzeFoodCalories(description);
-      
+
       if (mounted) {
         if (calories != null && calories > 0) {
           setState(() {
             _caloriesController.text = calories.toString();
             _analysisError = null;
           });
-          
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Calculated: $calories calories'),
@@ -82,14 +94,16 @@ class _AddMealScreenState extends State<AddMealScreen> {
           );
         } else {
           setState(() {
-            _analysisError = 'Unable to calculate calories. Please enter manually.';
+            _analysisError =
+                'Unable to calculate calories. Please enter manually.';
           });
         }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _analysisError = 'Analysis failed: ${e.toString().replaceAll('Exception: ', '')}';
+          _analysisError =
+              'Analysis failed: ${e.toString().replaceAll('Exception: ', '')}';
         });
       }
     } finally {
@@ -102,6 +116,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
   }
 
   Future<void> _handleSave() async {
+    if (_isSaving) return;
+
     // Validate calories
     final caloriesText = _caloriesController.text.trim();
     if (caloriesText.isEmpty) {
@@ -125,29 +141,50 @@ class _AddMealScreenState extends State<AddMealScreen> {
       return;
     }
 
-    final authProvider = context.read<AuthProvider>();
-    final userId = authProvider.currentUser!.id;
+    setState(() {
+      _isSaving = true;
+    });
 
-    final meal = DietLogModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      mealType: _mealType,
-      description: _descriptionController.text.trim(),
-      calories: calories,
-      timestamp: DateTime.now(),
-      userId: userId,
-    );
+    try {
+      final authProvider = context.read<AuthProvider>();
+      final userId = authProvider.currentUser!.id;
 
-    final success = await context.read<LifestyleProvider>().addDietLog(meal);
+      // Combine selected date and time into a single DateTime
+      final timestamp = DateTime(
+        _selectedDate.year,
+        _selectedDate.month,
+        _selectedDate.day,
+        _selectedTime.hour,
+        _selectedTime.minute,
+      );
 
-    if (mounted) {
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Meal logged successfully'),
-            backgroundColor: AppTheme.getSuccessColor(context),
-          ),
-        );
-        context.pop();
+      final meal = DietLogModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        mealType: _mealType,
+        description: _descriptionController.text.trim(),
+        calories: calories,
+        timestamp: timestamp,
+        userId: userId,
+      );
+
+      final success = await context.read<LifestyleProvider>().addDietLog(meal);
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Meal logged successfully'),
+              backgroundColor: AppTheme.getSuccessColor(context),
+            ),
+          );
+          context.pop();
+        }
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
       }
     }
   }
@@ -173,9 +210,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
           title: Text(
             'Add Meal',
             style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onPrimary,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onPrimary,
+            ),
           ),
         ),
         body: SingleChildScrollView(
@@ -222,8 +259,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
                                 child: Text(
                                   type.displayName,
                                   style: textTheme.bodyMedium?.copyWith(
-                                        color: colorScheme.onSurface,
-                                      ),
+                                    color: colorScheme.onSurface,
+                                  ),
                                 ),
                               ),
                             )
@@ -241,6 +278,119 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 ),
                 SizedBox(height: 20.h),
 
+                // Date and Time Selection
+                Container(
+                  decoration: ModernSurfaceTheme.glassCard(
+                    context,
+                    accent: ModernSurfaceTheme.primaryTeal,
+                  ),
+                  padding: ModernSurfaceTheme.cardPadding(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Date & Time',
+                        style: ModernSurfaceTheme.sectionTitleStyle(context),
+                      ),
+                      SizedBox(height: 12.h),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              onTap: () async {
+                                final picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: _selectedDate,
+                                  firstDate: DateTime(1900),
+                                  lastDate: DateTime(2100),
+                                );
+                                if (picked != null && mounted) {
+                                  setState(() {
+                                    _selectedDate = picked;
+                                  });
+                                }
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16.w,
+                                  vertical: 12.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceVariant,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      DateFormat(
+                                        'MMM d, yyyy',
+                                      ).format(_selectedDate),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    Icon(
+                                      FIcons.calendar,
+                                      color: colorScheme.onSurfaceVariant,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: InkWell(
+                              onTap: () async {
+                                final picked = await showTimePicker(
+                                  context: context,
+                                  initialTime: _selectedTime,
+                                );
+                                if (picked != null && mounted) {
+                                  setState(() {
+                                    _selectedTime = picked;
+                                  });
+                                }
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16.w,
+                                  vertical: 12.h,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: colorScheme.surfaceVariant,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _selectedTime.format(context),
+                                      style: textTheme.bodyMedium?.copyWith(
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    Icon(
+                                      FIcons.clock,
+                                      color: colorScheme.onSurfaceVariant,
+                                      size: 20,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 20.h),
+
                 // Description Field
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -248,7 +398,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
                     FTextField(
                       controller: _descriptionController,
                       label: const Text('Description'),
-                      hint: 'What did you eat? (e.g., "Grilled chicken breast with rice and vegetables")',
+                      hint:
+                          'What did you eat? (e.g., "Grilled chicken breast with rice and vegetables")',
                       maxLines: 3,
                     ),
                   ],
@@ -316,8 +467,8 @@ class _AddMealScreenState extends State<AddMealScreen> {
                           child: Text(
                             _analysisError!,
                             style: textTheme.bodySmall?.copyWith(
-                                  color: AppTheme.getErrorColor(context),
-                                ),
+                              color: AppTheme.getErrorColor(context),
+                            ),
                           ),
                         ),
                       ],
@@ -340,7 +491,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _handleSave,
+                    onPressed: _isSaving ? null : _handleSave,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: ModernSurfaceTheme.primaryTeal,
                       foregroundColor: Colors.white,
@@ -349,13 +500,22 @@ class _AddMealScreenState extends State<AddMealScreen> {
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    child: Text(
-                      'Save Meal',
-                      style: textTheme.labelLarge?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
+                    child: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            'Save Meal',
+                            style: textTheme.labelLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
-                    ),
                   ),
                 ),
               ],

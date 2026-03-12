@@ -29,7 +29,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   UserRole _selectedRole = UserRole.patient;
 
   @override
+  void initState() {
+    super.initState();
+    // Add phone number formatter
+    _phoneController.addListener(_formatPhoneInput);
+  }
+
+  @override
   void dispose() {
+    _phoneController.removeListener(_formatPhoneInput);
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -39,25 +47,81 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  void _formatPhoneInput() {
+    final text = _phoneController.text;
+    if (text.isEmpty) return;
+
+    // If text doesn't start with +92, format it
+    if (!text.startsWith('+92')) {
+      final formatted = _formatPhoneNumber(text);
+      if (formatted != text) {
+        _phoneController.value = TextEditingValue(
+          text: formatted,
+          selection: TextSelection.collapsed(offset: formatted.length),
+        );
+      }
+    }
+  }
+
+  /// Format phone number to include +92 prefix if not already present
+  String _formatPhoneNumber(String phone) {
+    // Remove any whitespace
+    String cleaned = phone.trim().replaceAll(RegExp(r'\s+'), '');
+
+    // If empty, return empty string
+    if (cleaned.isEmpty) {
+      return '';
+    }
+
+    // If already starts with +92, return as is
+    if (cleaned.startsWith('+92')) {
+      return cleaned;
+    }
+
+    // If starts with 92 (without +), add +
+    if (cleaned.startsWith('92')) {
+      return '+$cleaned';
+    }
+
+    // If starts with 0, replace 0 with +92
+    if (cleaned.startsWith('0')) {
+      return '+92${cleaned.substring(1)}';
+    }
+
+    // Otherwise, add +92 prefix
+    return '+92$cleaned';
+  }
+
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Validate phone number
-    final phone = _phoneController.text.trim();
-    if (phone.isEmpty) {
-      _showErrorDialog('Phone number is required');
+    // Validate email (required)
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      _showErrorDialog('Email is required');
       return;
     }
-    if (!RegExp(r'^\+92\d{10}$').hasMatch(phone)) {
-      _showErrorDialog('Phone must be in format +92XXXXXXXXXX');
+    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      _showErrorDialog('Please enter a valid email address');
       return;
     }
 
-    // Validate email if provided
-    final email = _emailController.text.trim();
-    if (email.isNotEmpty && !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
-      _showErrorDialog('Please enter a valid email address');
-      return;
+    // Format phone number if provided (optional)
+    String? formattedPhone;
+    final phoneInput = _phoneController.text.trim();
+    if (phoneInput.isNotEmpty) {
+      formattedPhone = _formatPhoneNumber(phoneInput);
+
+      // Update the controller with formatted phone
+      if (formattedPhone != phoneInput) {
+        _phoneController.text = formattedPhone;
+      }
+
+      // Validate phone format if provided
+      if (!RegExp(r'^\+92\d{10}$').hasMatch(formattedPhone)) {
+        _showErrorDialog('Phone must be in format +92XXXXXXXXXX');
+        return;
+      }
     }
 
     final inviteCode = _inviteCodeController.text.trim();
@@ -73,16 +137,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
       password: _passwordController.text,
       confirmPassword: _confirmPasswordController.text,
       role: _selectedRole,
-      phone: _phoneController.text.trim(),
-      caregiverInviteCode:
-          _selectedRole == UserRole.caregiver ? inviteCode : null,
+      phone: formattedPhone,
+      caregiverInviteCode: _selectedRole == UserRole.caregiver
+          ? inviteCode
+          : null,
     );
 
     if (mounted) {
       if (success) {
-        // Redirect to home or appropriate screen after registration
-        // Note: Email verification flow may need to be updated for phone-based auth
-        context.go('/home');
+        // Redirect to email verification screen if email was provided
+        final email = _emailController.text.trim();
+        if (email.isNotEmpty) {
+          context.go('/email-verification?email=${Uri.encodeComponent(email)}');
+        } else {
+          // If no email, go to home (phone-only registration)
+          context.go('/home');
+        }
       } else {
         _showErrorDialog(authProvider.error ?? 'Registration failed');
       }
@@ -123,7 +193,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(height: 20.h),
-                
+
                 // Hero section with logo/title
                 Container(
                   decoration: ModernSurfaceTheme.heroDecoration(context),
@@ -132,28 +202,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       SizedBox(height: 20.h),
                       // Logo/Icon
-                      Icon(
-                        FIcons.userPlus,
-                        size: 80.r,
-                        color: Colors.white,
-                      ),
+                      Icon(FIcons.userPlus, size: 80.r, color: Colors.white),
                       SizedBox(height: ModernSurfaceTheme.heroSpacing()),
 
                       // Title
                       Text(
                         'auth.register.title'.tr(),
-                        style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
+                        style: Theme.of(context).textTheme.headlineLarge
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 8.h),
                       Text(
                         'auth.register.subtitle'.tr(),
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.9),
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(color: Colors.white.withOpacity(0.9)),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 20.h),
@@ -164,7 +230,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Form container with glassmorphic card
                 Container(
-                  decoration: ModernSurfaceTheme.glassCard(context, highlighted: true),
+                  decoration: ModernSurfaceTheme.glassCard(
+                    context,
+                    highlighted: true,
+                  ),
                   padding: ModernSurfaceTheme.cardPadding(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -177,21 +246,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                       SizedBox(height: 20.h),
 
-                      // Phone field (required)
-                      FTextField(
-                        controller: _phoneController,
-                        label: Text('auth.register.phone'.tr()),
-                        hint: 'auth.register.phoneHint'.tr(),
-                        keyboardType: TextInputType.phone,
-                      ),
-                      SizedBox(height: 20.h),
-
-                      // Email field (optional)
+                      // Email field (required)
                       FTextField(
                         controller: _emailController,
                         label: Text('auth.register.email'.tr()),
                         hint: 'auth.register.emailHint'.tr(),
                         keyboardType: TextInputType.emailAddress,
+                      ),
+                      SizedBox(height: 20.h),
+
+                      // Phone field (optional)
+                      FTextField(
+                        controller: _phoneController,
+                        label: Text('auth.register.phone'.tr()),
+                        hint: 'auth.register.phoneHint'.tr(),
+                        keyboardType: TextInputType.phone,
                       ),
                       SizedBox(height: 24.h),
                     ],
@@ -216,7 +285,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return Container(
                           margin: EdgeInsets.only(bottom: 12.h),
                           decoration: isSelected
-                              ? ModernSurfaceTheme.tintedCard(context, ModernSurfaceTheme.primaryTeal)
+                              ? ModernSurfaceTheme.tintedCard(
+                                  context,
+                                  ModernSurfaceTheme.primaryTeal,
+                                )
                               : ModernSurfaceTheme.glassCard(context),
                           child: Material(
                             color: Colors.transparent,
@@ -249,37 +321,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                     SizedBox(width: 12.w),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             role == UserRole.patient
-                                                ? 'auth.register.rolePatient'.tr()
-                                                : 'auth.register.roleCaregiver'.tr(),
-                                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                              fontWeight: isSelected
-                                                  ? FontWeight.w700
-                                                  : FontWeight.w600,
-                                              color: isSelected
-                                                  ? ModernSurfaceTheme.tintedForegroundColor(
-                                                      ModernSurfaceTheme.primaryTeal,
-                                                      brightness: Theme.of(context).brightness,
-                                                    )
-                                                  : Theme.of(context).colorScheme.onSurface,
-                                            ),
+                                                ? 'auth.register.rolePatient'
+                                                      .tr()
+                                                : 'auth.register.roleCaregiver'
+                                                      .tr(),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleSmall
+                                                ?.copyWith(
+                                                  fontWeight: isSelected
+                                                      ? FontWeight.w700
+                                                      : FontWeight.w600,
+                                                  color: isSelected
+                                                      ? ModernSurfaceTheme.tintedForegroundColor(
+                                                          ModernSurfaceTheme
+                                                              .primaryTeal,
+                                                          brightness: Theme.of(
+                                                            context,
+                                                          ).brightness,
+                                                        )
+                                                      : Theme.of(
+                                                          context,
+                                                        ).colorScheme.onSurface,
+                                                ),
                                           ),
                                           SizedBox(height: 4.h),
                                           Text(
                                             role == UserRole.patient
-                                                ? 'auth.register.rolePatientDesc'.tr()
-                                                : 'auth.register.roleCaregiverDesc'.tr(),
-                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                              color: isSelected
-                                                  ? ModernSurfaceTheme.tintedMutedColor(
-                                                      ModernSurfaceTheme.primaryTeal,
-                                                      brightness: Theme.of(context).brightness,
-                                                    )
-                                                  : Theme.of(context).colorScheme.onSurfaceVariant,
-                                            ),
+                                                ? 'auth.register.rolePatientDesc'
+                                                      .tr()
+                                                : 'auth.register.roleCaregiverDesc'
+                                                      .tr(),
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  color: isSelected
+                                                      ? ModernSurfaceTheme.tintedMutedColor(
+                                                          ModernSurfaceTheme
+                                                              .primaryTeal,
+                                                          brightness: Theme.of(
+                                                            context,
+                                                          ).brightness,
+                                                        )
+                                                      : Theme.of(context)
+                                                            .colorScheme
+                                                            .onSurfaceVariant,
+                                                ),
                                           ),
                                         ],
                                       ),
@@ -325,12 +418,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 children: [
                                   Text(
                                     'auth.register.caregiverInfoTitle'.tr(),
-                                    style: ModernSurfaceTheme.sectionTitleStyle(context),
+                                    style: ModernSurfaceTheme.sectionTitleStyle(
+                                      context,
+                                    ),
                                   ),
                                   SizedBox(height: 6.h),
                                   Text(
                                     'auth.register.caregiverInfoBody'.tr(),
-                                    style: ModernSurfaceTheme.sectionSubtitleStyle(context),
+                                    style:
+                                        ModernSurfaceTheme.sectionSubtitleStyle(
+                                          context,
+                                        ),
                                   ),
                                 ],
                               ),
@@ -351,7 +449,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Password fields card
                 Container(
-                  decoration: ModernSurfaceTheme.glassCard(context, highlighted: true),
+                  decoration: ModernSurfaceTheme.glassCard(
+                    context,
+                    highlighted: true,
+                  ),
                   padding: ModernSurfaceTheme.cardPadding(),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -383,7 +484,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         child: Material(
                           color: Colors.transparent,
                           child: InkWell(
-                            onTap: authProvider.isLoading ? null : _handleRegister,
+                            onTap: authProvider.isLoading
+                                ? null
+                                : _handleRegister,
                             borderRadius: BorderRadius.circular(30),
                             child: Container(
                               padding: EdgeInsets.symmetric(vertical: 16.h),
@@ -394,17 +497,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                       height: 20,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white,
-                                        ),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.white,
+                                            ),
                                       ),
                                     )
                                   : Text(
                                       'auth.register.createAccount'.tr(),
-                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
                             ),
                           ),
@@ -428,7 +535,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextButton(
                       onPressed: () => context.go('/login'),
                       style: TextButton.styleFrom(
-                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
+                        ),
                       ),
                       child: Text(
                         'auth.register.loginLink'.tr(),

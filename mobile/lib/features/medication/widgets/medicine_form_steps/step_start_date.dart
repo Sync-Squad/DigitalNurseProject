@@ -113,11 +113,7 @@ class _StepStartDateState extends State<StepStartDate> {
                     color: AppTheme.appleGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    icon,
-                    color: AppTheme.appleGreen,
-                    size: 24,
-                  ),
+                  child: Icon(icon, color: AppTheme.appleGreen, size: 24),
                 ),
                 const SizedBox(width: 16),
                 Expanded(

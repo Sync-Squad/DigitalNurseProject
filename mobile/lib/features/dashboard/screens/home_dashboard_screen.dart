@@ -1,4 +1,4 @@
-import 'dart:io';
+// import 'dart:io'; // COMMENTED OUT: Only used in disabled alarm permission check
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -16,7 +16,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/care_context_provider.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/widgets/modern_scaffold.dart';
-import '../../../core/widgets/full_screen_intent_dialog.dart';
+// import '../../../core/widgets/full_screen_intent_dialog.dart'; // COMMENTED OUT: Dialog disabled
 import '../widgets/caregiver/caregiver_dashboard_view.dart';
 import '../widgets/patient/patient_dashboard_view.dart';
 
@@ -34,21 +34,25 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     // Defer data loading until after the build phase
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData(force: true);
-      _checkAlarmPermission();
+      // COMMENTED OUT: Alarm permission dialog disabled to fix lock screen issues
+      // _checkAlarmPermission();
     });
   }
 
   /// Check and prompt for full-screen intent permission on Android
-  Future<void> _checkAlarmPermission() async {
-    if (!Platform.isAndroid) return;
-    
-    // Small delay to let the home screen render first
-    await Future.delayed(const Duration(milliseconds: 500));
-    
-    if (!mounted) return;
-    
-    await FullScreenIntentDialog.showIfNeeded(context);
-  }
+  // COMMENTED OUT: Alarm permission dialog disabled to fix lock screen issues
+  // This dialog was prompting users to enable "Display over other apps" permission
+  // Future<void> _checkAlarmPermission() async {
+  //   if (!Platform.isAndroid) return;
+  //
+  //   // Small delay to let the home screen render first
+  //   await Future.delayed(const Duration(milliseconds: 500));
+  //
+  //   if (!mounted) return;
+  //
+  //   // COMMENTED OUT: Dialog call disabled
+  //   // await FullScreenIntentDialog.showIfNeeded(context);
+  // }
 
   String? _lastLoadedContextKey;
 
@@ -89,21 +93,25 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     _lastLoadedContextKey = contextKey;
 
     await Future.wait([
-      context
-          .read<MedicationProvider>()
-          .loadMedicines(targetUserId, elderUserId: elderUserId),
-      context
-          .read<HealthProvider>()
-          .loadVitals(targetUserId, elderUserId: elderUserId),
+      context.read<MedicationProvider>().loadMedicines(
+        targetUserId,
+        elderUserId: elderUserId,
+      ),
+      context.read<HealthProvider>().loadVitals(
+        targetUserId,
+        elderUserId: elderUserId,
+      ),
       if (!isCaregiver)
         context.read<CaregiverProvider>().loadCaregivers(targetUserId),
       context.read<NotificationProvider>().loadNotifications(),
-      context
-          .read<LifestyleProvider>()
-          .loadAll(targetUserId, elderUserId: elderUserId),
-      context
-          .read<DocumentProvider>()
-          .loadDocuments(targetUserId, elderUserId: elderUserId),
+      context.read<LifestyleProvider>().loadAll(
+        targetUserId,
+        elderUserId: elderUserId,
+      ),
+      context.read<DocumentProvider>().loadDocuments(
+        targetUserId,
+        elderUserId: elderUserId,
+      ),
     ]);
     if (!mounted) {
       return;
@@ -132,7 +140,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                     title: Text(
                       option.name,
                       style: TextStyle(
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
                         color: isSelected
                             ? context.theme.colors.primary
                             : context.theme.colors.foreground,
@@ -169,7 +179,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     // Force rebuild when locale changes
     // ignore: unused_local_variable
     final _ = context.locale;
-    
+
     final authProvider = context.watch<AuthProvider>();
     final careContextProvider = context.watch<CareContextProvider>();
     final notificationProvider = context.watch<NotificationProvider>();
@@ -179,23 +189,21 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     final isCaregiver = user?.role == UserRole.caregiver;
     final headerTitle = isCaregiver
         ? 'patient.caregiverDashboard'.tr()
-        : 'dashboard.hello'.tr(
-            namedArgs: {'name': user?.name ?? 'dashboard.user'.tr()},
-          );
+        : 'app.name'.tr(); // Show app name as header for patients
 
     return ModernScaffold(
       safeAreaTop: false,
       safeAreaBottom: false,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppTheme.teal, // #008080 teal-primary
         elevation: 0,
         centerTitle: false,
         title: Text(
           headerTitle,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         actions: [
           IconButton(
@@ -237,6 +245,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               ],
             ),
           ),
+          // Profile button for caregivers (since bottom navigation is hidden)
+          if (isCaregiver)
+            IconButton(
+              icon: const Icon(FIcons.user),
+              color: Colors.white,
+              onPressed: () => context.push('/profile'),
+            ),
           const SizedBox(width: 4),
         ],
       ),

@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum, IsDateString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum DocumentType {
@@ -44,5 +44,10 @@ export class CreateDocumentDto {
   @IsEnum(DocumentVisibility)
   @IsOptional()
   visibility?: DocumentVisibility;
+
+  @ApiPropertyOptional({ example: '2024-01-15T08:00:00Z', description: 'Upload date (optional, defaults to current time)' })
+  @IsDateString()
+  @IsOptional()
+  uploadDate?: string;
 }
 

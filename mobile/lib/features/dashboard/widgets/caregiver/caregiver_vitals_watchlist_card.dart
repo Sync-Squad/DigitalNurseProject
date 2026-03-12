@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/extensions/vital_type_extensions.dart';
+import '../../../../core/extensions/vital_status_extensions.dart';
 import '../../../../core/models/vital_measurement_model.dart';
 import '../../../../core/providers/health_provider.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -33,10 +34,7 @@ class CaregiverVitalsWatchlistCard extends StatelessWidget {
       routeForViewDetails: '/health',
       expandedChild: abnormalVitals.isEmpty
           ? Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: 16.w,
-                vertical: 18.h,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),
               decoration: CaregiverDashboardTheme.tintedCard(
                 context,
                 CaregiverDashboardTheme.primaryTeal,
@@ -57,16 +55,16 @@ class CaregiverVitalsWatchlistCard extends StatelessWidget {
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
-                child: Text(
-                  'All vitals are within normal range.',
-                  style: context.theme.typography.sm.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: CaregiverDashboardTheme.tintedForegroundColor(
-                      CaregiverDashboardTheme.primaryTeal,
-                      brightness: brightness,
+                    child: Text(
+                      'All vitals are within normal range.',
+                      style: context.theme.typography.sm.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: CaregiverDashboardTheme.tintedForegroundColor(
+                          CaregiverDashboardTheme.primaryTeal,
+                          brightness: brightness,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
                   ),
                 ],
               ),
@@ -78,13 +76,7 @@ class CaregiverVitalsWatchlistCard extends StatelessWidget {
                   final index = entry.key;
                   final vital = entry.value;
                   final status = vital.getHealthStatus();
-                  final statusColor = switch (status) {
-                    VitalHealthStatus.danger =>
-                      AppTheme.getErrorColor(context),
-                    VitalHealthStatus.warning =>
-                      AppTheme.getWarningColor(context),
-                    _ => AppTheme.getSuccessColor(context),
-                  };
+                  final statusColor = status.getStatusColor(context);
                   final isLast = index == abnormalVitals.length - 1;
                   return Padding(
                     padding: EdgeInsets.only(bottom: isLast ? 0 : 14.h),
@@ -181,13 +173,10 @@ class _VitalRow extends StatelessWidget {
           SizedBox(height: 12.h),
           Text(
             DateFormat('MMM d, h:mm a').format(vital.timestamp),
-            style: context.theme.typography.xs.copyWith(
-              color: onTintMuted,
-            ),
+            style: context.theme.typography.xs.copyWith(color: onTintMuted),
           ),
         ],
       ),
     );
   }
 }
-

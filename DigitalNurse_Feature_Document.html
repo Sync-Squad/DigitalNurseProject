@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Digital Nurse Platform - Feature Presentation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --teal-primary: #008080;
+            --teal-light: #66B2B2;
+            --teal-dark: #006666;
+            --teal-darker: #004C4C;
+            --teal-lighter: #B2D8D8;
+            --apple-green: #7FD991;
+            --white: #FFFFFF;
+            --light-bg: #F8F9FE;
+            --text-dark: #1F2937;
+            --text-light: #6B7280;
+            --border-color: #E5E7EB;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--light-bg);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+            color: var(--white);
+            padding: 80px 20px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        header h1 {
+            font-size: 3.5em;
+            margin-bottom: 15px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        header .subtitle {
+            font-size: 1.5em;
+            opacity: 0.95;
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+
+        header .tagline {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--white);
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        nav a {
+            color: var(--teal-primary);
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        nav a:hover {
+            background: var(--apple-green);
+            color: var(--white);
+            transform: translateY(-2px);
+        }
+
+        /* Sections */
+        section {
+            background: var(--white);
+            margin: 40px 0;
+            padding: 50px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        section h2 {
+            color: var(--teal-primary);
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 4px solid var(--apple-green);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        section h2::before {
+            content: "▸";
+            color: var(--apple-green);
+            font-size: 0.8em;
+        }
+
+        section h3 {
+            color: var(--teal-dark);
+            font-size: 1.8em;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+
+        section h4 {
+            color: var(--teal-primary);
+            font-size: 1.4em;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+
+        /* Feature Cards */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, var(--white) 0%, var(--teal-lighter) 100%);
+            padding: 30px;
+            border-radius: 16px;
+            border-left: 5px solid var(--apple-green);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: var(--apple-green);
+            opacity: 0.1;
+            border-radius: 50%;
+            transform: translate(30px, -30px);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-left-color: var(--teal-primary);
+        }
+
+        .feature-card h4 {
+            color: var(--teal-primary);
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 1.3em;
+        }
+
+        .feature-card p {
+            color: var(--text-dark);
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        /* Flow Diagram */
+        .flow-container {
+            background: var(--teal-lighter);
+            padding: 40px;
+            border-radius: 16px;
+            margin: 30px 0;
+            overflow-x: auto;
+        }
+
+        .flow-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            min-height: 200px;
+        }
+
+        .flow-step {
+            background: var(--white);
+            padding: 25px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-width: 180px;
+            position: relative;
+            border: 3px solid var(--teal-primary);
+        }
+
+        .flow-step::after {
+            content: "→";
+            position: absolute;
+            right: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2em;
+            color: var(--teal-primary);
+            font-weight: bold;
+        }
+
+        .flow-step:last-child::after {
+            display: none;
+        }
+
+        .flow-step h5 {
+            color: var(--teal-primary);
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .flow-step p {
+            color: var(--text-light);
+            font-size: 0.9em;
+            margin: 0;
+        }
+
+        /* Mobile App Flow */
+        .app-flow {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .app-screen {
+            background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+            color: var(--white);
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .app-screen h5 {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+
+        .app-screen ul {
+            list-style: none;
+            text-align: left;
+            margin-top: 15px;
+        }
+
+        .app-screen li {
+            padding: 5px 0;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .app-screen li::before {
+            content: "✓ ";
+            color: var(--apple-green);
+            font-weight: bold;
+        }
+
+        /* Highlight Boxes */
+        .highlight {
+            background: linear-gradient(135deg, var(--apple-green) 0%, var(--teal-lighter) 100%);
+            padding: 30px;
+            border-radius: 16px;
+            margin: 25px 0;
+            border-left: 5px solid var(--teal-primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .highlight h4 {
+            color: var(--teal-darker);
+            margin-top: 0;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+            color: var(--white);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card .number {
+            font-size: 3em;
+            font-weight: bold;
+            color: var(--apple-green);
+            margin-bottom: 10px;
+        }
+
+        .stat-card .label {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: var(--white);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table th {
+            background: var(--teal-primary);
+            color: var(--white);
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        table td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        table tr:hover {
+            background: var(--teal-lighter);
+        }
+
+        table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin: 3px;
+        }
+
+        .badge-success {
+            background: var(--apple-green);
+            color: var(--white);
+        }
+
+        .badge-primary {
+            background: var(--teal-primary);
+            color: var(--white);
+        }
+
+        .badge-info {
+            background: var(--teal-light);
+            color: var(--white);
+        }
+
+        /* Executive Summary */
+        .executive-summary {
+            background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-dark) 100%);
+            color: var(--white);
+            padding: 50px;
+            border-radius: 16px;
+            margin: 30px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .executive-summary h2 {
+            color: var(--white);
+            border-bottom: 3px solid var(--apple-green);
+        }
+
+        .executive-summary p {
+            color: var(--white);
+            opacity: 0.95;
+            font-size: 1.1em;
+            margin-bottom: 15px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--teal-darker);
+            color: var(--white);
+            text-align: center;
+            padding: 40px 20px;
+            margin-top: 60px;
+        }
+
+        /* Print Styles */
+        @media print {
+            nav {
+                display: none;
+            }
+            section {
+                page-break-inside: avoid;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2.2em;
+            }
+            section {
+                padding: 30px 20px;
+            }
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+            .flow-step::after {
+                display: none;
+            }
+            .flow-diagram {
+                flex-direction: column;
+            }
+        }
+
+        /* Visual Separator */
+        .separator {
+            height: 4px;
+            background: linear-gradient(90deg, var(--teal-primary) 0%, var(--apple-green) 100%);
+            margin: 40px 0;
+            border-radius: 2px;
+        }
+
+        /* Key Features Highlight */
+        .key-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 40px 0;
+        }
+
+        .key-feature {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 16px;
+            border-top: 5px solid var(--apple-green);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .key-feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .key-feature h4 {
+            color: var(--teal-primary);
+            margin-top: 0;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+        }
+
+        .key-feature ul {
+            list-style: none;
+            margin: 0;
+        }
+
+        .key-feature li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .key-feature li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--apple-green);
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>My Digital Nurse Platform</h1>
+        <p class="subtitle">Complete Healthcare Management Ecosystem</p>
+        <p class="tagline">Mobile App • Web Portal • Unified Platform</p>
+    </header>
+
+    <div class="container">
+        <nav>
+            <ul>
+                <li><a href="#overview">Overview</a></li>
+                <li><a href="#mobile-flow">Mobile Flow</a></li>
+                <li><a href="#features">Key Features</a></li>
+                <li><a href="#web-portal">Web Portal</a></li>
+                <li><a href="#integration">Integration</a></li>
+                <li><a href="#tech">Technology</a></li>
+                <li><a href="#development">Under Development</a></li>
+            </ul>
+        </nav>
+
+        <section id="overview" class="executive-summary">
+            <h2>Executive Summary</h2>
+            <p><strong>My Digital Nurse</strong> is a comprehensive health management platform combining a Flutter mobile app for patients and caregivers with a React/TypeScript web portal for administrative oversight.</p>
+            <p>The platform enables seamless care coordination, medication management, health tracking, and administrative oversight in a unified, HIPAA-compliant ecosystem.</p>
+            <div class="stats-grid" style="margin-top: 30px;">
+                <div class="stat-card">
+                    <div class="number">2</div>
+                    <div class="label">Platforms</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">4</div>
+                    <div class="label">User Roles</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">10+</div>
+                    <div class="label">Core Features</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">2</div>
+                    <div class="label">Languages</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="mobile-flow">
+            <h2>Mobile Application User Flow</h2>
+            
+            <div class="flow-container">
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <h5>Welcome</h5>
+                        <p>App Introduction</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>Register/Login</h5>
+                        <p>Phone Auth + Biometric</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>Onboarding</h5>
+                        <p>Profile + Subscription</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>Dashboard</h5>
+                        <p>Main Hub</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Main Navigation Tabs</h3>
+            <div class="app-flow">
+                <div class="app-screen">
+                    <h5>🏠 Home Dashboard</h5>
+                    <ul>
+                        <li>Overview cards</li>
+                        <li>Upcoming medications</li>
+                        <li>Recent vitals</li>
+                        <li>Quick actions</li>
+                        <li>Adherence streaks</li>
+                    </ul>
+                </div>
+                <div class="app-screen">
+                    <h5>💊 Medications</h5>
+                    <ul>
+                        <li>Medicine list</li>
+                        <li>Add medicine (7-step)</li>
+                        <li>Schedule & reminders</li>
+                        <li>Intake logging</li>
+                        <li>Adherence tracking</li>
+                    </ul>
+                </div>
+                <div class="app-screen">
+                    <h5>❤️ Health/Vitals</h5>
+                    <ul>
+                        <li>Record vitals</li>
+                        <li>Vitals history</li>
+                        <li>Health trends</li>
+                        <li>Abnormal alerts</li>
+                        <li>Charts & analytics</li>
+                    </ul>
+                </div>
+                <div class="app-screen">
+                    <h5>📄 Documents</h5>
+                    <ul>
+                        <li>Upload documents</li>
+                        <li>Camera/gallery</li>
+                        <li>PDF viewer</li>
+                        <li>Document categories</li>
+                        <li>Privacy controls</li>
+                    </ul>
+                </div>
+                <div class="app-screen">
+                    <h5>👤 Profile</h5>
+                    <ul>
+                        <li>User profile</li>
+                        <li>Settings</li>
+                        <li>Language selection</li>
+                        <li>Theme toggle</li>
+                        <li>Caregiver management</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3>Patient Journey Flow</h3>
+            <div class="flow-container">
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <h5>1. Setup</h5>
+                        <p>Add medications, set reminders</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>2. Daily Use</h5>
+                        <p>Receive reminders, log intake</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>3. Track Health</h5>
+                        <p>Record vitals, view trends</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>4. Coordinate</h5>
+                        <p>Share with caregivers</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>5. Monitor</h5>
+                        <p>View adherence & insights</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Caregiver Journey Flow</h3>
+            <div class="flow-container">
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <h5>1. Invitation</h5>
+                        <p>Receive invite code</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>2. Register</h5>
+                        <p>Create caregiver account</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>3. Select Patient</h5>
+                        <p>Choose care recipient</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>4. Monitor</h5>
+                        <p>View patient dashboard</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>5. Support</h5>
+                        <p>Log intake, view alerts</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="features">
+            <h2>Key Features</h2>
+
+            <div class="key-features">
+                <div class="key-feature">
+                    <h4>💊 Medication Management</h4>
+                    <ul>
+                        <li>7-step guided medicine addition</li>
+                        <li>Smart reminders & alarms</li>
+                        <li>Intake logging (taken/missed/skipped)</li>
+                        <li>Adherence tracking & charts</li>
+                        <li>Schedule customization</li>
+                    </ul>
+                </div>
+
+                <div class="key-feature">
+                    <h4>❤️ Health Tracking</h4>
+                    <ul>
+                        <li>Multiple vital types (BP, temp, heart rate, etc.)</li>
+                        <li>Interactive trend charts</li>
+                        <li>Abnormal vitals alerts</li>
+                        <li>Health status indicators</li>
+                        <li>Historical data analysis</li>
+                    </ul>
+                </div>
+
+                <div class="key-feature">
+                    <h4>👥 Caregiver Coordination</h4>
+                    <ul>
+                        <li>Multi-patient monitoring</li>
+                        <li>Real-time alerts & notifications</li>
+                        <li>Patient assignment management</li>
+                        <li>Medication oversight</li>
+                        <li>Care notes & reports</li>
+                    </ul>
+                </div>
+
+                <div class="key-feature">
+                    <h4>📄 Document Management</h4>
+                    <ul>
+                        <li>Camera & gallery upload</li>
+                        <li>PDF & image viewing</li>
+                        <li>Document categorization</li>
+                        <li>Privacy controls</li>
+                        <li>Secure storage</li>
+                    </ul>
+                </div>
+
+                <div class="key-feature">
+                    <h4>🏃 Lifestyle Tracking</h4>
+                    <ul>
+                        <li>Diet logging with AI analysis</li>
+                        <li>Exercise tracking</li>
+                        <li>Calorie estimation</li>
+                        <li>Daily summaries</li>
+                        <li>Compliance tracking</li>
+                    </ul>
+                </div>
+
+                <div class="key-feature">
+                    <h4>🔔 Smart Notifications</h4>
+                    <ul>
+                        <li>Push notifications (FCM)</li>
+                        <li>Medication reminders</li>
+                        <li>Health alerts</li>
+                        <li>Caregiver invitations</li>
+                        <li>Multi-channel delivery</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="separator"></div>
+
+            <h3>Platform Capabilities</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">🔄</span>
+                    <h4>Real-Time Sync</h4>
+                    <p>Data synchronization between mobile and web platforms with live updates</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🌐</span>
+                    <h4>Multi-Language</h4>
+                    <p>English and Urdu support with RTL capabilities and localized content</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📊</span>
+                    <h4>Analytics</h4>
+                    <p>Comprehensive reporting with patient growth, adherence, and trend analysis</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔒</span>
+                    <h4>Security</h4>
+                    <p>HIPAA/GDPR compliant with MFA, biometric auth, and encrypted storage</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🎨</span>
+                    <h4>Modern UI</h4>
+                    <p>Beautiful design with dark/light themes and smooth animations</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📱</span>
+                    <h4>Cross-Platform</h4>
+                    <p>iOS, Android, and Web support with consistent experience</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="web-portal">
+            <h2>Web Portal Features</h2>
+
+            <div class="highlight">
+                <h4>Administrative Dashboard</h4>
+                <p>Comprehensive oversight with real-time metrics, patient growth charts, subscription breakdowns, and geographic visualizations.</p>
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">👥</span>
+                    <h4>Patient Management</h4>
+                    <p>Directory with risk assessment, filtering, search, and detailed patient workspaces</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">💚</span>
+                    <h4>Caregiver Management</h4>
+                    <p>Roster management, status tracking, invitation system, and assignment oversight</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">💳</span>
+                    <h4>Subscription Management</h4>
+                    <p>Plan tracking, renewal forecasts, payment status, and billing management</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📊</span>
+                    <h4>Reports & Analytics</h4>
+                    <p>Scheduled exports, custom reports, trend analysis, and data visualization</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔔</span>
+                    <h4>Notifications</h4>
+                    <p>Alert management, template system, severity filtering, and multi-channel delivery</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🛡️</span>
+                    <h4>Audit Trail</h4>
+                    <p>Immutable event logs, 7-year retention, sensitivity tracking, and compliance reporting</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="integration">
+            <h2>Integrated Workflows</h2>
+
+            <h3>Patient-Caregiver Coordination</h3>
+            <div class="flow-container">
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <h5>Patient</h5>
+                        <p>Adds medication</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>System</h5>
+                        <p>Syncs data</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>Caregiver</h5>
+                        <p>Receives notification</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>Caregiver</h5>
+                        <p>Monitors adherence</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>Admin</h5>
+                        <p>Views on web portal</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Document Sharing Flow</h3>
+            <div class="flow-container">
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <h5>Patient</h5>
+                        <p>Uploads document</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>System</h5>
+                        <p>Categorizes & stores</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>Caregiver</h5>
+                        <p>Receives notification</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>Admin</h5>
+                        <p>Accesses on portal</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3>Health Monitoring Flow</h3>
+            <div class="flow-container">
+                <div class="flow-diagram">
+                    <div class="flow-step">
+                        <h5>Patient</h5>
+                        <p>Records vitals</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>System</h5>
+                        <p>Analyzes data</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>Alert</h5>
+                        <p>If abnormal</p>
+                    </div>
+                    <div class="flow-step">
+                        <h5>Caregiver/Admin</h5>
+                        <p>Receives notification</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="tech">
+            <h2>Technology Stack</h2>
+
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">📱</span>
+                    <h4>Mobile App</h4>
+                    <p><strong>Flutter</strong> with Provider state management, GoRouter navigation, Firebase Cloud Messaging, and OpenAI integration</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🌐</span>
+                    <h4>Web Portal</h4>
+                    <p><strong>React 19 + TypeScript</strong> with Vite, Tailwind CSS, Radix UI components, and Recharts for visualizations</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">⚙️</span>
+                    <h4>Backend</h4>
+                    <p><strong>NestJS</strong> with Prisma ORM, JWT authentication, MFA support, and RESTful API design</p>
+                </div>
+            </div>
+
+            <h3>Security & Compliance</h3>
+            <div class="highlight">
+                <h4>HIPAA & GDPR Compliant</h4>
+                <ul style="list-style: none; margin: 0;">
+                    <li>✓ Multi-factor authentication (MFA)</li>
+                    <li>✓ Biometric authentication</li>
+                    <li>✓ Encrypted data storage</li>
+                    <li>✓ 7-year audit trail retention</li>
+                    <li>✓ Role-based access control</li>
+                    <li>✓ PHI encryption</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>Feature Matrix</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Mobile (Patient)</th>
+                        <th>Mobile (Caregiver)</th>
+                        <th>Web Portal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Medication Management</strong></td>
+                        <td><span class="badge badge-success">Full Access</span></td>
+                        <td><span class="badge badge-success">View/Log</span></td>
+                        <td><span class="badge badge-success">Oversight</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Vitals Tracking</strong></td>
+                        <td><span class="badge badge-success">Full Access</span></td>
+                        <td><span class="badge badge-success">View</span></td>
+                        <td><span class="badge badge-success">Analytics</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Document Management</strong></td>
+                        <td><span class="badge badge-success">Full Access</span></td>
+                        <td><span class="badge badge-success">View</span></td>
+                        <td><span class="badge badge-success">Full Access</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Lifestyle Tracking</strong></td>
+                        <td><span class="badge badge-success">Full Access</span></td>
+                        <td><span class="badge badge-success">View</span></td>
+                        <td><span class="badge badge-success">Reports</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Caregiver Assignment</strong></td>
+                        <td><span class="badge badge-success">Invite</span></td>
+                        <td><span class="badge badge-info">N/A</span></td>
+                        <td><span class="badge badge-success">Manage</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Patient Directory</strong></td>
+                        <td><span class="badge badge-info">N/A</span></td>
+                        <td><span class="badge badge-info">N/A</span></td>
+                        <td><span class="badge badge-success">Full Access</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Subscription Management</strong></td>
+                        <td><span class="badge badge-success">View</span></td>
+                        <td><span class="badge badge-info">N/A</span></td>
+                        <td><span class="badge badge-success">Full Access</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Reports & Analytics</strong></td>
+                        <td><span class="badge badge-success">Personal</span></td>
+                        <td><span class="badge badge-success">Patient</span></td>
+                        <td><span class="badge badge-success">All</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Audit Trail</strong></td>
+                        <td><span class="badge badge-info">N/A</span></td>
+                        <td><span class="badge badge-info">N/A</span></td>
+                        <td><span class="badge badge-success">Full Access</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Value Propositions</h2>
+
+            <div class="key-features">
+                <div class="key-feature">
+                    <h4>👤 For Patients</h4>
+                    <ul>
+                        <li>Self-management tools</li>
+                        <li>Medication reminders</li>
+                        <li>Health tracking</li>
+                        <li>Care coordination</li>
+                        <li>Document organization</li>
+                    </ul>
+                </div>
+
+                <div class="key-feature">
+                    <h4>💚 For Caregivers</h4>
+                    <ul>
+                        <li>Multi-patient monitoring</li>
+                        <li>Real-time alerts</li>
+                        <li>Medication oversight</li>
+                        <li>Health trend tracking</li>
+                        <li>Care coordination tools</li>
+                    </ul>
+                </div>
+
+                <div class="key-feature">
+                    <h4>👨‍💼 For Administrators</h4>
+                    <ul>
+                        <li>Comprehensive oversight</li>
+                        <li>Advanced analytics</li>
+                        <li>Patient risk assessment</li>
+                        <li>Caregiver management</li>
+                        <li>Compliance tracking</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Platform Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="number">10+</div>
+                    <div class="label">Core Features</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">50+</div>
+                    <div class="label">Screens</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">2</div>
+                    <div class="label">Languages</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number">2</div>
+                    <div class="label">Platforms</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="development" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); border: 3px solid #ffc107;">
+            <h2 style="color: #856404; border-bottom: 4px solid #ffc107;">🚧 Under Development</h2>
+            <p style="color: #856404; font-size: 1.1em; margin-bottom: 30px; font-weight: 500;">
+                The following features are currently in active development and will be available in upcoming releases:
+            </p>
+            
+            <div class="feature-grid">
+                <div class="feature-card" style="background: linear-gradient(135deg, #fff 0%, #fff3cd 100%); border-left: 5px solid #ffc107;">
+                    <span class="feature-icon">💳</span>
+                    <h4 style="color: #856404;">Subscription Plans and Model</h4>
+                    <p>Comprehensive subscription management system with multiple plan tiers, pricing models, and automated billing cycles.</p>
+                </div>
+
+                <div class="feature-card" style="background: linear-gradient(135deg, #fff 0%, #fff3cd 100%); border-left: 5px solid #ffc107;">
+                    <span class="feature-icon">📊</span>
+                    <h4 style="color: #856404;">Portal Analytics</h4>
+                    <p>Advanced analytics dashboard with real-time metrics, custom reports, data visualization, and business intelligence tools.</p>
+                </div>
+
+                <div class="feature-card" style="background: linear-gradient(135deg, #fff 0%, #fff3cd 100%); border-left: 5px solid #ffc107;">
+                    <span class="feature-icon">🔐</span>
+                    <h4 style="color: #856404;">User OTP and Registration Validation</h4>
+                    <p>Secure OTP-based authentication system with email/SMS verification and comprehensive registration validation workflows.</p>
+                </div>
+
+                <div class="feature-card" style="background: linear-gradient(135deg, #fff 0%, #fff3cd 100%); border-left: 5px solid #ffc107;">
+                    <span class="feature-icon">💵</span>
+                    <h4 style="color: #856404;">Payment Gateway Integration</h4>
+                    <p>Seamless payment processing with multiple gateway support, secure transactions, subscription renewals, and invoice management.</p>
+                </div>
+
+                <div class="feature-card" style="background: linear-gradient(135deg, #fff 0%, #fff3cd 100%); border-left: 5px solid #ffc107;">
+                    <span class="feature-icon">⚙️</span>
+                    <h4 style="color: #856404;">Web Portal Functional Development</h4>
+                    <p>Enhanced web portal functionality with full backend integration, real-time data synchronization, and advanced administrative features.</p>
+                </div>
+            </div>
+
+            <div class="highlight" style="background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%); border-left: 5px solid #ffc107; margin-top: 30px;">
+                <h4 style="color: #856404;">Coming Soon</h4>
+                <p style="color: #856404;">These features are being actively developed to enhance the platform's capabilities and provide a more comprehensive healthcare management solution.</p>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <p style="font-size: 1.2em; margin-bottom: 10px;">&copy; 2025 My Digital Nurse Platform</p>
+        <p style="opacity: 0.9;">Comprehensive Healthcare Management Ecosystem</p>
+    </footer>
+</body>
+</html>

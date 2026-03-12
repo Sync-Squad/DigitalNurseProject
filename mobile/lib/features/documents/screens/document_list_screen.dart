@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +13,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
+import '../../../core/utils/timezone_util.dart';
 
 class DocumentListScreen extends StatefulWidget {
   const DocumentListScreen({super.key});
@@ -22,6 +24,7 @@ class DocumentListScreen extends StatefulWidget {
 
 class _DocumentListScreenState extends State<DocumentListScreen> {
   String? _lastContextKey;
+  DocumentType? _selectedCategory;
 
   @override
   void initState() {
@@ -31,7 +34,6 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
       _loadData();
     });
   }
-
 
   Future<void> _loadData() async {
     final authProvider = context.read<AuthProvider>();
@@ -115,7 +117,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         title: Text(
-          'Health Documents',
+          'documents.title'.tr(),
           style: textTheme.titleLarge?.copyWith(
             color: onPrimary,
             fontWeight: FontWeight.w600,
@@ -130,7 +132,10 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         ],
       ),
       body: Padding(
-        padding: ModernSurfaceTheme.screenPadding(),
+        padding: ModernSurfaceTheme.screenPadding().copyWith(
+          top: 32.h,
+          right: 28.w,
+        ),
         child: _buildBody(
           context,
           isCaregiver: isCaregiver,
@@ -171,9 +176,8 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.users,
-          title: 'No patients assigned yet',
-          message:
-              'When a patient shares their records with you, their documents will be visible here.',
+          title: 'documents.caregiverNotice.noPatientsAssigned'.tr(),
+          message: 'documents.caregiverNotice.noPatientsAssignedDesc'.tr(),
         );
       }
 
@@ -181,7 +185,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.info,
-          title: 'Unable to load patients',
+          title: 'documents.caregiverNotice.unableToLoadPatients'.tr(),
           message: careContextError,
           onRetry: _loadData,
         );
@@ -191,9 +195,8 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         return _buildCaregiverNotice(
           context,
           icon: FIcons.userSearch,
-          title: 'Select a patient to continue',
-          message:
-              'Choose a patient from the dashboard to review their shared documents.',
+          title: 'documents.caregiverNotice.selectPatientContinue'.tr(),
+          message: 'documents.caregiverNotice.selectPatientContinueDesc'.tr(),
         );
       }
     }
@@ -202,6 +205,10 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    final filteredDocuments = _selectedCategory == null
+        ? documents
+        : documents.where((d) => d.type == _selectedCategory).toList();
+
     return Column(
       children: [
         _DocumentsHero(
@@ -209,29 +216,58 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
           isCaregiver: isCaregiver,
         ),
         if (error != null) ...[
-          SizedBox(height: 16.h),
+          SizedBox(height: 12.h),
           _ErrorBanner(message: error, onRetry: _loadData),
         ],
+        SizedBox(height: 12.h),
+        // Compact Category Tabs
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _CategoryTab(
+                label: 'All',
+                isSelected: _selectedCategory == null,
+                onTap: () => setState(() => _selectedCategory = null),
+              ),
+              ...DocumentType.values.map(
+                (type) => Padding(
+                  padding: EdgeInsets.only(left: 8.w),
+                  child: _CategoryTab(
+                    label: 'documents.types.${type.name}'.tr(),
+                    isSelected: _selectedCategory == type,
+                    onTap: () => setState(() => _selectedCategory = type),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
         SizedBox(height: 16.h),
         Expanded(
-          child: documents.isEmpty
+          child: filteredDocuments.isEmpty
               ? _buildEmptyState(context, isCaregiver: isCaregiver)
               : GridView.builder(
                   padding: EdgeInsets.zero,
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: ScreenUtil().screenWidth > 600 ? 3 : 2,
-                    crossAxisSpacing: 16.w,
-                    mainAxisSpacing: 16.h,
-                    childAspectRatio: 0.72,
+                    crossAxisSpacing: 10.w,
+                    mainAxisSpacing: 12.h,
+                    childAspectRatio: 1.15,
                   ),
-                  itemCount: documents.length,
+                  itemCount: filteredDocuments.length,
                   itemBuilder: (context, index) {
-                    final document = documents[index];
-                    // Use green color (labReport color) for all cards
-                    final accent = AppTheme.getDocumentColor(context, 'labreport');
+                    final document = filteredDocuments[index];
+                    final accent = AppTheme.getDocumentColor(
+                      context,
+                      document.type.name.toLowerCase(),
+                    );
                     return Container(
-                      decoration: ModernSurfaceTheme.glassCard(context, accent: accent),
-                      padding: EdgeInsets.all(16.w),
+                      decoration: ModernSurfaceTheme.glassCard(
+                        context,
+                        accent: accent,
+                      ),
+                      padding: EdgeInsets.all(10.w),
                       child: InkWell(
                         onTap: () => context.push('/documents/${document.id}'),
                         borderRadius: ModernSurfaceTheme.cardRadius(),
@@ -240,49 +276,51 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                           children: [
                             Container(
                               width: double.infinity,
-                              height: 90,
-                              decoration: ModernSurfaceTheme.tintedCard(context, accent),
+                              height: 40.h,
+                              decoration:
+                                  ModernSurfaceTheme.tintedCard(
+                                    context,
+                                    accent,
+                                  ).copyWith(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
                               child: Icon(
                                 _getDocumentIcon(document.type),
-                                size: 36,
+                                size: 24.r,
                                 color: accent,
                               ),
                             ),
-                            SizedBox(height: 12.h),
+                            SizedBox(height: 6.h),
                             Text(
                               document.title,
-                              style: textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    color: onSurface,
-                                  ),
-                              maxLines: 2,
+                              style: textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: onSurface,
+                                fontSize: 13.sp,
+                              ),
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            SizedBox(height: 8.h),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12.w,
-                                vertical: 6.h,
-                              ),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(22),
+                            SizedBox(height: 2.h),
+                            Text(
+                              'documents.types.${document.type.name}'.tr(),
+                              style: textTheme.labelSmall?.copyWith(
                                 color: AppTheme.appleGreen,
-                              ),
-                              child: Text(
-                                document.type.name,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 11.sp,
                               ),
                             ),
-                            const Spacer(),
+                            SizedBox(height: 6.h),
                             Text(
-                              DateFormat('MMM d, yyyy')
-                                  .format(document.uploadDate),
-                              style: textTheme.bodySmall?.copyWith(
-                                    color: muted,
-                                  ),
+                              DateFormat('MMM d, yyyy').format(
+                                TimezoneUtil.toPakistanTime(
+                                  document.uploadDate,
+                                ),
+                              ),
+                              style: textTheme.labelSmall?.copyWith(
+                                color: muted,
+                                fontSize: 10.sp,
+                              ),
                             ),
                           ],
                         ),
@@ -308,28 +346,22 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            FIcons.fileText,
-            size: 56,
-            color: colorScheme.primary,
-          ),
+          Icon(FIcons.fileText, size: 56, color: colorScheme.primary),
           SizedBox(height: 12.h),
           Text(
-            'No documents uploaded yet',
+            'documents.emptyState.noDocumentsUploadedYet'.tr(),
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
             isCaregiver
-                ? 'This patient has not shared any records.'
-                : 'Upload prescriptions, lab reports, and more.',
+                ? 'documents.emptyState.patientNotShared'.tr()
+                : 'documents.emptyState.uploadPrescriptions'.tr(),
             textAlign: TextAlign.center,
-            style: textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
+            style: textTheme.bodySmall?.copyWith(color: muted),
           ),
           if (!isCaregiver) ...[
             SizedBox(height: 20.h),
@@ -344,7 +376,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                 ),
               ),
               child: Text(
-                'Upload Document',
+                'documents.actions.uploadDocument'.tr(),
                 style: textTheme.labelLarge?.copyWith(
                   color: onPrimary,
                   fontWeight: FontWeight.w600,
@@ -381,17 +413,15 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
           Text(
             title,
             style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: onSurface,
-                ),
+              fontWeight: FontWeight.bold,
+              color: onSurface,
+            ),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 8.h),
           Text(
             message,
-            style: textTheme.bodySmall?.copyWith(
-                  color: muted,
-                ),
+            style: textTheme.bodySmall?.copyWith(color: muted),
             textAlign: TextAlign.center,
           ),
           if (onRetry != null) ...[
@@ -403,7 +433,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                 foregroundColor: onPrimary,
               ),
               child: Text(
-                'Retry',
+                'actions.retry'.tr(),
                 style: textTheme.labelLarge?.copyWith(
                   color: onPrimary,
                   fontWeight: FontWeight.w600,
@@ -433,7 +463,6 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
         return FIcons.file;
     }
   }
-
 }
 
 class _ErrorBanner extends StatelessWidget {
@@ -456,15 +485,15 @@ class _ErrorBanner extends StatelessWidget {
             child: Text(
               message,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           TextButton(
             onPressed: onRetry,
             style: TextButton.styleFrom(foregroundColor: color),
-            child: const Text('Retry'),
+            child: Text('actions.retry'.tr()),
           ),
         ],
       ),
@@ -487,55 +516,98 @@ class _DocumentsHero extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final onPrimary = colorScheme.onPrimary;
 
-    return Container(
-      width: double.infinity,
-      decoration: ModernSurfaceTheme.heroDecoration(context),
-      padding: ModernSurfaceTheme.heroPadding(),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            isCaregiver ? 'Shared records' : 'Your Health Vault',
-            style: textTheme.bodyMedium?.copyWith(
-                  color: onPrimary.withValues(alpha: 0.85),
+    final h = ModernSurfaceTheme.heroPadding();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final halfWidth = constraints.maxWidth * 0.4;
+          return Container(
+            width: double.infinity,
+            decoration: ModernSurfaceTheme.heroDecoration(context),
+            child: Stack(
+              children: [
+                // ── Right 40%: image pinned to right edge ─────────────
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: halfWidth,
+                  child: Image.asset(
+                    'assets/images/documentread.png',
+                    fit: BoxFit.contain,
+                    alignment: Alignment.bottomCenter,
+                  ),
                 ),
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(22),
-                  color: AppTheme.appleGreen,
-                ),
-                child: Text(
-                  '$documentCount',
-                  style: textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
+                // ── Left side: text column drives card height ─────────
+                Padding(
+                  padding: EdgeInsets.only(
+                    left: h.left,
+                    top: h.top,
+                    bottom: h.bottom,
+                    right: halfWidth + h.right,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        isCaregiver
+                            ? 'documents.sharedRecords'.tr()
+                            : 'documents.yourHealthVault'.tr(),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: onPrimary.withValues(alpha: 0.85),
+                        ),
                       ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        children: [
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(22),
+                              color: AppTheme.appleGreen,
+                            ),
+                            child: Text(
+                              '$documentCount',
+                              style: textTheme.titleLarge?.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 10.w),
+                          Flexible(
+                            child: Text(
+                              'documents.documentsCount'.tr(),
+                              style: textTheme.headlineSmall?.copyWith(
+                                color: onPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              softWrap: true,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (!isCaregiver) ...[
+                        SizedBox(height: 10.h),
+                        _HeroChip(
+                          icon: Icons.cloud_upload_outlined,
+                          label: 'documents.upload'.tr(),
+                          onTap: () => context.push('/documents/upload'),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(width: 12.w),
-              Text(
-                'Documents Stored',
-                style: textTheme.headlineSmall?.copyWith(
-                      color: onPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
-              ),
-            ],
-          ),
-          if (!isCaregiver) ...[
-            SizedBox(height: 12.h),
-            _HeroChip(
-              icon: Icons.cloud_upload_outlined,
-              label: 'Upload document',
-              onTap: () => context.push('/documents/upload'),
+              ],
             ),
-          ],
-        ],
+          );
+        },
       ),
     );
   }
@@ -546,11 +618,7 @@ class _HeroChip extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
 
-  const _HeroChip({
-    required this.icon,
-    required this.label,
-    this.onTap,
-  });
+  const _HeroChip({required this.icon, required this.label, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -568,9 +636,9 @@ class _HeroChip extends StatelessWidget {
           Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -585,5 +653,42 @@ class _HeroChip extends StatelessWidget {
     }
 
     return chip;
+  }
+}
+
+class _CategoryTab extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CategoryTab({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        decoration: isSelected
+            ? BoxDecoration(
+                color: AppTheme.appleGreen,
+                borderRadius: BorderRadius.circular(22),
+              )
+            : ModernSurfaceTheme.frostedChip(context),
+        child: Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: isSelected
+                ? Colors.white
+                : Theme.of(context).colorScheme.onSurface,
+            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+          ),
+        ),
+      ),
+    );
   }
 }
