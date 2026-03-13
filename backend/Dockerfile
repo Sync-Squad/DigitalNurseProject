@@ -53,4 +53,5 @@ EXPOSE 3000
 ENTRYPOINT ["dumb-init", "--"]
 
 # Run database migrations then start the app
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
+# Use local prisma binary to avoid npx downloading a newer incompatible version
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/main.js"]
