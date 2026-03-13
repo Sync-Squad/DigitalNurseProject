@@ -71,19 +71,7 @@ class DietExerciseService {
         elderUserId: dietLog.userId,
       );
       _log('📤 Request data: $requestData');
-      // Ensure timestamp is not included
-      if (requestData.containsKey('timestamp')) {
-        _log('⚠️ WARNING: timestamp field found in request data, removing it');
-        requestData.remove('timestamp');
-      }
-      // Ensure logDate is present
-      if (!requestData.containsKey('logDate')) {
-        _log('⚠️ WARNING: logDate field missing, adding it');
-        final logDate = TimezoneUtil.toPakistanTimeIso8601(
-          dietLog.timestamp,
-        ).split('T')[0];
-        requestData['logDate'] = logDate;
-      }
+      
       final response = await _apiService.post(
         '/lifestyle/diet',
         data: requestData,

@@ -184,8 +184,8 @@ export class CaregiversService {
           userId: existingUser.userId,
           title: 'New Patient Link',
           message: `You have been linked as a caregiver for a new patient.`,
-          type: 'patient_link',
-          metadata: {
+          notificationType: 'patient_link',
+          actionData: {
             elderAssignmentId: assignment.elderAssignmentId.toString(),
             elderUserId: elderUserId.toString(),
           },

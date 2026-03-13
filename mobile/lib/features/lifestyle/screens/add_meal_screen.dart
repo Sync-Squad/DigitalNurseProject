@@ -193,7 +193,6 @@ class _AddMealScreenState extends State<AddMealScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final onPrimary = colorScheme.onPrimary;
 
     return PopScope(
       canPop: true,
@@ -209,9 +208,9 @@ class _AddMealScreenState extends State<AddMealScreen> {
           iconTheme: const IconThemeData(color: Colors.white),
           title: Text(
             'Add Meal',
-            style: textTheme.titleLarge?.copyWith(
+            style: textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color: onPrimary,
+              color: Colors.white,
             ),
           ),
         ),
@@ -391,111 +390,118 @@ class _AddMealScreenState extends State<AddMealScreen> {
                 ),
                 SizedBox(height: 20.h),
 
-                // Description Field
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    FTextField(
-                      controller: _descriptionController,
-                      label: const Text('Description'),
-                      hint:
-                          'What did you eat? (e.g., "Grilled chicken breast with rice and vegetables")',
-                      maxLines: 3,
-                    ),
-                  ],
-                ),
-                SizedBox(height: 12.h),
-
-                // Analyze Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isAnalyzing ? null : _handleAnalyze,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.appleGreen,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (_isAnalyzing)
-                          SizedBox(
-                            width: 16.w,
-                            height: 16.h,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                        else
-                          const Icon(FIcons.sparkles, size: 20),
-                        SizedBox(width: 8.w),
-                        Text(_isAnalyzing ? 'Analyzing...' : 'Analyze with AI'),
-                      ],
-                    ),
+                // Meal Details Card
+                Container(
+                  decoration: ModernSurfaceTheme.glassCard(
+                    context,
+                    accent: ModernSurfaceTheme.accentBlue,
                   ),
-                ),
-
-                // Analysis Error Message
-                if (_analysisError != null) ...[
-                  SizedBox(height: 8.h),
-                  Container(
-                    padding: EdgeInsets.all(12.w),
-                    decoration: BoxDecoration(
-                      color: AppTheme.getErrorColor(context).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppTheme.getErrorColor(context).withOpacity(0.3),
+                  padding: ModernSurfaceTheme.cardPadding(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Details',
+                        style: ModernSurfaceTheme.sectionTitleStyle(context),
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          FIcons.info,
-                          color: AppTheme.getErrorColor(context),
-                          size: 20,
+                      SizedBox(height: 16.h),
+                      FTextField(
+                        controller: _descriptionController,
+                        label: const Text('Description'),
+                        hint: 'e.g., "Grilled chicken and rice"',
+                        maxLines: 2,
+                      ),
+                      SizedBox(height: 16.h),
+                      // Analyze Button with Gradient
+                      Container(
+                        width: double.infinity,
+                        decoration: ModernSurfaceTheme.pillButton(
+                          context,
+                          ModernSurfaceTheme.accentBlue,
                         ),
-                        SizedBox(width: 8.w),
-                        Expanded(
+                        child: ElevatedButton(
+                          onPressed: _isAnalyzing ? null : _handleAnalyze,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: 14.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (_isAnalyzing)
+                                const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              else
+                                const Icon(FIcons.sparkles, size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                _isAnalyzing
+                                    ? 'Analyzing...'
+                                    : 'Analyze with AI',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (_analysisError != null) ...[
+                        SizedBox(height: 12.h),
+                        Container(
+                          padding: EdgeInsets.all(8.w),
+                          decoration: BoxDecoration(
+                            color: AppTheme.getErrorColor(
+                              context,
+                            ).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           child: Text(
                             _analysisError!,
                             style: textTheme.bodySmall?.copyWith(
                               color: AppTheme.getErrorColor(context),
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                       ],
-                    ),
+                      SizedBox(height: 20.h),
+                      FTextField(
+                        controller: _caloriesController,
+                        label: const Text('Calories'),
+                        hint: 'Manual entry or AI estimate',
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
                   ),
-                ],
-
-                SizedBox(height: 20.h),
-
-                // Calories Field
-                FTextField(
-                  controller: _caloriesController,
-                  label: const Text('Calories'),
-                  hint: 'Enter calories or use AI analysis above',
-                  keyboardType: TextInputType.number,
                 ),
                 SizedBox(height: 32.h),
 
                 // Save Button
-                SizedBox(
+                Container(
                   width: double.infinity,
+                  decoration: ModernSurfaceTheme.pillButton(
+                    context,
+                    ModernSurfaceTheme.primaryTeal,
+                  ),
                   child: ElevatedButton(
                     onPressed: _isSaving ? null : _handleSave,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: ModernSurfaceTheme.primaryTeal,
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      padding: EdgeInsets.symmetric(vertical: 16.h),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -510,10 +516,11 @@ class _AddMealScreenState extends State<AddMealScreen> {
                             ),
                           )
                         : Text(
-                            'Save Meal',
+                            'Save Meal Entry',
                             style: textTheme.labelLarge?.copyWith(
                               color: Colors.white,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16.sp,
                             ),
                           ),
                   ),

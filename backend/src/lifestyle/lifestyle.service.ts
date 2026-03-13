@@ -9,7 +9,7 @@ import { CreateExercisePlanDto } from './dto/create-exercise-plan.dto';
 import { UpdateExercisePlanDto } from './dto/update-exercise-plan.dto';
 import { ApplyPlanDto } from './dto/apply-plan.dto';
 import { ActorContext } from '../common/services/access-control.service';
-import { getPKTDate } from '../common/utils/date-utils';
+import { getPKTDate, getPKTDateOnly } from '../common/utils/date-utils';
 
 @Injectable()
 export class LifestyleService {
@@ -23,7 +23,7 @@ export class LifestyleService {
     const dietLog = await this.prisma.dietLog.create({
       data: {
         userId: context.elderUserId,
-        logDate: getPKTDate(createDto.logDate),
+        logDate: getPKTDateOnly(createDto.logDate),
         mealType: createDto.mealType,
         foodItems: createDto.description,
         calories: createDto.calories,
@@ -39,7 +39,7 @@ export class LifestyleService {
   async findAllDietLogs(context: ActorContext, date?: string) {
     const where: any = { userId: context.elderUserId };
     if (date) {
-      const targetDate = getPKTDate(date);
+      const targetDate = getPKTDateOnly(date);
       where.logDate = targetDate;
     }
 
@@ -80,7 +80,7 @@ export class LifestyleService {
     const exerciseLog = await this.prisma.exerciseLog.create({
       data: {
         userId: context.elderUserId,
-        logDate: getPKTDate(createDto.logDate),
+        logDate: getPKTDateOnly(createDto.logDate),
         exerciseType: createDto.activityType,
         description: createDto.description,
         durationMinutes: createDto.durationMinutes,
@@ -98,7 +98,7 @@ export class LifestyleService {
   async findAllExerciseLogs(context: ActorContext, date?: string) {
     const where: any = { userId: context.elderUserId };
     if (date) {
-      const targetDate = getPKTDate(date);
+      const targetDate = getPKTDateOnly(date);
       where.logDate = targetDate;
     }
 
@@ -136,7 +136,7 @@ export class LifestyleService {
   // ============================================
 
   async getDailySummary(context: ActorContext, date: string) {
-    const targetDate = getPKTDate(date);
+    const targetDate = getPKTDateOnly(date);
 
     const dietLogs = await this.prisma.dietLog.findMany({
       where: {
@@ -368,7 +368,7 @@ export class LifestyleService {
 
   async applyDietPlan(context: ActorContext, planId: bigint, applyDto: ApplyPlanDto) {
     const plan = await this.findDietPlanById(context, planId);
-    const startDate = new Date(applyDto.startDate);
+    const startDate = getPKTDateOnly(applyDto.startDate);
     const overwriteExisting = applyDto.overwriteExisting || false;
 
     const createdLogs = [];
@@ -422,7 +422,7 @@ export class LifestyleService {
         const log = await this.prisma.dietLog.create({
           data: {
             userId: context.elderUserId,
-            logDate: targetDate,
+            logDate: getPKTDateOnly(targetDate),
             mealType: item.mealType,
             foodItems: item.description,
             calories: item.calories || null,
@@ -577,7 +577,7 @@ export class LifestyleService {
 
   async applyExercisePlan(context: ActorContext, planId: bigint, applyDto: ApplyPlanDto) {
     const plan = await this.findExercisePlanById(context, planId);
-    const startDate = new Date(applyDto.startDate);
+    const startDate = getPKTDateOnly(applyDto.startDate);
     const overwriteExisting = applyDto.overwriteExisting || false;
 
     const createdLogs = [];
@@ -631,7 +631,7 @@ export class LifestyleService {
         const log = await this.prisma.exerciseLog.create({
           data: {
             userId: context.elderUserId,
-            logDate: targetDate,
+            logDate: getPKTDateOnly(targetDate),
             exerciseType: item.activityType,
             description: item.description,
             durationMinutes: item.durationMinutes || null,

@@ -247,7 +247,6 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final onPrimary = colorScheme.onPrimary;
 
     return PopScope(
       canPop: true,
@@ -263,9 +262,9 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
           iconTheme: const IconThemeData(color: Colors.white),
           title: Text(
             'Add Workout',
-            style: textTheme.titleLarge?.copyWith(
+            style: textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color: onPrimary,
+              color: Colors.white,
             ),
           ),
         ),
@@ -445,115 +444,125 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                 ),
                 SizedBox(height: 20.h),
 
-                // Description Field
-                FTextField(
-                  controller: _descriptionController,
-                  label: const Text('Description'),
-                  hint:
-                      'What exercise did you do? (e.g., "Brisk walking in the park", "Cycling on flat terrain")',
-                  maxLines: 3,
-                ),
-                SizedBox(height: 20.h),
-
-                // Duration Field
-                FTextField(
-                  controller: _durationController,
-                  label: const Text('Duration (minutes)'),
-                  hint: 'How long did you exercise?',
-                  keyboardType: TextInputType.number,
-                ),
-                SizedBox(height: 12.h),
-
-                // Analyze Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isAnalyzing ? null : _handleAnalyze,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.appleGreen,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (_isAnalyzing)
-                          SizedBox(
-                            width: 16.w,
-                            height: 16.h,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Colors.white,
-                              ),
-                            ),
-                          )
-                        else
-                          const Icon(FIcons.sparkles, size: 20),
-                        SizedBox(width: 8.w),
-                        Text(_isAnalyzing ? 'Analyzing...' : 'Analyze with AI'),
-                      ],
-                    ),
+                // Workout Details Card
+                Container(
+                  decoration: ModernSurfaceTheme.glassCard(
+                    context,
+                    accent: ModernSurfaceTheme.accentCoral,
                   ),
-                ),
-
-                // Analysis Error Message
-                if (_analysisError != null) ...[
-                  SizedBox(height: 8.h),
-                  Container(
-                    padding: EdgeInsets.all(12.w),
-                    decoration: BoxDecoration(
-                      color: AppTheme.getErrorColor(context).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppTheme.getErrorColor(context).withOpacity(0.3),
+                  padding: ModernSurfaceTheme.cardPadding(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Details',
+                        style: ModernSurfaceTheme.sectionTitleStyle(context),
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          FIcons.info,
-                          color: AppTheme.getErrorColor(context),
-                          size: 20,
+                      SizedBox(height: 16.h),
+                      FTextField(
+                        controller: _descriptionController,
+                        label: const Text('Description'),
+                        hint: 'e.g., "Brisk walking in the park"',
+                        maxLines: 2,
+                      ),
+                      SizedBox(height: 16.h),
+                      FTextField(
+                        controller: _durationController,
+                        label: const Text('Duration (minutes)'),
+                        hint: 'How long did you exercise?',
+                        keyboardType: TextInputType.number,
+                      ),
+                      SizedBox(height: 16.h),
+                      // Analyze Button with Gradient
+                      Container(
+                        width: double.infinity,
+                        decoration: ModernSurfaceTheme.pillButton(
+                          context,
+                          ModernSurfaceTheme.accentBlue,
                         ),
-                        SizedBox(width: 8.w),
-                        Expanded(
+                        child: ElevatedButton(
+                          onPressed: _isAnalyzing ? null : _handleAnalyze,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: 14.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (_isAnalyzing)
+                                const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              else
+                                const Icon(FIcons.sparkles, size: 18),
+                              const SizedBox(width: 8),
+                              Text(
+                                _isAnalyzing
+                                    ? 'Analyzing...'
+                                    : 'Analyze with AI',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (_analysisError != null) ...[
+                        SizedBox(height: 12.h),
+                        Container(
+                          padding: EdgeInsets.all(8.w),
+                          decoration: BoxDecoration(
+                            color: AppTheme.getErrorColor(
+                              context,
+                            ).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           child: Text(
                             _analysisError!,
                             style: textTheme.bodySmall?.copyWith(
                               color: AppTheme.getErrorColor(context),
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                       ],
-                    ),
+                      SizedBox(height: 20.h),
+                      FTextField(
+                        controller: _caloriesController,
+                        label: const Text('Calories Burned'),
+                        hint: 'Manual entry or AI estimate',
+                        keyboardType: TextInputType.number,
+                      ),
+                    ],
                   ),
-                ],
-
-                SizedBox(height: 20.h),
-
-                // Calories Burned Field
-                FTextField(
-                  controller: _caloriesController,
-                  label: const Text('Calories Burned'),
-                  hint: 'Enter calories burned or use AI analysis above',
-                  keyboardType: TextInputType.number,
                 ),
                 SizedBox(height: 32.h),
 
                 // Save Button
-                SizedBox(
+                Container(
                   width: double.infinity,
+                  decoration: ModernSurfaceTheme.pillButton(
+                    context,
+                    ModernSurfaceTheme.primaryTeal,
+                  ),
                   child: ElevatedButton(
                     onPressed: _isSaving ? null : _handleSave,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: ModernSurfaceTheme.accentBlue,
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
+                      padding: EdgeInsets.symmetric(vertical: 16.h),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -568,10 +577,11 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                             ),
                           )
                         : Text(
-                            'Save Workout',
+                            'Save Workout Entry',
                             style: textTheme.labelLarge?.copyWith(
                               color: Colors.white,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16.sp,
                             ),
                           ),
                   ),

@@ -11,6 +11,7 @@ import '../../../../core/models/vital_measurement_model.dart';
 import '../../../../core/extensions/vital_status_extensions.dart';
 import '../../../../core/providers/health_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/timezone_util.dart';
 import '../dashboard_theme.dart';
 import 'expandable_patient_card.dart';
 
@@ -189,7 +190,7 @@ class _VitalRow extends StatelessWidget {
           ),
           SizedBox(height: 12.h),
           Text(
-            DateFormat('MMM d, h:mm a').format(vital.timestamp),
+            DateFormat('MMM d, h:mm a').format(TimezoneUtil.toPakistanTime(vital.timestamp)),
             style: context.theme.typography.xs.copyWith(color: onTintMuted),
           ),
         ],
