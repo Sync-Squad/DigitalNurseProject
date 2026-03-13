@@ -45,7 +45,7 @@ RUN chown -R nestjs:nodejs /app
 
 USER nestjs
 
-EXPOSE 3000
+EXPOSE 3001
 
 ENTRYPOINT ["dumb-init", "--"]
 
