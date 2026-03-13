@@ -3,6 +3,9 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Install build dependencies for native modules (bcrypt)
+RUN apk add --no-cache python3 make g++
+
 # Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
@@ -24,8 +27,8 @@ FROM node:20-alpine AS production
 
 WORKDIR /app
 
-# Install dumb-init for proper signal handling
-RUN apk add --no-cache dumb-init
+# Install dumb-init and build deps for native modules (bcrypt)
+RUN apk add --no-cache dumb-init python3 make g++
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
