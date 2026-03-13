@@ -11,6 +11,7 @@ import '../../../core/services/secure_storage_service.dart';
 import '../../../core/widgets/modern_scaffold.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/theme/app_theme.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -185,7 +186,8 @@ class _LoginScreenState extends State<LoginScreen> {
               Navigator.of(context).pop();
               // Navigate to email verification screen
               // We'll need email, but we can ask user or try to get from backend
-              context.go('/email-verification');
+              final email = _emailController.text.trim();
+              context.go('/email-verification?email=${Uri.encodeComponent(email)}');
             },
             child: const Text('Resend Email'),
           ),
@@ -397,29 +399,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: () async {
-                            final email = _emailController.text.trim();
-                            if (email.isEmpty) {
-                              _showErrorSnackBar(
-                                'auth.login.emailRequired'.tr(),
-                              );
-                              return;
-                            }
-
-                            final success = await context
-                                .read<AuthProvider>()
-                                .forgotPassword(email);
-                            if (mounted && success) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('auth.login.emailSent'.tr()),
-                                  backgroundColor: AppTheme.getSuccessColor(
-                                    context,
-                                  ),
-                                ),
-                              );
-                            }
-                          },
+                          onPressed: () => context.go('/forgot-password'),
                           child: Text(
                             'auth.login.forgotPassword'.tr(),
                             style: Theme.of(context).textTheme.bodySmall

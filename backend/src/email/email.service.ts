@@ -176,7 +176,7 @@ export class EmailService {
 
   async sendPasswordResetEmail(
     email: string,
-    token: string,
+    code: string,
     name?: string,
   ): Promise<boolean> {
     try {
@@ -185,22 +185,20 @@ export class EmailService {
         return false;
       }
 
-      // Mobile app handles the deep link
-      const resetUrl = `${this.frontendUrl}/reset-password?token=${token}`;
       const html = forgotPasswordEmailTemplate({
         name: name || 'User',
-        resetUrl,
+        code,
         appName: this.appName,
       });
 
       await this.transporter.sendMail({
         from: this.fromEmail,
         to: email,
-        subject: `Reset your ${this.appName} password`,
+        subject: `Password Reset Code for ${this.appName}`,
         html,
       });
 
-      this.logger.log(`Password reset email sent to ${email}`);
+      this.logger.log(`Password reset code email sent to ${email}`);
       return true;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);

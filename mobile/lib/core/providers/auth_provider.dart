@@ -148,10 +148,30 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // Reset password
+  // Verify reset code
+  Future<bool> verifyResetCode(String email, String code) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final success = await _authService.verifyPasswordResetCode(email, code);
+      return success;
+    } catch (e) {
+      _error = _extractErrorMessage(e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Reset password with code
   Future<bool> resetPassword({
-    required String token,
+    required String email,
+    required String code,
     required String newPassword,
+    required String confirmPassword,
   }) async {
     _isLoading = true;
     _error = null;
@@ -159,8 +179,10 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final success = await _authService.resetPassword(
-        token: token,
+        email: email,
+        code: code,
         newPassword: newPassword,
+        confirmPassword: confirmPassword,
       );
       return success;
     } catch (e) {

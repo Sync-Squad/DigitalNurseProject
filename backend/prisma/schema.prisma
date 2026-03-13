@@ -609,3 +609,21 @@ model notification_logs {
   @@index([notificationId], map: "idx_notificationlogs_notificationid")
   @@index([sentAt], map: "idx_notificationlogs_sentat")
 }
+
+model PasswordResetRequest {
+  id           BigInt    @id @default(autoincrement()) @map("id")
+  userId       BigInt    @map("userId")
+  email        String    @map("email")
+  codeHash     String    @map("codeHash")
+  expiresAt    DateTime  @map("expiresAt") @db.Timestamptz(6)
+  isUsed       Boolean   @default(false) @map("isUsed")
+  attemptCount Int       @default(0) @map("attemptCount")
+  resendCount  Int       @default(0) @map("resendCount")
+  createdAt    DateTime  @default(now()) @map("createdAt") @db.Timestamptz(6)
+  usedAt       DateTime? @map("usedAt") @db.Timestamptz(6)
+  lastSentAt   DateTime  @default(now()) @map("lastSentAt") @db.Timestamptz(6)
+
+  @@index([email])
+  @@index([userId])
+  @@map("password_reset_requests")
+}

@@ -274,23 +274,23 @@ class AuthService {
     }
   }
 
-  // Forgot password - send reset link
+  // Forgot password - request code
   Future<bool> forgotPassword(String email) async {
-    _log('🔑 [AUTH] Requesting password reset for: $email');
+    _log('🔑 [AUTH] Requesting password reset code for: $email');
     try {
       final response = await _apiService.post(
         '/auth/forgot-password',
         data: {'email': email},
       );
 
-      if (response.statusCode == 200) {
-        _log('✅ [AUTH] Password reset link sent successfully');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _log('✅ [AUTH] Password reset code sent successfully');
         return true;
       } else {
         _log(
-          '❌ [AUTH] Failed to send password reset link: ${response.statusMessage}',
+          '❌ [AUTH] Failed to send password reset code: ${response.statusMessage}',
         );
-        throw Exception('Failed to send password reset link');
+        throw Exception('Failed to send password reset code');
       }
     } catch (e) {
       _log('❌ [AUTH] Error requesting password reset: $e');
@@ -298,24 +298,53 @@ class AuthService {
     }
   }
 
-  // Reset password
-  Future<bool> resetPassword({
-    required String token,
-    required String newPassword,
-  }) async {
-    _log('🔑 [AUTH] Attempting password reset with token');
+  // Verify reset code
+  Future<bool> verifyPasswordResetCode(String email, String code) async {
+    _log('🔑 [AUTH] Verifying reset code for: $email');
     try {
       final response = await _apiService.post(
-        '/auth/reset-password',
-        data: {'token': token, 'newPassword': newPassword},
+        '/auth/verify-reset-code',
+        data: {'email': email, 'code': code},
       );
 
       if (response.statusCode == 200) {
+        _log('✅ [AUTH] Reset code verified successfully');
+        return true;
+      } else {
+        _log('❌ [AUTH] Reset code verification failed: ${response.statusMessage}');
+        throw Exception('Invalid or expired reset code');
+      }
+    } catch (e) {
+      _log('❌ [AUTH] Error verifying reset code: $e');
+      throw Exception(e.toString());
+    }
+  }
+
+  // Reset password with code
+  Future<bool> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    _log('🔑 [AUTH] Attempting password reset with code');
+    try {
+      final response = await _apiService.post(
+        '/auth/reset-password-with-code',
+        data: {
+          'email': email,
+          'code': code,
+          'newPassword': newPassword,
+          'confirmPassword': confirmPassword,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
         _log('✅ [AUTH] Password reset successful');
         return true;
       } else {
         _log('❌ [AUTH] Password reset failed: ${response.statusMessage}');
-        throw Exception('Password reset failed');
+        throw Exception('Password reset failed: ${response.statusMessage}');
       }
     } catch (e) {
       _log('❌ [AUTH] Error resetting password: $e');
