@@ -49,5 +49,5 @@ EXPOSE 3000
 
 ENTRYPOINT ["dumb-init", "--"]
 
-# Run database migrations then start the app
-CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/main.js"]
+# Sync database schema and start the app
+CMD ["sh", "-c", "./node_modules/.bin/prisma db push --skip-generate && node dist/main.js"]
