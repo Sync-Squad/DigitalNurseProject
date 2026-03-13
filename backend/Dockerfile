@@ -20,9 +20,6 @@ RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma gene
 COPY . .
 RUN npm run build
 
-# Prune devDependencies, keep only production deps
-RUN npm prune --omit=dev
-
 # Stage 2: Production
 FROM node:20-alpine AS production
 
@@ -35,7 +32,7 @@ RUN apk add --no-cache dumb-init
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001 -G nodejs
 
-# Copy production node_modules (with generated Prisma client) from builder
+# Copy full node_modules from builder (includes prisma CLI for migrations)
 COPY --from=builder /app/node_modules ./node_modules
 
 # Copy built application and prisma schema (needed for migrations)
@@ -53,5 +50,4 @@ EXPOSE 3000
 ENTRYPOINT ["dumb-init", "--"]
 
 # Run database migrations then start the app
-# Use local prisma binary to avoid npx downloading a newer incompatible version
 CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/main.js"]
