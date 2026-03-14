@@ -14,6 +14,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/models/user_model.dart';
 import '../../../core/widgets/modern_scaffold.dart';
+import '../../../core/utils/timezone_util.dart';
 import '../widgets/vital_status_badge.dart';
 
 class AbnormalVitalsScreen extends StatefulWidget {
@@ -78,7 +79,8 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
   ) {
     final grouped = <String, List<VitalMeasurementModel>>{};
     for (final vital in vitals) {
-      final dateKey = DateFormat('yyyy-MM-dd').format(vital.timestamp);
+      final pakistanTime = TimezoneUtil.toPakistanTime(vital.timestamp);
+      final dateKey = DateFormat('yyyy-MM-dd').format(pakistanTime);
       grouped.putIfAbsent(dateKey, () => []).add(vital);
     }
 
@@ -97,9 +99,9 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
   }
 
   String _formatDateHeader(String dateKey) {
-    final date = DateTime.parse(dateKey);
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
+    final date = DateTime.parse(dateKey); // This is already in yyyy-MM-dd from _groupVitalsByDate
+    final nowPst = TimezoneUtil.nowInPakistan();
+    final today = DateTime(nowPst.year, nowPst.month, nowPst.day);
     final yesterday = today.subtract(const Duration(days: 1));
     final dateOnly = DateTime(date.year, date.month, date.day);
 
@@ -357,7 +359,7 @@ class _AbnormalVitalsScreenState extends State<AbnormalVitalsScreen> {
                                               Text(
                                                 DateFormat(
                                                   'h:mm a',
-                                                ).format(vital.timestamp),
+                                                ).format(TimezoneUtil.toPakistanTime(vital.timestamp)),
                                                 style: context
                                                     .theme.typography.sm
                                                     .copyWith(

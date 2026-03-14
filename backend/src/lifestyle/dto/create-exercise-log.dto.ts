@@ -41,8 +41,8 @@ export class CreateExerciseLogDto {
 
   @ApiProperty({ example: 'Morning walk in the park', description: 'Exercise description' })
   @IsString()
-  @IsNotEmpty()
-  description!: string;
+  @IsOptional()
+  description?: string;
 
   @ApiProperty({ example: 30, description: 'Duration in minutes' })
   @IsInt()

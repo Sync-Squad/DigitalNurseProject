@@ -17,6 +17,8 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyResetCodeDto } from './dto/verify-reset-code.dto';
+import { ResetPasswordWithCodeDto } from './dto/reset-password-with-code.dto';
 import { User } from '@prisma/client';
 import { getPKTDate } from '../common/utils/date-utils';
 
@@ -163,7 +165,6 @@ export class AuthService {
             userId: user.userId,
             roleId: role.roleId,
             createdAt: getPKTDate(),
-            updatedAt: getPKTDate(),
           },
         });
 
@@ -482,33 +483,138 @@ export class AuthService {
     if (!user) {
       // Don't reveal if email exists or not for security
       return {
-        message: 'If an account exists with this email, a password reset link has been sent.',
+        message: 'If an account exists with this email, a password reset code has been sent.',
       };
     }
 
-    // Generate reset token
-    const resetPasswordToken = this.generateVerificationToken();
-    const tokenExpiry = getPKTDate();
-    // Reset tokens expire in 1 hour
-    tokenExpiry.setHours(tokenExpiry.getHours() + 1);
+    // Invalidate previous requests
+    await this.prisma.passwordResetRequest.updateMany({
+      where: { userId: user.userId, isUsed: false },
+      data: { isUsed: true },
+    });
 
-    await this.prisma.user.update({
-      where: { userId: user.userId },
+    // Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const codeHash = await bcrypt.hash(code, 10);
+    const expiresAt = getPKTDate();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 15); // 15 minutes expiry
+
+    await this.prisma.passwordResetRequest.create({
       data: {
-        resetPasswordToken,
-        resetPasswordTokenExpiresAt: tokenExpiry,
+        userId: user.userId,
+        email,
+        codeHash,
+        expiresAt,
+        lastSentAt: getPKTDate(),
       },
     });
 
-    // Send reset email
+    // Send reset email with code
     await this.emailService.sendPasswordResetEmail(
       user.email!,
-      resetPasswordToken,
+      code,
       user.full_name || undefined,
     );
 
     return {
-      message: 'If an account exists with this email, a password reset link has been sent.',
+      message: 'If an account exists with this email, a password reset code has been sent.',
+    };
+  }
+
+  async verifyResetCode(verifyResetCodeDto: VerifyResetCodeDto) {
+    const { email, code } = verifyResetCodeDto;
+
+    const request = await this.prisma.passwordResetRequest.findFirst({
+      where: {
+        email,
+        isUsed: false,
+        expiresAt: { gt: getPKTDate() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!request) {
+      throw new BadRequestException('Invalid or expired reset code.');
+    }
+
+    if (request.attemptCount >= 5) {
+      throw new BadRequestException('Too many failed attempts. Please request a new code.');
+    }
+
+    const isCodeValid = await bcrypt.compare(code, request.codeHash);
+
+    if (!isCodeValid) {
+      await this.prisma.passwordResetRequest.update({
+        where: { id: request.id },
+        data: { attemptCount: { increment: 1 } },
+      });
+      throw new BadRequestException('Invalid reset code.');
+    }
+
+    return {
+      message: 'Code verified successfully.',
+      email,
+      code, // Return code or a temp token if needed, but here code + email is enough for the next step
+    };
+  }
+
+  async resetPasswordWithCode(resetPasswordWithCodeDto: ResetPasswordWithCodeDto) {
+    const { email, code, newPassword, confirmPassword } = resetPasswordWithCodeDto;
+
+    if (newPassword !== confirmPassword) {
+      throw new BadRequestException('Passwords do not match.');
+    }
+
+    const request = await this.prisma.passwordResetRequest.findFirst({
+      where: {
+        email,
+        isUsed: false,
+        expiresAt: { gt: getPKTDate() },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!request) {
+      throw new BadRequestException('Invalid or expired reset request.');
+    }
+
+    const isCodeValid = await bcrypt.compare(code, request.codeHash);
+    if (!isCodeValid) {
+      throw new BadRequestException('Invalid reset code.');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found.');
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update user password and mark request as used in a transaction
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { userId: user.userId },
+        data: {
+          passwordHash: hashedPassword,
+          resetPasswordToken: null, // Clear legacy tokens if any
+          resetPasswordTokenExpiresAt: null,
+        },
+      }),
+      this.prisma.passwordResetRequest.update({
+        where: { id: request.id },
+        data: {
+          isUsed: true,
+          usedAt: getPKTDate(),
+        },
+      }),
+    ]);
+
+    return {
+      message: 'Password reset successful. You can now login with your new password.',
     };
   }
 

@@ -73,6 +73,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   }
 
   Future<void> _resendVerificationEmail() async {
+    if (widget.email.isEmpty) {
+      setState(() {
+        _error = 'Email address is missing. Please go back and try again.';
+      });
+      return;
+    }
+
     setState(() {
       _isResending = true;
       _error = null;
@@ -181,7 +188,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   ),
                   SizedBox(height: 8.h),
                   Text(
-                    widget.email,
+                    widget.email.isEmpty ? 'your email address' : widget.email,
                     style: context.theme.typography.base.copyWith(
                       fontWeight: FontWeight.bold,
                       color: context.theme.colors.primary,

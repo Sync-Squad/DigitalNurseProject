@@ -135,6 +135,42 @@ class SettingsScreen extends StatelessWidget {
           ),
           SizedBox(height: 24.h),
 
+          // Security section
+          Text(
+            'Security',
+            style: ModernSurfaceTheme.sectionTitleStyle(context),
+          ),
+          SizedBox(height: 12.h),
+
+          Container(
+            decoration: ModernSurfaceTheme.glassCard(context),
+            child: Consumer<AuthProvider>(
+              builder: (context, auth, _) {
+                return FutureBuilder<bool>(
+                  future: auth.isBiometricLoginAvailable(auth.currentUser?.id ?? ''),
+                  builder: (context, snapshot) {
+                    final isEnabled = snapshot.data ?? false;
+                    return _ModernSwitchTile(
+                      title: 'Biometric Login',
+                      subtitle: 'Use fingerprint or face recognition to log in',
+                      value: isEnabled,
+                      onChanged: (value) async {
+                        if (value) {
+                          // To enable, we need the password. 
+                          // Since we don't have it here, we should prompt for it.
+                          await _showEnableBiometricDialog(context, auth);
+                        } else {
+                          await auth.enableBiometric(auth.currentUser?.id ?? '', false);
+                        }
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          SizedBox(height: 24.h),
+
           // Privacy section
           Text(
             'settings.privacy.title'.tr(),
@@ -267,6 +303,70 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showEnableBiometricDialog(BuildContext context, AuthProvider auth) async {
+    final passwordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    return showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Enable Biometric Login'),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Please enter your password to enable biometric login for this account.'),
+              SizedBox(height: 16.h),
+              FTextField(
+                controller: passwordController,
+                label: const Text('Password'),
+                obscureText: true,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              final password = passwordController.text;
+              if (password.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Password is required')),
+                );
+                return;
+              }
+
+              Navigator.pop(context);
+              final success = await auth.enableBiometric(
+                auth.currentUser!.id,
+                true,
+                phone: auth.currentUser!.email, // Using email as identifier
+                password: password,
+              );
+                if (context.mounted) {
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Biometric login enabled successfully')),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(auth.error ?? 'Failed to enable biometric login')),
+                    );
+                  }
+                }
+            },
+            child: const Text('Enable'),
+          ),
         ],
       ),
     );

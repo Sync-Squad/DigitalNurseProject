@@ -17,6 +17,8 @@ import { ResendVerificationDto } from './dto/resend-verification.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { VerifyResetCodeDto } from './dto/verify-reset-code.dto';
+import { ResetPasswordWithCodeDto } from './dto/reset-password-with-code.dto';
 import { GoogleAuthGuard } from '../common/guards/google-auth.guard';
 import { LocalAuthGuard } from '../common/guards/local-auth.guard';
 import { Public } from '../common/decorators/public.decorator';
@@ -66,11 +68,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Google OAuth callback' })
   async googleAuthRedirect(@Req() req: any, @Res() res: any) {
     const tokens = await this.authService['generateTokens'](req.user);
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    const appBaseUrl = this.configService.get<string>('APP_BASE_URL') || this.configService.get<string>('FRONTEND_URL');
 
     // Redirect to frontend with tokens
     res.redirect(
-      `${frontendUrl}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
+      `${appBaseUrl}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
     );
   }
 
@@ -116,10 +118,30 @@ export class AuthController {
   @Public()
   @Post('reset-password')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Reset password with token' })
+  @ApiOperation({ summary: 'Reset password with token (legacy)' })
   @ApiResponse({ status: 200, description: 'Password reset successful' })
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
+  }
+
+  @Public()
+  @Post('verify-reset-code')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Verify password reset code' })
+  @ApiResponse({ status: 200, description: 'Code verified successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired code' })
+  async verifyResetCode(@Body() verifyResetCodeDto: VerifyResetCodeDto) {
+    return this.authService.verifyResetCode(verifyResetCodeDto);
+  }
+
+  @Public()
+  @Post('reset-password-with-code')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password with 6-digit code' })
+  @ApiResponse({ status: 200, description: 'Password reset successful' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired code' })
+  async resetPasswordWithCode(@Body() resetPasswordWithCodeDto: ResetPasswordWithCodeDto) {
+    return this.authService.resetPasswordWithCode(resetPasswordWithCodeDto);
   }
 }

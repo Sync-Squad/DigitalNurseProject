@@ -23,8 +23,8 @@ export class CreateDietLogDto {
 
   @ApiProperty({ example: 'Oatmeal with berries', description: 'Food items/description' })
   @IsString()
-  @IsNotEmpty()
-  description!: string;
+  @IsOptional()
+  description?: string;
 
   @ApiProperty({ example: 350, description: 'Calories' })
   @IsInt()

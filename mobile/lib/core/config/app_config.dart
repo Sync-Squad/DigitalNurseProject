@@ -10,10 +10,10 @@ class AppConfig {
   static const String _geminiApiKeyFromDbKey = 'gemini_api_key_from_db';
 
   // Default URLs for different environments
-  //  static const String _defaultLocalhost = 'http://localhost:3000/api';
-  // static const String _defaultAndroidEmulator = 'http://localhost:3000/api';
-  static const String _defaultLocalhost = 'http://100.42.177.77:3000/api/';
-  static const String _defaultAndroidEmulator = 'http://100.42.177.77:3000/api/';
+  static const String _defaultLocalhost = 'http://localhost:3000/api/';
+  static const String _defaultAndroidEmulator = 'http://localhost:3000/api/';
+  // static const String _defaultLocalhost = 'http://100.42.177.77:3000/api/';
+  // static const String _defaultAndroidEmulator = 'http://100.42.177.77:3000/api/';
 
   // Default Gemini API key (fallback if database fetch fails)
   // NOTE: This should be empty in production. API keys should come from the database.

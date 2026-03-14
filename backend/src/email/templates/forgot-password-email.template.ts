@@ -1,13 +1,13 @@
 export interface ForgotPasswordEmailData {
     name: string;
-    resetUrl: string;
+    code: string;
     appName: string;
 }
 
 export function forgotPasswordEmailTemplate(
     data: ForgotPasswordEmailData,
 ): string {
-    const { name, resetUrl, appName } = data;
+    const { name, code, appName } = data;
 
     return `
 <!DOCTYPE html>
@@ -31,25 +31,15 @@ export function forgotPasswordEmailTemplate(
                 Hi ${name},
               </p>
               <p style="margin: 0 0 30px 0; color: #666666; font-size: 16px; line-height: 1.6;">
-                We received a request to reset your password. Click the button below to choose a new password.
+                We received a request to reset your password. Use the verification code below to complete the process:
               </p>
-              <table role="presentation" style="margin: 0 auto;">
-                <tr>
-                  <td style="background-color: #14b8a6; border-radius: 6px;">
-                    <a href="${resetUrl}" style="display: inline-block; padding: 14px 32px; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 6px;">
-                      Reset Password
-                    </a>
-                  </td>
-                </tr>
-              </table>
-              <p style="margin: 30px 0 0 0; color: #999999; font-size: 14px; line-height: 1.6;">
-                Or copy and paste this link into your browser:
-              </p>
-              <p style="margin: 10px 0 0 0; color: #14b8a6; font-size: 14px; word-break: break-all;">
-                ${resetUrl}
-              </p>
+              <div style="margin: 0 auto; background-color: #f0fdfa; border: 2px dashed #14b8a6; border-radius: 8px; padding: 20px; display: inline-block;">
+                <span style="font-size: 32px; font-weight: 700; color: #14b8a6; letter-spacing: 8px;">
+                  ${code}
+                </span>
+              </div>
               <p style="margin: 40px 0 0 0; color: #999999; font-size: 12px; line-height: 1.6;">
-                This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.
+                This code will expire in 15 minutes. If you didn't request a password reset, you can safely ignore this email.
               </p>
             </td>
           </tr>

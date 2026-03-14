@@ -43,11 +43,13 @@ class ApiService {
     try {
       _log('🚀 [API] Starting initialization...');
       final baseUrl = await AppConfig.getBaseUrl();
-      _log('📍 [API] Resolved Base URL: $baseUrl');
+      // Ensure base URL ends with a slash to prevent "path smashing" (e.g. /apiauth/login)
+      final normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : '$baseUrl/';
+      _log('📍 [API] Resolved Base URL: $normalizedBaseUrl');
 
       _dio = Dio(
         BaseOptions(
-          baseUrl: baseUrl,
+          baseUrl: normalizedBaseUrl,
           // Improved timeouts: 30s is enough for most connections
           // even with slow email sending on registration.
           connectTimeout: const Duration(seconds: 30),

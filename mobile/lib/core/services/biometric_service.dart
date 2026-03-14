@@ -1,7 +1,10 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:local_auth/local_auth.dart';
 import 'package:local_auth_android/local_auth_android.dart';
 import 'package:flutter/services.dart';
-import 'dart:io';
+import '../config/platform_check_stub.dart'
+    if (dart.library.io) '../config/platform_check_io.dart'
+    as platform;
 
 class BiometricService {
   final LocalAuthentication _localAuth = LocalAuthentication();
@@ -13,7 +16,7 @@ class BiometricService {
   /// Check if biometric authentication is available on the device
   Future<bool> isAvailable() async {
     try {
-      if (!Platform.isAndroid && !Platform.isIOS) {
+      if (kIsWeb || (!platform.isAndroid && !platform.isIOS)) {
         _log('❌ Biometric authentication not supported on this platform');
         return false;
       }
@@ -77,7 +80,7 @@ class BiometricService {
         return false;
       }
 
-      final didAuthenticate = Platform.isAndroid
+      final didAuthenticate = platform.isAndroid
           ? await _localAuth.authenticate(
               localizedReason:
                   localizedReason ?? 'Authenticate to access your account',

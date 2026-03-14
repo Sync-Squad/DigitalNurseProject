@@ -148,10 +148,30 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // Reset password
+  // Verify reset code
+  Future<bool> verifyResetCode(String email, String code) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final success = await _authService.verifyPasswordResetCode(email, code);
+      return success;
+    } catch (e) {
+      _error = _extractErrorMessage(e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Reset password with code
   Future<bool> resetPassword({
-    required String token,
+    required String email,
+    required String code,
     required String newPassword,
+    required String confirmPassword,
   }) async {
     _isLoading = true;
     _error = null;
@@ -159,8 +179,10 @@ class AuthProvider with ChangeNotifier {
 
     try {
       final success = await _authService.resetPassword(
-        token: token,
+        email: email,
+        code: code,
         newPassword: newPassword,
+        confirmPassword: confirmPassword,
       );
       return success;
     } catch (e) {
@@ -288,8 +310,25 @@ class AuthProvider with ChangeNotifier {
     required String userId,
     required String phone,
     required String password,
+    bool verifyFirst = true,
   }) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
     try {
+      if (verifyFirst) {
+        // First, verify with biometrics before saving
+        final authenticated = await _biometricService.authenticate(
+          localizedReason: 'Verify your identity to enable biometric login',
+        );
+
+        if (!authenticated) {
+          _error = 'Biometric verification was cancelled or failed.';
+          return false;
+        }
+      }
+
       await _authService.saveCredentialsForBiometric(
         userId: userId,
         phone: phone,
@@ -298,8 +337,40 @@ class AuthProvider with ChangeNotifier {
       return true;
     } catch (e) {
       _error = _extractErrorMessage(e);
-      notifyListeners();
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Toggle biometric login for a specific user
+  Future<bool> enableBiometric(String userId, bool enable, {String? phone, String? password}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      if (enable) {
+        if (phone == null || password == null) {
+          _error = 'Credentials are required to enable biometric login';
+          return false;
+        }
+        return await saveCredentialsForBiometric(
+          userId: userId,
+          phone: phone,
+          password: password,
+        );
+      } else {
+        await _authService.clearBiometricCredentials(userId);
+        return true;
+      }
+    } catch (e) {
+      _error = _extractErrorMessage(e);
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

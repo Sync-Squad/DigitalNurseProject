@@ -93,18 +93,16 @@ class LifestyleMapper {
         break;
     }
 
-    // Format date as YYYY-MM-DD (date only, not datetime)
-    // Convert to Pakistan timezone first to ensure correct date extraction
-    // Extract date components ensuring we use Pakistan timezone perspective
-    final logDate = TimezoneUtil.toPakistanTimeIso8601(
-      diet.timestamp,
-    ).split('T')[0];
+    // Format timestamp as full ISO8601 with Pakistan timezone offset
+    final timestamp = TimezoneUtil.toPakistanTimeIso8601(diet.timestamp);
+    // Send only the date part (YYYY-MM-DD) for maximum compatibility with @IsDateString()
+    final logDate = timestamp.split('T')[0];
 
     return {
       'mealType': mealType,
-      'description': diet.description,
+      'description': diet.description.isEmpty ? 'Meal' : diet.description,
       'calories': diet.calories,
-      'logDate': logDate,
+      'logDate': logDate, 
       if (elderUserId != null && elderUserId.isNotEmpty)
         'elderUserId': elderUserId,
     };
@@ -224,16 +222,14 @@ class LifestyleMapper {
         break;
     }
 
-    // Format date as YYYY-MM-DD (date only, not datetime)
-    // Convert to Pakistan timezone first to ensure correct date extraction
-    // Extract date components ensuring we use Pakistan timezone perspective
-    final logDate = TimezoneUtil.toPakistanTimeIso8601(
-      exercise.timestamp,
-    ).split('T')[0];
+    // Format timestamp as full ISO8601 with Pakistan timezone offset
+    final timestamp = TimezoneUtil.toPakistanTimeIso8601(exercise.timestamp);
+    // Send only the date part (YYYY-MM-DD) for maximum compatibility with @IsDateString()
+    final logDate = timestamp.split('T')[0];
 
     return {
       'activityType': activityType,
-      'description': exercise.description,
+      'description': exercise.description.isEmpty ? 'Workout' : exercise.description,
       'durationMinutes': exercise.durationMinutes,
       'caloriesBurned': exercise.caloriesBurned,
       'logDate': logDate,

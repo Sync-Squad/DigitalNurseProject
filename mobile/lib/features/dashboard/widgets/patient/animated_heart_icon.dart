@@ -239,24 +239,69 @@ class _HeartFillPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final bounds = path.getBounds();
 
-    // Create gradient from darker red at bottom to lighter red at top
-    final gradient = LinearGradient(
-      begin: Alignment.bottomCenter,
-      end: Alignment.topCenter,
+    // 1. Base Gradient (Dark Red to Light Red)
+    // We create a more complex gradient for a 3D "spherical" feel
+    final baseGradient = RadialGradient(
+      center: const Alignment(-0.2, -0.3), // Light source from top-left
+      radius: 0.8,
       colors: [
-        fillColor.withOpacity(0.9), // Darker at bottom
-        fillColor, // Original color in middle
-        fillColor.withOpacity(0.95), // Slightly lighter at top
+        const Color(0xFFFF5252), // Light Red (Highlight)
+        const Color(0xFFD32F2F), // Medium Red
+        const Color(0xFF8B0000), // Dark Red
       ],
-      stops: const [0.0, 0.5, 1.0],
+      stops: const [0.0, 0.6, 1.0],
     );
 
-    final paint = Paint()
-      ..shader = gradient.createShader(bounds)
+    final basePaint = Paint()
+      ..shader = baseGradient.createShader(bounds)
       ..style = PaintingStyle.fill;
 
-    // Draw the entire heart path filled with gradient
-    canvas.drawPath(path, paint);
+    // Draw base heart
+    canvas.drawPath(path, basePaint);
+
+    // 2. Inner Shadow/Glow for Depth
+    // We draw a slightly smaller path with a blurred shadow
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3.0);
+
+    canvas.drawPath(path, shadowPaint);
+
+    // 3. Glossy Highlight (Top-Left)
+    // Add a subtle white semi-transparent oval to simulate reflection
+    final highlightPath = Path();
+    final highlightBounds = Rect.fromLTWH(
+      bounds.left + bounds.width * 0.15,
+      bounds.top + bounds.height * 0.1,
+      bounds.width * 0.35,
+      bounds.height * 0.25,
+    );
+    
+    highlightPath.addOval(highlightBounds);
+
+    final highlightPaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Colors.white.withOpacity(0.6),
+          Colors.white.withOpacity(0.0),
+        ],
+      ).createShader(highlightBounds)
+      ..style = PaintingStyle.fill;
+
+    canvas.drawPath(highlightPath, highlightPaint);
+    
+    // 4. Subtle Outer Glow
+    final outerGlowPaint = Paint()
+      ..color = const Color(0xFFFF0000).withOpacity(0.2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0
+      ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 4.0);
+      
+    canvas.drawPath(path, outerGlowPaint);
   }
 
   @override

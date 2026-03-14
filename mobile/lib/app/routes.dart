@@ -40,6 +40,9 @@ import '../features/ai/screens/ai_insights_screen.dart';
 import '../features/ai/screens/health_analysis_screen.dart';
 import '../features/ai/screens/semantic_search_screen.dart';
 import '../features/ai/screens/document_qa_screen.dart';
+import '../features/auth/screens/forgot_password_screen.dart';
+import '../features/auth/screens/verify_reset_code_screen.dart';
+import '../features/auth/screens/reset_password_screen.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/welcome',
@@ -55,6 +58,9 @@ final goRouter = GoRouter(
       '/register',
       '/email-verification',
       '/invitation-accept',
+      '/forgot-password',
+      '/verify-reset-code',
+      '/reset-password',
     ];
 
     final isPublicRoute = publicRoutes.any(
@@ -118,6 +124,25 @@ final goRouter = GoRouter(
         final email = state.uri.queryParameters['email'] ?? '';
         final token = state.uri.queryParameters['token'];
         return EmailVerificationScreen(email: email, token: token);
+      },
+    ),
+    GoRoute(
+      path: '/forgot-password',
+      builder: (context, state) => const ForgotPasswordScreen(),
+    ),
+    GoRoute(
+      path: '/verify-reset-code',
+      builder: (context, state) {
+        final email = state.uri.queryParameters['email'] ?? '';
+        return VerifyResetCodeScreen(email: email);
+      },
+    ),
+    GoRoute(
+      path: '/reset-password',
+      builder: (context, state) {
+        final email = state.uri.queryParameters['email'] ?? '';
+        final code = state.uri.queryParameters['code'] ?? '';
+        return ResetPasswordScreen(email: email, code: code);
       },
     ),
 
