@@ -536,19 +536,27 @@ class _TrendsLineChart extends StatelessWidget {
 
     final minY = dataPoints.map((p) => p.value).reduce((a, b) => a < b ? a : b);
     final maxY = dataPoints.map((p) => p.value).reduce((a, b) => a > b ? a : b);
-    final padding = (maxY - minY) * 0.1;
-
-    final adjustedMinY = (minY - padding)
-        .clamp(0.0, double.infinity)
-        .toDouble();
+    
+    // Ensure we have a non-zero range to avoid division by zero in intervals
+    double range = maxY - minY;
+    if (range == 0) {
+      range = maxY == 0 ? 10.0 : maxY * 0.2;
+    }
+    
+    final padding = range * 0.1;
+    final adjustedMinY = (minY - padding).clamp(0.0, double.infinity).toDouble();
     final adjustedMaxY = maxY + padding;
+    
+    // Ensure final range is not zero
+    final finalDiff = adjustedMaxY - adjustedMinY;
+    final interval = finalDiff > 0 ? finalDiff / 4 : 1.0;
 
     return LineChart(
       LineChartData(
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          horizontalInterval: (adjustedMaxY - adjustedMinY) / 4,
+          horizontalInterval: interval,
           getDrawingHorizontalLine: (value) {
             return FlLine(
               color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
@@ -597,7 +605,7 @@ class _TrendsLineChart extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 45,
-              interval: (adjustedMaxY - adjustedMinY) / 4,
+              interval: interval,
               getTitlesWidget: (value, meta) {
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
@@ -693,8 +701,15 @@ class _TrendsBarChart extends StatelessWidget {
     final entries = data.entries.toList();
     final maxY = data.values.reduce((a, b) => a > b ? a : b);
     final minY = data.values.reduce((a, b) => a < b ? a : b);
-    final padding = (maxY - minY) * 0.15;
-    final adjustedMaxY = maxY + padding;
+    
+    double range = maxY - minY;
+    if (range == 0) {
+      range = maxY == 0 ? 10.0 : maxY * 0.2;
+    }
+    
+    final padding = range * 0.15;
+    final adjustedMaxY = maxY + padding == 0 ? 10.0 : maxY + padding;
+    final interval = adjustedMaxY / 4;
 
     return BarChart(
       BarChartData(
@@ -753,7 +768,7 @@ class _TrendsBarChart extends StatelessWidget {
             sideTitles: SideTitles(
               showTitles: true,
               reservedSize: 45,
-              interval: adjustedMaxY / 4,
+              interval: interval,
               getTitlesWidget: (value, meta) {
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
@@ -772,7 +787,7 @@ class _TrendsBarChart extends StatelessWidget {
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,
-          horizontalInterval: adjustedMaxY / 4,
+          horizontalInterval: interval,
           getDrawingHorizontalLine: (value) {
             return FlLine(
               color: Theme.of(context).colorScheme.outline.withOpacity(0.2),
