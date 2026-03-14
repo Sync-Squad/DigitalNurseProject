@@ -49,5 +49,5 @@ EXPOSE 3000
 
 ENTRYPOINT ["dumb-init", "--"]
 
-# Sync database schema and start the app
-CMD ["sh", "-c", "./node_modules/.bin/prisma db push --skip-generate && node dist/main.js"]
+# Start the app
+CMD ["node", "dist/src/main.js"]
