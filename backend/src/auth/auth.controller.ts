@@ -68,11 +68,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Google OAuth callback' })
   async googleAuthRedirect(@Req() req: any, @Res() res: any) {
     const tokens = await this.authService['generateTokens'](req.user);
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL');
+    const appBaseUrl = this.configService.get<string>('APP_BASE_URL') || this.configService.get<string>('FRONTEND_URL');
 
     // Redirect to frontend with tokens
     res.redirect(
-      `${frontendUrl}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
+      `${appBaseUrl}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
     );
   }
 

@@ -242,8 +242,8 @@ export class SubscriptionsService {
             },
           ],
           mode: 'subscription',
-          success_url: `${this.configService.get<string>('FRONTEND_URL')}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-          cancel_url: `${this.configService.get<string>('FRONTEND_URL')}/subscription/cancel`,
+          success_url: `${this.configService.get<string>('APP_BASE_URL') || this.configService.get<string>('FRONTEND_URL')}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${this.configService.get<string>('APP_BASE_URL') || this.configService.get<string>('FRONTEND_URL')}/subscription/cancel`,
           metadata: {
             userId,
             planType,

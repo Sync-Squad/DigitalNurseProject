@@ -245,16 +245,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 final authProvider = context.read<AuthProvider>();
                 final currentUser = authProvider.currentUser;
                 if (currentUser != null) {
-                  final success = await authProvider
-                      .saveCredentialsForBiometric(
-                        userId: userId,
-                        phone: _emailController.text
-                            .trim(), // Using email as identifier
-                        password: _passwordController.text,
-                      );
+                  final success = await authProvider.saveCredentialsForBiometric(
+                    userId: userId,
+                    phone: _emailController.text.trim(), // Using email as identifier
+                    password: _passwordController.text,
+                    verifyFirst: true, // This will trigger the biometric verification prompt
+                  );
                   if (mounted && success) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
+                      const SnackBar(
                         content: Text('Biometric login enabled successfully'),
                       ),
                     );

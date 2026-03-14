@@ -13,7 +13,7 @@ export class EmailService {
   private transporter: nodemailer.Transporter | null = null;
   private readonly fromEmail: string;
   private readonly appName: string;
-  private readonly frontendUrl: string;
+  private readonly appBaseUrl: string;
 
   constructor(private configService: ConfigService) {
     const smtpHost = this.configService.get<string>('SMTP_HOST')?.trim();
@@ -88,7 +88,8 @@ export class EmailService {
       this.configService.get<string>('MAIL_FROM') ||
       'Sync Squad <hcn@sync-squad.com>';
     this.appName = this.configService.get<string>('APP_NAME') || 'Digital Nurse';
-    this.frontendUrl =
+    this.appBaseUrl =
+      this.configService.get<string>('APP_BASE_URL') ||
       this.configService.get<string>('FRONTEND_URL') ||
       'http://100.42.177.77:3000';
   }
@@ -104,7 +105,7 @@ export class EmailService {
         return false;
       }
 
-      const verificationUrl = `${this.frontendUrl}/email-verification?token=${token}`;
+      const verificationUrl = `${this.appBaseUrl}/email-verification?token=${token}`;
       const html = verificationEmailTemplate({
         name: name || 'User',
         verificationUrl,
@@ -139,7 +140,7 @@ export class EmailService {
         return false;
       }
 
-      const registrationUrl = `${this.frontendUrl}/register?inviteCode=${inviteCode}`;
+      const registrationUrl = `${this.appBaseUrl}/register?inviteCode=${inviteCode}`;
       const html = caregiverInvitationEmailTemplate({
         inviteCode,
         patientName,
