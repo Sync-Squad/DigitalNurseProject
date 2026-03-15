@@ -114,6 +114,22 @@ class MedicationMapper {
       if (periodicDays.isEmpty) periodicDays = null;
     }
 
+    // Parse priority
+    MedicinePriority priority = MedicinePriority.medium;
+    if (json['priority'] != null) {
+      final priorityStr = json['priority'].toString().toLowerCase();
+      switch (priorityStr) {
+        case 'low':
+          priority = MedicinePriority.low;
+          break;
+        case 'high':
+          priority = MedicinePriority.high;
+          break;
+        default:
+          priority = MedicinePriority.medium;
+      }
+    }
+
     return MedicineModel(
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
@@ -128,6 +144,7 @@ class MedicationMapper {
       strength: json['strength']?.toString(),
       doseAmount: json['doseAmount']?.toString(),
       periodicDays: periodicDays,
+      priority: priority,
     );
   }
 
@@ -212,6 +229,7 @@ class MedicationMapper {
       if (medicine.doseAmount != null) 'doseAmount': medicine.doseAmount,
       if (medicine.periodicDays != null) 'periodicDays': medicine.periodicDays,
       if (elderUserId != null) 'elderUserId': elderUserId,
+      'priority': medicine.priority.name,
     };
   }
 

@@ -40,6 +40,22 @@ class _DueRemindersRowState extends State<DueRemindersRow> {
              scheduled.isBefore(now.add(const Duration(minutes: 30)));
     }).toList();
 
+    // Sort: High Priority first, then by time
+    dueReminders.sort((a, b) {
+      final medA = a['medicine'] as MedicineModel;
+      final medB = b['medicine'] as MedicineModel;
+      final timeA = a['reminderTime'] as DateTime;
+      final timeB = b['reminderTime'] as DateTime;
+
+      if (medA.priority == MedicinePriority.high && medB.priority != MedicinePriority.high) {
+        return -1;
+      }
+      if (medB.priority == MedicinePriority.high && medA.priority != MedicinePriority.high) {
+        return 1;
+      }
+      return timeA.compareTo(timeB);
+    });
+
     if (allReminders.isEmpty) {
       return const SizedBox.shrink(); // No reminders at all from service
     }

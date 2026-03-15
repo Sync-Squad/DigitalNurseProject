@@ -399,6 +399,7 @@ class MedicationService {
               map['reminderTime']?.toString() ??
                   DateTime.now().toIso8601String(),
             ),
+            'status': map['status']?.toString() ?? 'pending',
           };
         }).toList();
         _log('✅ Fetched ${reminders.length} upcoming reminders');
@@ -429,70 +430,39 @@ class MedicationService {
     String? elderUserId,
   }) async {
     _log(
-      '📊 Calculating adherence percentage for user: $userId (last $days days)',
+      '📊 Calculating overall adherence percentage for user: $userId (last $days days)',
     );
 
-    final medicines = await getMedicines(userId, elderUserId: elderUserId);
-    if (medicines.isEmpty) {
-      _log('✅ No medications found, returning 100% adherence');
-      return 100.0;
-    }
+    try {
+      final response = await _apiService.get(
+        '/medications/adherence',
+        queryParameters: {
+          'days': days.toString(),
+          if (elderUserId != null) 'elderUserId': elderUserId,
+        },
+      );
 
-    // Calculate overall adherence using global method (all intakes combined)
-    // This matches the backend calculation and is more medically accurate
-    int totalIntakes = 0;
-    int takenIntakes = 0;
-
-    for (var medicine in medicines) {
-      try {
-        final response = await _apiService.get(
-          '/medications/${medicine.id}/adherence',
-          queryParameters: {
-            'days': days.toString(),
-            if (elderUserId != null) 'elderUserId': elderUserId,
-          },
-        );
-
-        if (response.statusCode == 200) {
-          final data = response.data;
-          final total = (data['total'] ?? 0) as int;
-          final taken = (data['taken'] ?? 0) as int;
-          totalIntakes += total;
-          takenIntakes += taken;
-        }
-      } catch (e) {
-        _log('⚠️ Warning: Failed to get adherence for ${medicine.id}: $e');
-        // Continue with other medications
+      if (response.statusCode == 200) {
+        final data = response.data;
+        final rate = (data['adherenceRate'] ?? 1.0) as double;
+        final percentage = rate * 100;
+        _log('✅ Overall adherence: ${percentage.toStringAsFixed(1)}%');
+        return percentage;
       }
+    } catch (e) {
+      _log('⚠️ Warning: Failed to get overall adherence: $e');
     }
 
-    if (totalIntakes == 0) {
-      return 100.0;
-    }
-
-    final adherencePercentage = (takenIntakes / totalIntakes) * 100;
-    _log(
-      '✅ Overall adherence: ${adherencePercentage.toStringAsFixed(1)}% ($takenIntakes/$totalIntakes)',
-    );
-    return adherencePercentage;
+    return 100.0;
   }
 
   // Get adherence streak (consecutive days with 100% adherence)
   Future<int> getAdherenceStreak(String userId, {String? elderUserId}) async {
-    _log('🔥 Calculating adherence streak for user: $userId');
+    _log('🔥 Calculating overall adherence streak for user: $userId');
 
-    final medicines = await getMedicines(userId, elderUserId: elderUserId);
-    if (medicines.isEmpty) {
-      _log('✅ No medications found, returning 0 streak');
-      return 0;
-    }
-
-    // Get streak for the first medication (or calculate overall)
-    // For simplicity, we'll use the first medication's streak
-    // In a more sophisticated implementation, we'd calculate overall streak
     try {
       final response = await _apiService.get(
-        '/medications/${medicines.first.id}/streak',
+        '/medications/adherence/streak',
         queryParameters: elderUserId != null
             ? {'elderUserId': elderUserId}
             : null,
@@ -501,11 +471,11 @@ class MedicationService {
       if (response.statusCode == 200) {
         final data = response.data;
         final streak = (data['streak'] ?? 0) as int;
-        _log('✅ Adherence streak: $streak days');
+        _log('✅ Overall adherence streak: $streak days');
         return streak;
       }
     } catch (e) {
-      _log('⚠️ Warning: Failed to get streak: $e');
+      _log('⚠️ Warning: Failed to get overall streak: $e');
     }
 
     return 0;

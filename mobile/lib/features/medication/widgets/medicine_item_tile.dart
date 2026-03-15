@@ -72,9 +72,33 @@ class MedicineItemTile extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 4.h),
-                    Text(
-                      '${medicine.dosage} • $timeDisplay',
-                      style: textTheme.bodySmall?.copyWith(color: muted),
+                    Row(
+                      children: [
+                        Text(
+                          '${medicine.dosage} • $timeDisplay',
+                          style: textTheme.bodySmall?.copyWith(color: muted),
+                        ),
+                        SizedBox(width: 8.w),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                          decoration: BoxDecoration(
+                            color: medicine.priority == MedicinePriority.high 
+                                ? Colors.red.withOpacity(0.1) 
+                                : Colors.blue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            medicine.priority.name.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 8.sp,
+                              fontWeight: FontWeight.bold,
+                              color: medicine.priority == MedicinePriority.high 
+                                  ? Colors.red 
+                                  : Colors.blue,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),

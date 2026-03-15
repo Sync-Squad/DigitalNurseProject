@@ -228,35 +228,16 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         '🔵 [MEDICINE_DETAIL] Final scheduled time (UTC): ${scheduledTime.toUtc()}',
       );
 
+      // Determine time of day label
+      final timeLabel = timeToUse != null
+          ? _getTimeOfDayLabel(timeToUse)
+          : 'medication.detail.atThisTime'.tr();
+
       // Check for existing intake record for this specific timing
+      // We no longer block updating, but we can log that we are updating
       final existingIntake = _hasExistingIntakeForTime(scheduledTime);
-      if (existingIntake != null) {
-        // Determine time of day label
-        final timeLabel = timeToUse != null
-            ? _getTimeOfDayLabel(timeToUse)
-            : 'medication.detail.atThisTime'.tr();
-
-        // Show toast message indicating duplicate
-        if (mounted) {
-          final statusLabel = existingIntake.status == IntakeStatus.taken
-              ? 'medication.status.taken'.tr()
-              : 'medication.status.missed'.tr();
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'medication.detail.alreadyMarked'.tr(namedArgs: {
-                  'status': statusLabel,
-                  'time': timeLabel,
-                }),
-              ),
-              backgroundColor: AppTheme.getWarningColor(context),
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-
-        // Clear logging status and return early
+      if (existingIntake != null && existingIntake.status == status) {
+        // If same status, just return early (no need to update to same thing)
         if (mounted) {
           setState(() {
             _loggingStatus = null;
@@ -502,6 +483,18 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
             _QuickActions(
               onLog: _handleLogIntake,
               loggingStatus: _loggingStatus,
+              currentStatus: widget.selectedDate != null || widget.reminderTime != null 
+                ? _hasExistingIntakeForTime(
+                    () {
+                      final targetDate = widget.selectedDate ?? DateTime.now();
+                      final timeToUse = widget.reminderTime ?? (medicine.reminderTimes.isNotEmpty ? medicine.reminderTimes.first : "08:00");
+                      final parts = timeToUse.split(':');
+                      final hour = int.tryParse(parts[0]) ?? 8;
+                      final minute = int.tryParse(parts[1]) ?? 0;
+                      return DateTime(targetDate.year, targetDate.month, targetDate.day, hour, minute);
+                    }()
+                  )?.status
+                : null,
             ),
             SizedBox(height: 24.h),
             Text(
@@ -721,34 +714,78 @@ class _MedicineInfoCard extends StatelessWidget {
                         color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
                       ),
                     ),
-                    if (reminderTime != null) ...[
+                    if (reminderTime != null || medicine.priority != MedicinePriority.medium) ...[
                       SizedBox(height: 8.h),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 6.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: ModernSurfaceTheme.primaryTeal.withOpacity(
-                            0.15,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: ModernSurfaceTheme.primaryTeal.withOpacity(
-                              0.3,
-                            ),
-                            width: 1,
-                          ),
-                        ),
-                        child: Text(
-                          _getTimeOfDayLabel(reminderTime!),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(
-                                color: ModernSurfaceTheme.primaryTeal,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12.sp,
+                      Row(
+                        children: [
+                          if (reminderTime != null)
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12.w,
+                                vertical: 6.h,
                               ),
-                        ),
+                              decoration: BoxDecoration(
+                                color: ModernSurfaceTheme.primaryTeal.withOpacity(
+                                  0.15,
+                                ),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: ModernSurfaceTheme.primaryTeal.withOpacity(
+                                    0.3,
+                                  ),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                _getTimeOfDayLabel(reminderTime!),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: ModernSurfaceTheme.primaryTeal,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12.sp,
+                                    ),
+                              ),
+                            ),
+                          if (reminderTime != null) SizedBox(width: 8.w),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: medicine.priority == MedicinePriority.high 
+                                  ? Colors.red.withOpacity(0.15) 
+                                  : Colors.blue.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: medicine.priority == MedicinePriority.high 
+                                    ? Colors.red.withOpacity(0.3) 
+                                    : Colors.blue.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (medicine.priority == MedicinePriority.high)
+                                  Icon(Icons.warning_rounded, size: 12.sp, color: Colors.red),
+                                if (medicine.priority == MedicinePriority.high)
+                                  SizedBox(width: 4.w),
+                                Text(
+                                  '${medicine.priority.name.capitalize()} Priority',
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(
+                                        color: medicine.priority == MedicinePriority.high 
+                                            ? Colors.red 
+                                            : Colors.blue,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12.sp,
+                                      ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ],
@@ -792,69 +829,106 @@ class _MedicineInfoCard extends StatelessWidget {
 
 class _QuickActions extends StatelessWidget {
   final Future<void> Function(IntakeStatus status) onLog;
-  final IntakeStatus?
-  loggingStatus; // Track which specific status is being logged
+  final IntakeStatus? loggingStatus;
+  final IntakeStatus? currentStatus;
 
-  const _QuickActions({required this.onLog, this.loggingStatus});
+  const _QuickActions({
+    required this.onLog, 
+    this.loggingStatus,
+    this.currentStatus,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isLoggingTaken = loggingStatus == IntakeStatus.taken;
-    final isLoggingMissed = loggingStatus == IntakeStatus.missed;
-    final isAnyLogging = loggingStatus != null;
+    return Container(
+      decoration: ModernSurfaceTheme.glassCard(context),
+      padding: EdgeInsets.all(20.w),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _ActionButton(
+            label: 'medication.status.missed'.tr(),
+            icon: FIcons.x,
+            color: AppTheme.getErrorColor(context),
+            isLoading: loggingStatus == IntakeStatus.missed,
+            isSelected: currentStatus == IntakeStatus.missed,
+            onTap: () => onLog(IntakeStatus.missed),
+          ),
+          _ActionButton(
+            label: 'medication.status.taken'.tr(),
+            icon: FIcons.check,
+            color: AppTheme.getSuccessColor(context),
+            isLoading: loggingStatus == IntakeStatus.taken,
+            isSelected: currentStatus == IntakeStatus.taken,
+            onTap: () => onLog(IntakeStatus.taken),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton(
-            onPressed: isAnyLogging ? null : () => onLog(IntakeStatus.taken),
-            style: ElevatedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 14.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
-              backgroundColor: AppTheme.appleGreen,
-              foregroundColor: Colors.white,
+class _ActionButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final bool isLoading;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ActionButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    this.isLoading = false,
+    this.isSelected = false,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: isLoading ? null : onTap,
+      child: Column(
+        children: [
+          Container(
+            padding: EdgeInsets.all(16.w),
+            decoration: BoxDecoration(
+              color: isSelected ? color : color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: isSelected ? [
+                BoxShadow(
+                  color: color.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                )
+              ] : null,
             ),
-            child: isLoggingTaken
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
+            child: isLoading
+                ? SizedBox(
+                    width: 24,
+                    height: 24,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: isSelected ? Colors.white : color,
                     ),
                   )
-                : const Text('Mark as Taken'),
+                : Icon(
+                    icon,
+                    color: isSelected ? Colors.white : color,
+                    size: 24,
+                  ),
           ),
-        ),
-        SizedBox(width: 12.w),
-        Expanded(
-          child: OutlinedButton(
-            onPressed: isAnyLogging ? null : () => onLog(IntakeStatus.missed),
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 14.h),
-              side: BorderSide(
-                color: ModernSurfaceTheme.deepTeal.withOpacity(0.4),
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(28),
-              ),
-              foregroundColor: ModernSurfaceTheme.deepTeal,
-            ),
-            child: isLoggingMissed
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: ModernSurfaceTheme.deepTeal,
-                    ),
-                  )
-                : const Text('Mark as Missed'),
+          SizedBox(height: 8.h),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  color: isSelected ? color : ModernSurfaceTheme.deepTeal.withOpacity(0.7),
+                ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

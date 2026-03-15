@@ -183,6 +183,8 @@ class MedicationProvider with ChangeNotifier {
         elderUserId:
             elderUserId, // Don't default to userId - let backend handle it for patients
       );
+      // Refresh reminders to sync dashboard
+      await _refreshReminders(userId, elderUserId: elderUserId);
       _adherencePercentage = await _medicationService.getAdherencePercentage(
         userId,
         elderUserId: elderUserId,

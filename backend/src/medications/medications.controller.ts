@@ -143,16 +143,25 @@ export class MedicationsController {
     );
   }
 
-  @Get(':id/streak')
-  @ApiOperation({ summary: 'Get medication adherence streak' })
-  @ApiResponse({ status: 200, description: 'Adherence streak' })
   async getAdherenceStreak(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
     @Query('elderUserId') elderUserId?: string,
   ) {
     const context = await this.resolveContext(user, elderUserId);
-    return { streak: 0 }; // Placeholder
+    // Even if called with ID, we currently return overall streak as requested by context
+    return this.medicationsService.getAdherenceStreak(context);
+  }
+
+  @Get('adherence/streak')
+  @ApiOperation({ summary: 'Get overall medication adherence streak' })
+  @ApiResponse({ status: 200, description: 'Overall adherence streak' })
+  async getOverallAdherenceStreak(
+    @CurrentUser() user: any,
+    @Query('elderUserId') elderUserId?: string,
+  ) {
+    const context = await this.resolveContext(user, elderUserId);
+    return this.medicationsService.getAdherenceStreak(context);
   }
 
   @Get('adherence')

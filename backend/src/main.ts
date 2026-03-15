@@ -126,7 +126,6 @@ async function bootstrap() {
   // Email verification GET endpoint (outside /api prefix)
   const authService = app.get(AuthService);
   const caregiversService = app.get(CaregiversService);
-  const expressApp = app.getHttpAdapter().getInstance();
 
   // Registration page endpoint (outside /api prefix) for caregiver invitations
   expressApp.get('/register', async (req: any, res: any) => {

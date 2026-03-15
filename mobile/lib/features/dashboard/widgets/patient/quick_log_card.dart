@@ -45,8 +45,13 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
       
       if (medicineId == null || scheduledTime == null) return;
       
-      // Perform optimistic update callback
-      widget.onLogged();
+      // Only optimistically hide if NOT (Missed AND High priority)
+      final medicine = widget.reminder['medicine'] as MedicineModel?;
+      final bool isHighPriority = medicine?.priority == MedicinePriority.high;
+      
+      if (status != IntakeStatus.missed || !isHighPriority) {
+        widget.onLogged();
+      }
 
       final success = await medProvider.logIntake(
         medicineId: medicineId,
@@ -55,6 +60,9 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
         userId: user.id,
         elderUserId: careContext.selectedElderId,
       );
+
+      // If it failed and we optimistically hid it, we might want to refresh, 
+      // but for now let's just show the error.
 
       if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -77,19 +85,22 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
     final medicine = widget.reminder['medicine'] as MedicineModel?;
     final DateTime? time = widget.reminder['reminderTime'] as DateTime?;
 
-    if (medicine == null || time == null) return const SizedBox.shrink();
-    
+    final bool isHighPriority = medicine.priority == MedicinePriority.high;
     final String name = medicine.name;
     final timeStr = "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+
+    final Color cardColor = isHighPriority ? const Color(0xFFFFEBEE) : const Color(0xFFFFF8E1); // Light Red vs Light Amber
+    final Color accentColor = isHighPriority ? Colors.red : Colors.amber;
+    final Color textColor = isHighPriority ? Colors.red[900]! : Colors.brown[900]!;
 
     return Container(
       width: 135.w,
       margin: EdgeInsets.only(right: 12.w),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF8E1), // Light Amber glaze
+        color: cardColor,
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
-          color: Colors.amber.withOpacity(0.2),
+          color: accentColor.withOpacity(0.2),
           width: 1,
         ),
         boxShadow: [
@@ -104,21 +115,20 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
         borderRadius: BorderRadius.circular(16.r),
         child: Stack(
           children: [
-            // Colored Accent (Amber Gradient)
+            // Colored Accent
             Positioned(
               left: 0,
               top: 0,
               bottom: 0,
               width: 4.w,
               child: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.amber,
-                      Colors.orangeAccent,
-                    ],
+                    colors: isHighPriority 
+                      ? [Colors.red, Colors.redAccent]
+                      : [Colors.amber, Colors.orangeAccent],
                   ),
                 ),
               ),
@@ -128,27 +138,38 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
-                    decoration: BoxDecoration(
-                      color: Colors.amber.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4.r),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.access_time_filled, size: 8.sp, color: Colors.amber[800]),
-                        SizedBox(width: 3.w),
-                        Text(
-                          timeStr,
-                          style: TextStyle(
-                            fontSize: 8.sp,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.amber[800],
-                          ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
+                        decoration: BoxDecoration(
+                          color: accentColor.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(4.r),
                         ),
-                      ],
-                    ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.access_time_filled, size: 8.sp, color: accentColor),
+                            SizedBox(width: 3.w),
+                            Text(
+                              timeStr,
+                              style: TextStyle(
+                                fontSize: 8.sp,
+                                fontWeight: FontWeight.w800,
+                                color: accentColor,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (isHighPriority)
+                        Icon(
+                          Icons.warning_rounded,
+                          size: 12.sp,
+                          color: Colors.red,
+                        ),
+                    ],
                   ),
                   SizedBox(height: 4.h),
                   Text(
@@ -158,7 +179,7 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                     style: TextStyle(
                       fontSize: 13.sp,
                       fontWeight: FontWeight.w800,
-                      color: Colors.brown[900],
+                      color: textColor,
                       height: 1.1,
                     ),
                   ),
@@ -166,24 +187,58 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                   if (_isLogging)
                     Center(
                       child: SizedBox(
-                        height: 16.sp,
-                        width: 16.sp,
-                        child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.amber),
+                        height: 20.h,
+                        width: 20.h,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2, 
+                          color: accentColor,
+                        ),
                       ),
                     )
                   else
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        _ActionButton(
-                          icon: Icons.close_rounded,
-                          color: Colors.redAccent,
-                          onTap: () => _handleStatus(context, IntakeStatus.missed),
-                        ),
-                        _ActionButton(
-                          icon: Icons.check_rounded,
-                          color: AppTheme.appleGreen,
-                          onTap: () => _handleStatus(context, IntakeStatus.taken),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (isHighPriority && time.isBefore(DateTime.now()))
+                                Text(
+                                  () {
+                                    final diff = DateTime.now().difference(time);
+                                    if (diff.inHours > 0) {
+                                      return '${diff.inHours}h overdue';
+                                    }
+                                    return '${diff.inMinutes}m overdue';
+                                  }(),
+                                  style: TextStyle(
+                                    fontSize: 9.sp,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.red[700],
+                                  ),
+                                ),
+                              Row(
+                                children: [
+                                  _ActionButton(
+                                    icon: Icons.close_rounded,
+                                    color: Colors.redAccent,
+                                    isSelected: widget.reminder['status'] == 'missed',
+                                    onTap: () => _handleStatus(context, IntakeStatus.missed),
+                                  ),
+                                  SizedBox(width: 8.w),
+                                  _ActionButton(
+                                    icon: Icons.check_rounded,
+                                    color: AppTheme.appleGreen,
+                                    isSelected: widget.reminder['status'] == 'taken',
+                                    onTap: () => _handleStatus(context, IntakeStatus.taken),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -200,11 +255,13 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
 class _ActionButton extends StatelessWidget {
   final IconData icon;
   final Color color;
+  final bool isSelected;
   final VoidCallback onTap;
 
   const _ActionButton({
     required this.icon,
     required this.color,
+    this.isSelected = false,
     required this.onTap,
   });
 
@@ -218,13 +275,20 @@ class _ActionButton extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(6.w),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
+          color: isSelected ? color : color.withOpacity(0.08),
           shape: BoxShape.circle,
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: color.withOpacity(0.3),
+              blurRadius: 4,
+              spreadRadius: 1,
+            )
+          ] : null,
         ),
         child: Icon(
           icon,
           size: 16.sp,
-          color: color,
+          color: isSelected ? Colors.white : color,
         ),
       ),
     );
