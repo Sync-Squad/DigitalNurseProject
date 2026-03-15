@@ -1,12 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
 import { ActorContext } from '../common/services/access-control.service';
 import { getPKTDate } from '../common/utils/date-utils';
+import { FirebaseService } from '../firebase/firebase.service';
 
 @Injectable()
 export class NotificationsService {
-  constructor(private prisma: PrismaService) { }
+  private readonly logger = new Logger(NotificationsService.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private firebaseService: FirebaseService,
+  ) { }
 
   /**
    * Create notification
@@ -29,7 +35,68 @@ export class NotificationsService {
       },
     });
 
+    // Trigger push notification asynchronously
+    if (!createDto.scheduledTime) {
+      this.sendToUser(context.elderUserId, createDto.title, createDto.body, {
+        notificationId: notification.notificationId.toString(),
+        type: createDto.type || 'general',
+        ...createDto.actionData,
+      }).catch((err) => this.logger.error(`Failed to send push for notification ${notification.notificationId}`, err));
+    }
+
     return this.mapToResponse(notification);
+  }
+
+  /**
+   * Send notification to all devices of a user
+   */
+  async sendToUser(userId: bigint, title: string, body: string, data?: any) {
+    const devices = await this.prisma.userDevice.findMany({
+      where: {
+        userId,
+        pushToken: { not: null },
+      },
+    });
+
+    if (devices.length === 0) {
+      this.logger.debug(`No devices found for user ${userId}. Skipping push.`);
+      return;
+    }
+
+    this.logger.log(`Sending notification to ${devices.length} devices for user ${userId}`);
+
+    const results = await Promise.all(
+      devices.map(async (device) => {
+        const result = await this.firebaseService.sendToDevice(device.pushToken!, {
+          title,
+          body,
+          data: data ? Object.fromEntries(Object.entries(data).map(([k, v]) => [k, String(v)])) : {},
+        });
+
+        // Log the result
+        await this.prisma.notification_logs.create({
+          data: {
+            notificationId: 0n, // We don't always have a notificationId context here if called directly
+            deliveryStatus: result?.success ? 'success' : 'failure',
+            responseMessage: result?.success ? `MessageID: ${result.messageId}` : `Error: ${result?.error}`,
+            createdAt: getPKTDate(),
+          },
+        });
+
+        // Cleanup invalid tokens
+        if (!result?.success && (result?.code === 'messaging/invalid-registration-token' || result?.code === 'messaging/registration-token-not-registered')) {
+          this.logger.warn(`Removing invalid push token for device ${device.deviceId}`);
+          await this.prisma.userDevice.update({
+            where: { deviceId: device.deviceId },
+            data: { pushToken: null },
+          });
+        }
+
+        return result;
+      }),
+    );
+
+    return results;
   }
 
   /**

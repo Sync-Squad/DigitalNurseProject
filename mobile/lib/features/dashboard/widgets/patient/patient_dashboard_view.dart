@@ -754,37 +754,22 @@ class _BeatingHeartState extends State<_BeatingHeart>
   @override
   void initState() {
     super.initState();
-    // Speed: 100% adherence = 800ms, 0% adherence = 2000ms
-    final durationMs = (2000 - (1200 * (widget.adherencePercentage / 100)))
-        .toInt()
-        .clamp(600, 2000);
-
+    // Requirements: Very slow heartbeat pulse every 2 seconds (1s pulse, 1s rest/reverse)
     _controller = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: durationMs),
+      duration: const Duration(seconds: 1),
     )..repeat(reverse: true);
 
-    // Intensity: Higher adherence = slightly more pronounced pulse
-    final intensity = 0.1 + (0.1 * (widget.adherencePercentage / 100));
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.0 + intensity).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
+    // Requirements: Scale 1 -> 1.05 -> 1
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
 
   @override
   void didUpdateWidget(_BeatingHeart oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.adherencePercentage != widget.adherencePercentage) {
-      final durationMs = (2000 - (1200 * (widget.adherencePercentage / 100)))
-          .toInt()
-          .clamp(600, 2000);
-      _controller.duration = Duration(milliseconds: durationMs);
-
-      final intensity = 0.1 + (0.1 * (widget.adherencePercentage / 100));
-      _scaleAnimation = Tween<double>(begin: 1.0, end: 1.0 + intensity).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeInOutSine),
-      );
-    }
+    // Keep fixed 2s cycle as per medical aesthetic requirement
   }
 
   @override
@@ -799,12 +784,13 @@ class _BeatingHeartState extends State<_BeatingHeart>
     final adherence = widget.adherencePercentage;
     final progress = (adherence / 100).clamp(0.0, 1.0);
 
-    // Permanent Shiny Red-Pink Gradient Colors
-    const Color fillColor = Color(0xFFFF4D6D); // Pink-Red
-    const Color secondaryColor = Color(0xFFFF85A1); // Lighter Pink
-    const Color shineColor = Colors.white; // Glossy highlight
+    // Medical Gradient Palette
+    const Color topColor = Color(0xFFFF6B81);
+    const Color midColor = Color(0xFFFF4D6D);
+    const Color bottomColor = Color(0xFFE63946);
+    const Color glowColor = Color(0x40FF506E); // rgba(255, 80, 110, 0.25)
 
-    final emptyColor = Colors.white.withValues(alpha: 0.2);
+    final emptyColor = Colors.white.withOpacity(0.15);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -814,42 +800,73 @@ class _BeatingHeartState extends State<_BeatingHeart>
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // 1. Background Layer: Empty Heart
+              // 1. Atmosphere Glow (Outer shadow on dummy icon)
+              Icon(
+                Icons.favorite,
+                color: Colors.transparent,
+                size: 30.w,
+                shadows: [
+                  Shadow(
+                    color: glowColor,
+                    offset: Offset.zero,
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+              // 2. Background Layer: Empty Heart
               Icon(
                 Icons.favorite,
                 color: emptyColor,
                 size: 30.w,
               ),
-              // 2. Foreground Layer: Filled Shiny Heart (Clipped)
+              // 3. Main Gradient Heart (Clipped for progress)
               ClipRect(
                 clipper: _HeartClipper(progress: progress),
-                child: ShaderMask(
-                  blendMode: BlendMode.srcIn,
-                  shaderCallback: (Rect bounds) {
-                    return const LinearGradient(
-                      begin: Alignment.bottomCenter,
-                      end: Alignment.topCenter,
-                      colors: [
-                        fillColor,
-                        secondaryColor,
-                        shineColor,
-                        secondaryColor,
-                      ],
-                      stops: [0.0, 0.4, 0.7, 1.0],
-                    ).createShader(bounds);
-                  },
-                  child: Icon(
-                    Icons.favorite,
-                    color: Colors.white,
-                    size: 30.w,
-                    shadows: [
-                      Shadow(
-                        color: fillColor.withValues(alpha: 0.3),
-                        offset: const Offset(0, 0),
-                        blurRadius: 10,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Base Gradient
+                    ShaderMask(
+                      blendMode: BlendMode.srcIn,
+                      shaderCallback: (Rect bounds) {
+                        return const LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [topColor, midColor, bottomColor],
+                        ).createShader(bounds);
+                      },
+                      child: Icon(
+                        Icons.favorite,
+                        color: Colors.white,
+                        size: 30.w,
                       ),
-                    ],
-                  ),
+                    ),
+                    // Inner Soft Depth Shadow (Slightly offset dark icon)
+                    Opacity(
+                      opacity: 0.3,
+                      child: Padding(
+                        padding: EdgeInsets.only(top: 1.h, left: 1.w),
+                        child: Icon(
+                          Icons.favorite,
+                          color: Colors.black,
+                          size: 29.w,
+                        ),
+                      ),
+                    ),
+                    // Subtle Top-Left Inner Reflection
+                    Positioned(
+                      top: 6.h,
+                      left: 6.w,
+                      child: Container(
+                        width: 4.w,
+                        height: 2.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.3),
+                          borderRadius: BorderRadius.all(Radius.elliptical(4.w, 2.h)),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -861,7 +878,7 @@ class _BeatingHeartState extends State<_BeatingHeart>
           style: textTheme.labelSmall?.copyWith(
             fontWeight: FontWeight.w900,
             color: Colors.white,
-            fontSize: 12.sp,
+            fontSize: 10.sp,
           ),
         ),
       ],

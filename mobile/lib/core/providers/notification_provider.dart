@@ -50,8 +50,8 @@ class NotificationProvider with ChangeNotifier {
   }
 
   // Mark as read
-  Future<void> markAsRead(String notificationId) async {
-    await _notificationService.markAsRead(notificationId);
+  Future<void> markAsRead(String notificationId, {String? elderUserId}) async {
+    await _notificationService.markAsRead(notificationId, elderUserId: elderUserId);
     final index = _notifications.indexWhere((n) => n.id == notificationId);
     if (index != -1 && !_notifications[index].isRead) {
       _notifications[index] = _notifications[index].copyWith(isRead: true);
@@ -103,9 +103,8 @@ class NotificationProvider with ChangeNotifier {
     await _notificationService.unsubscribeFromTopic(topic);
   }
 
-  // Initialize mock data
+  // Initialize mock data (now loads real data)
   Future<void> initializeMockData() async {
-    _notificationService.initializeMockData();
     await loadNotifications();
   }
 

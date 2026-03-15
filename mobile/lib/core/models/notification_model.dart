@@ -54,13 +54,26 @@ class NotificationModel {
       id: json['id'],
       title: json['title'],
       body: json['body'],
-      type: NotificationType.values.firstWhere(
-        (e) => e.toString() == json['type'],
-      ),
+      type: _resolveType(json['type']),
       timestamp: DateTime.parse(json['timestamp']),
-      isRead: json['isRead'],
+      isRead: json['isRead'] ?? false,
       actionData: json['actionData'],
     );
+  }
+
+  static NotificationType _resolveType(String? type) {
+    switch (type) {
+      case 'medicineReminder':
+        return NotificationType.medicineReminder;
+      case 'healthAlert':
+        return NotificationType.healthAlert;
+      case 'caregiverInvitation':
+        return NotificationType.caregiverInvitation;
+      case 'missedDose':
+        return NotificationType.missedDose;
+      default:
+        return NotificationType.general;
+    }
   }
 }
 

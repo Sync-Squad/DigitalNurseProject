@@ -26,6 +26,19 @@ export class NotificationsController {
     private readonly accessControlService: AccessControlService,
   ) {}
 
+  @Post('test-push')
+  @ApiOperation({ summary: 'Send a test push notification (Development only)' })
+  async testPush(
+    @Body() body: { userId: string; title: string; message: string; data?: any },
+  ) {
+    return this.notificationsService.sendToUser(
+      BigInt(body.userId),
+      body.title,
+      body.message,
+      body.data,
+    );
+  }
+
   private async resolveContext(user: any, elderUserId?: string) {
     return this.accessControlService.resolveActorContext(user, elderUserId);
   }

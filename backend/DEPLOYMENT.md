@@ -236,3 +236,29 @@ After successful deployment:
 - [NestJS Deployment Guide](https://docs.nestjs.com/recipes/deployment)
 - [Prisma Deployment Guide](https://www.prisma.io/docs/guides/deployment)
 
+## Push Notifications (Firebase)
+
+The system is now integrated with Firebase Cloud Messaging (FCM). To enable push notifications:
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Open Project Settings → Service Accounts
+3. Click "Generate new private key"
+4. Note Down the values from the JSON and add them to your `.env` file:
+   ```env
+   FIREBASE_PROJECT_ID=your-project-id
+   FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxxxx@your-project.iam.gserviceaccount.com
+   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+   ```
+5. Run `npm install` to install `firebase-admin`.
+
+### Testing Push Notifications
+
+Use the new test endpoint to send a manual push to a user:
+```bash
+POST /api/notifications/test-push
+{
+  "userId": "1",
+  "title": "Hello",
+  "message": "This is a test notification"
+}
+```

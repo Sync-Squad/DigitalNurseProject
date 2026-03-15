@@ -90,8 +90,9 @@ export class EmailService {
     this.appName = this.configService.get<string>('APP_NAME') || 'Digital Nurse';
     this.appBaseUrl =
       this.configService.get<string>('APP_BASE_URL') ||
-      this.configService.get<string>('FRONTEND_URL') ||
-      'http://100.42.177.77:3000';
+      //this.configService.get<string>('FRONTEND_URL') || 'http://100.42.177.77:3000';
+      this.configService.get<string>('FRONTEND_URL') || 'http://109.199.126.203:3000';
+
   }
 
   async sendVerificationEmail(
@@ -225,7 +226,7 @@ export class EmailService {
         appName: this.appName,
       });
 
-      const subject = status === 'enabled' 
+      const subject = status === 'enabled'
         ? `Caregiver Access Restored for ${patientName}`
         : `Caregiver Access Revoked for ${patientName}`;
 
