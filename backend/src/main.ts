@@ -3,6 +3,8 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import * as express from 'express';
+import { join } from 'path';
 import { AuthService } from './auth/auth.service';
 import { CaregiversService } from './caregivers/caregivers.service';
 
@@ -15,6 +17,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     rawBody: true, // Required for Stripe webhooks
   });
+
+  // Serve static files from the uploads directory
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.use('/uploads', express.static(join(process.cwd(), 'uploads')));
 
   // Enable CORS for multiple origins (web portal, mobile app, etc.)
   const allowedOrigins = process.env.FRONTEND_URL

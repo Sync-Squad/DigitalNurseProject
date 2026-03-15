@@ -1,5 +1,18 @@
 // @ts-nocheck
-import { Controller, Get, Patch, Post, Body, UseGuards, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Body,
+  UseGuards,
+  Param,
+  UseInterceptors,
+  UploadedFile,
+  Req,
+} from '@nestjs/common';
+import { Request } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
@@ -11,6 +24,7 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiConsumes,
 } from '@nestjs/swagger';
 
 @ApiTags('Users')
@@ -24,9 +38,10 @@ export class UsersController {
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiResponse({ status: 200, description: 'Profile retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getProfile(@CurrentUser() user: any) {
+  async getProfile(@CurrentUser() user: any, @Req() req: Request) {
     const userId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
-    return this.usersService.getProfile(userId);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    return this.usersService.getProfile(userId, baseUrl);
   }
 
   @Get('patients')
@@ -41,9 +56,10 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User details retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async getUserById(@Param('id') id: string) {
+  async getUserById(@Param('id') id: string, @Req() req: Request) {
     const userId = BigInt(id);
-    return this.usersService.getProfile(userId);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    return this.usersService.getProfile(userId, baseUrl);
   }
 
   @Patch('profile')
@@ -53,9 +69,11 @@ export class UsersController {
   async updateProfile(
     @CurrentUser() user: any,
     @Body() updateProfileDto: UpdateProfileDto,
+    @Req() req: Request,
   ) {
     const userId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
-    return this.usersService.updateProfile(userId, updateProfileDto);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    return this.usersService.updateProfile(userId, updateProfileDto, baseUrl);
   }
 
   @Post('complete-profile')
@@ -68,5 +86,19 @@ export class UsersController {
   ) {
     const userId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
     return this.usersService.completeProfile(userId, completeProfileDto);
+  }
+
+  @Post('profile/avatar')
+  @ApiOperation({ summary: 'Upload profile picture' })
+  @ApiConsumes('multipart/form-data')
+  @ApiResponse({ status: 200, description: 'Avatar uploaded successfully' })
+  @UseInterceptors(FileInterceptor('avatar'))
+  async uploadAvatar(@CurrentUser() user: any, @UploadedFile() file: any, @Req() req: Request) {
+    if (!file) {
+      throw new Error('Avatar file is required');
+    }
+    const userId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    return this.usersService.uploadAvatar(userId, file, baseUrl);
   }
 }

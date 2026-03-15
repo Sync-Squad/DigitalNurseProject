@@ -497,11 +497,14 @@ class _AlertsCard extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: 8.w),
-                        Text(
-                          'patient.alertsTitle'.tr(),
-                          style: textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF1A1A1A),
+                        Flexible(
+                          child: Text(
+                            'patient.alertsTitle'.tr(),
+                            style: textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF1A1A1A),
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -610,11 +613,14 @@ class _BloodPressureCard extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 8.w),
-                  Text(
-                    'patient.bloodPressureTitle'.tr(),
-                    style: textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1A1A1A),
+                  Flexible(
+                    child: Text(
+                      'patient.bloodPressureTitle'.tr(),
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1A1A1A),
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

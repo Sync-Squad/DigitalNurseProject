@@ -87,6 +87,7 @@ class _DueRemindersRowState extends State<DueRemindersRow> {
               ),
             ],
           ),
+          SizedBox(height: 12.h),
           Stack(
             children: [
               SizedBox(

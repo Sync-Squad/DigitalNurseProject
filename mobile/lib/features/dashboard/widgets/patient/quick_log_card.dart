@@ -83,20 +83,20 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
     final timeStr = "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
 
     return Container(
-      width: 130.w,
+      width: 135.w,
       margin: EdgeInsets.only(right: 12.w),
       decoration: BoxDecoration(
-        color: const Color(0xFFF0FAF9), // Ultra-light teal glaze
+        color: const Color(0xFFFFF8E1), // Light Amber glaze
         borderRadius: BorderRadius.circular(16.r),
         border: Border.all(
-          color: ModernSurfaceTheme.primaryTeal.withOpacity(0.1),
+          color: Colors.amber.withOpacity(0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withOpacity(0.04),
             offset: const Offset(0, 3),
-            blurRadius: 8,
+            blurRadius: 6,
           ),
         ],
       ),
@@ -104,47 +104,47 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
         borderRadius: BorderRadius.circular(16.r),
         child: Stack(
           children: [
-            // Colored Accent Bar (Thinner)
+            // Colored Accent (Amber Gradient)
             Positioned(
               left: 0,
               top: 0,
               bottom: 0,
-              width: 3.w,
+              width: 4.w,
               child: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      ModernSurfaceTheme.primaryTeal,
-                      ModernSurfaceTheme.primaryTeal.withOpacity(0.5),
+                      Colors.amber,
+                      Colors.orangeAccent,
                     ],
                   ),
                 ),
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(10.w, 8.h, 8.w, 8.h),
+              padding: EdgeInsets.fromLTRB(12.w, 8.h, 8.w, 8.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
+                    padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.h),
                     decoration: BoxDecoration(
-                      color: ModernSurfaceTheme.primaryTeal.withOpacity(0.08),
+                      color: Colors.amber.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(4.r),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.access_time_filled, size: 8.sp, color: ModernSurfaceTheme.primaryTeal),
-                        SizedBox(width: 2.w),
+                        Icon(Icons.access_time_filled, size: 8.sp, color: Colors.amber[800]),
+                        SizedBox(width: 3.w),
                         Text(
                           timeStr,
                           style: TextStyle(
                             fontSize: 8.sp,
-                            fontWeight: FontWeight.bold,
-                            color: ModernSurfaceTheme.primaryTeal,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.amber[800],
                           ),
                         ),
                       ],
@@ -158,7 +158,7 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                     style: TextStyle(
                       fontSize: 13.sp,
                       fontWeight: FontWeight.w800,
-                      color: ModernSurfaceTheme.deepTeal,
+                      color: Colors.brown[900],
                       height: 1.1,
                     ),
                   ),
@@ -168,7 +168,7 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                       child: SizedBox(
                         height: 16.sp,
                         width: 16.sp,
-                        child: const CircularProgressIndicator(strokeWidth: 2, color: ModernSurfaceTheme.primaryTeal),
+                        child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.amber),
                       ),
                     )
                   else

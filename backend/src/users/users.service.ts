@@ -4,12 +4,21 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { getPKTDate } from '../common/utils/date-utils';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) { }
 
-  async getProfile(userId: bigint) {
+  private _formatAvatarUrl(avatarUrl?: string, baseUrl?: string): string | null {
+    if (!avatarUrl) return null;
+    if (avatarUrl.startsWith('http')) return avatarUrl;
+    if (baseUrl && avatarUrl.startsWith('/')) return `${baseUrl}${avatarUrl}`;
+    return avatarUrl;
+  }
+
+  async getProfile(userId: bigint, baseUrl?: string) {
     const user = await this.prisma.user.findUnique({
       where: { userId },
       include: {
@@ -38,7 +47,7 @@ export class UsersService {
       email: u.email,
       phone: u.phone,
       fullName: u.full_name,
-      profilePicture: u.profile_picture,
+      avatarUrl: this._formatAvatarUrl(u.avatarUrl, baseUrl),
       status: u.status,
       isProfileComplete: u.is_profile_complete,
       roles: u.userRoles.map((ur: any) => ur.role.roleCode),
@@ -50,10 +59,10 @@ export class UsersService {
     };
   }
 
-  async updateProfile(userId: bigint, updateDto: UpdateProfileDto) {
+  async updateProfile(userId: bigint, updateDto: UpdateProfileDto, baseUrl?: string) {
     const data: any = {};
     if (updateDto.fullName) data.full_name = updateDto.fullName;
-    if (updateDto.profilePicture) data.profile_picture = updateDto.profilePicture;
+    if (updateDto.profilePicture) data.avatarUrl = updateDto.profilePicture;
     data.updatedAt = getPKTDate();
 
     const user = await this.prisma.user.update({
@@ -78,7 +87,7 @@ export class UsersService {
     return {
       userId: u.userId.toString(),
       fullName: u.full_name,
-      profilePicture: u.profile_picture,
+      avatarUrl: this._formatAvatarUrl(u.avatarUrl, baseUrl),
       roles: u.userRoles.map((ur: any) => ur.role.roleCode),
       subscription: u.subscriptions?.[0] ? {
         planId: u.subscriptions[0].planId,
@@ -167,5 +176,33 @@ export class UsersService {
         planId: patient.subscriptions?.[0]?.planId || 'free'
       };
     }));
+  }
+
+  async uploadAvatar(userId: bigint, file: any, baseUrl: string) {
+    const avatarDir = path.join(process.cwd(), 'uploads', 'avatars');
+    if (!fs.existsSync(avatarDir)) {
+      fs.mkdirSync(avatarDir, { recursive: true });
+    }
+
+    const fileName = `${userId}_${Date.now()}${path.extname(file.originalname)}`;
+    const filePath = path.join(avatarDir, fileName);
+
+    fs.writeFileSync(filePath, file.buffer);
+
+    // Use absolute URL for the mobile app
+    // In production, this should be the base URL + /uploads/...
+    // For now, we return the relative path which the mobile app can prefix if needed
+    // However, the mobile app expects a full URL usually from CachedNetworkImage
+    const avatarUrl = `/uploads/avatars/${fileName}`;
+
+    await this.prisma.user.update({
+      where: { userId },
+      data: {
+        avatarUrl,
+        updatedAt: getPKTDate(),
+      },
+    });
+
+    return this.getProfile(userId, baseUrl);
   }
 }
