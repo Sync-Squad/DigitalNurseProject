@@ -7,6 +7,7 @@ import '../../../../core/services/caregiver_service.dart';
 import '../../../../core/widgets/professional_avatar.dart';
 import '../dashboard_theme.dart';
 import 'patient_cards_grid.dart';
+import '../patient/due_reminders_row.dart';
 import '../../../../features/ai/widgets/ai_insights_dashboard_widget.dart';
 import '../../../../features/caregiver/widgets/invitation_notification_card.dart';
 // import 'caregiver_action_shortcuts.dart';
@@ -139,6 +140,8 @@ class _CaregiverDashboardViewState extends State<CaregiverDashboardView> {
                   ),
               SizedBox(height: 24.h),
             ],
+            SizedBox(height: 24.h),
+            const DueRemindersRow(),
             PatientCardsGrid(
               careContext: widget.careContext,
               onPatientSelected: widget.onRecipientSelected,

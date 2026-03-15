@@ -40,6 +40,12 @@ export class ReminderTimeDto {
   time!: string;
 }
 
+export enum MedicinePriority {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+}
+
 export class CreateMedicationDto {
   @ApiPropertyOptional({
     example: '1',
@@ -111,5 +117,10 @@ export class CreateMedicationDto {
   @IsNumber({}, { each: true })
   @IsOptional()
   periodicDays?: number[];
+
+  @ApiPropertyOptional({ enum: MedicinePriority, default: MedicinePriority.MEDIUM })
+  @IsEnum(MedicinePriority)
+  @IsOptional()
+  priority?: MedicinePriority;
 }
 

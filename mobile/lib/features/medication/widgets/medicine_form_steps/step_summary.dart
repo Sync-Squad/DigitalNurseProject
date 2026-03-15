@@ -84,7 +84,11 @@ class _StepSummaryState extends State<StepSummary> {
                   'End',
                   DateFormat('MMM dd, yyyy').format(data.endDate!),
                 ),
-            ], () => provider.goToStep(2)),
+              _buildCompactSummaryItem(
+                'Priority',
+                _getPriorityText(data.priority),
+              ),
+            ], () => provider.goToStep(1)),
 
             SizedBox(height: 8.h),
 
@@ -255,5 +259,16 @@ class _StepSummaryState extends State<StepSummary> {
     if (times.isEmpty) return 'No times set';
 
     return times.map((time) => time.format(context)).join(', ');
+  }
+
+  String _getPriorityText(MedicinePriority priority) {
+    switch (priority) {
+      case MedicinePriority.low:
+        return 'Low (Silent)';
+      case MedicinePriority.medium:
+        return 'Medium (Standard)';
+      case MedicinePriority.high:
+        return 'High (Full-screen Alarm)';
+    }
   }
 }

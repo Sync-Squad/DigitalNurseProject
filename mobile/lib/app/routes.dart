@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../core/models/user_model.dart';
+import '../core/models/medicine_model.dart';
 import '../core/providers/auth_provider.dart';
 import '../core/services/auth_service.dart';
 import '../features/auth/screens/login_screen.dart';
@@ -181,7 +182,10 @@ final goRouter = GoRouter(
     // Medicine routes
     GoRoute(
       path: '/medicine/add',
-      builder: (context, state) => const AddMedicineScreen(),
+      builder: (context, state) {
+        final medicine = state.extra as MedicineModel?;
+        return AddMedicineScreen(initialMedicine: medicine);
+      },
     ),
     GoRoute(
       path: '/medicine/:id',

@@ -73,6 +73,7 @@ export class MedicationsService {
         medicationName: createDto.name,
         instructions: createDto.dosage,
         notes: createDto.notes || null,
+        priority: createDto.priority || 'medium',
         formCode: createDto.medicineForm || null,
         doseValue: doseValueParsed,
         doseUnitCode:
@@ -180,6 +181,7 @@ export class MedicationsService {
     if (updateDto.name) updateData.medicationName = updateDto.name;
     if (updateDto.dosage) updateData.instructions = updateDto.dosage;
     if (updateDto.notes !== undefined) updateData.notes = updateDto.notes;
+    if (updateDto.priority) updateData.priority = updateDto.priority;
     updateData.updatedAt = getPKTDate();
 
     if (Object.keys(updateData).length > 0) {
@@ -258,8 +260,7 @@ export class MedicationsService {
   /**
    * Log medication intake
    */
-  async logIntake(context: ActorContext, logIntakeDto: LogIntakeDto) {
-    const medicationId = BigInt(logIntakeDto.medicineId);
+  async logIntake(context: ActorContext, medicationId: bigint, logIntakeDto: LogIntakeDto) {
 
     const medication = await this.prisma.medication.findFirst({
       where: {
@@ -331,8 +332,7 @@ export class MedicationsService {
   /**
    * Get intake history for a medication
    */
-  async getIntakeHistory(context: ActorContext, medicineId: string) {
-    const medicationId = BigInt(medicineId);
+  async getIntakeHistory(context: ActorContext, medicationId: bigint) {
 
     const medication = await this.prisma.medication.findFirst({
       where: {
@@ -432,6 +432,7 @@ export class MedicationsService {
       frequency,
       medicineForm: medication.formCode || 'tablets',
       notes: medication.notes || '',
+      priority: medication.priority || 'medium',
       reminderTimes: Array.isArray(times) ? times : [],
       startDate: latestSchedule?.startDate?.toISOString(),
       endDate: latestSchedule?.endDate?.toISOString(),
@@ -655,17 +656,38 @@ export class MedicationsService {
         const timeStr = typeof timeVal === 'object' && timeVal !== null && 'time' in timeVal ? (timeVal as any).time : timeVal;
         if (typeof timeStr !== 'string') continue;
         const [hours, minutes] = timeStr.split(':').map(Number);
-        const reminderTime = new Date(now.getTime());
-        reminderTime.setHours(hours, minutes, 0, 0);
+        
+        // Check today's dose
+        const todayReminder = new Date(now.getTime());
+        todayReminder.setHours(hours, minutes, 0, 0);
 
-        if (reminderTime < now) {
-          reminderTime.setDate(reminderTime.getDate() + 1);
+        // Check if today's dose is already logged
+        const intake = await this.prisma.medIntake.findFirst({
+          where: {
+            medScheduleId: (schedule as any).medScheduleId,
+            dueAt: todayReminder,
+          },
+        } as any);
+
+        const isLogged = intake && (intake.status === IntakeStatus.TAKEN || intake.status === IntakeStatus.MISSED);
+
+        let finalReminderTime = new Date(todayReminder);
+        if (isLogged && todayReminder < now) {
+          // If already logged and in the past, shift to tomorrow
+          finalReminderTime.setDate(todayReminder.getDate() + 1);
+        } else if (!isLogged) {
+          // If NOT logged, keep it as today's dose (even if overdue)
+          finalReminderTime = todayReminder;
+        } else {
+          // Already logged but in the future? (e.g. user logged ahead of time)
+          // Shift to tomorrow to show next dose
+          finalReminderTime.setDate(todayReminder.getDate() + 1);
         }
 
         reminders.push({
           medicine: mappedMedicine,
           time: timeStr,
-          reminderTime: reminderTime.toISOString(),
+          reminderTime: finalReminderTime.toISOString(),
         });
       }
     }

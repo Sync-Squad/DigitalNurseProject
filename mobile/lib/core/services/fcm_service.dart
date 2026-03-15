@@ -251,11 +251,24 @@ class FCMService {
     print('Notification tapped: ${response.payload}');
 
     if (response.payload != null) {
+      final payloadStr = response.payload!;
       // Check if this is a medicine reminder
-      if (response.payload!.contains('medicine_reminder') ||
-          response.payload!.contains('medicineId')) {
-        // Navigate to alarm screen
-        onAlarmTap?.call(response.payload);
+      if (payloadStr.contains('medicine_reminder') ||
+          payloadStr.contains('medicineId')) {
+        
+        // Check if it's high priority
+        bool isHighPriority = payloadStr.contains('"priority":"high"') || 
+                             payloadStr.contains("'priority': 'high'");
+        
+        if (isHighPriority) {
+          // Navigate to alarm screen for high priority
+          onAlarmTap?.call(response.payload);
+        } else {
+          // Navigate to medicine detail or generic screen for low/medium
+          // In current implementation, we still might want to show alarm or detail
+          // but for now let's stick to the instruction of alarm for high priority.
+          onAlarmTap?.call(response.payload); 
+        }
       }
     }
   }
@@ -273,11 +286,10 @@ class FCMService {
       _getChannelId(message.data),
       _getChannelName(message.data),
       channelDescription: _getChannelDescription(message.data),
-      importance: Importance.high,
-      priority: Priority.high,
+      importance: message.data['priority'] == 'high' ? Importance.max : Importance.high,
+      priority: message.data['priority'] == 'high' ? Priority.max : Priority.high,
       icon: '@mipmap/ic_launcher',
       // Enable sound and vibration for medicine reminders
-      // Sound will use the channel's default or system default notification sound
       playSound: true,
       enableVibration: true,
       vibrationPattern: isMedicineReminder
@@ -285,6 +297,8 @@ class FCMService {
           : null,
       channelShowBadge: true,
       autoCancel: true,
+      fullScreenIntent: message.data['priority'] == 'high',
+      category: message.data['priority'] == 'high' ? AndroidNotificationCategory.alarm : null,
     );
 
     const iosDetails = DarwinNotificationDetails(

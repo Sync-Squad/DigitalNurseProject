@@ -159,6 +159,7 @@
   },
   "medication": {
     "title": "Medication",
+    "dueNow": "Medication Due Now",
     "months": {
       "jan": "Jan",
       "feb": "Feb",
@@ -229,8 +230,20 @@
         "review": "Review",
         "reviewDesc": "Review before saving",
         "endDate": "End Date",
-        "notes": "Notes"
+        "notes": "Notes",
+        "identity": "Medicine Identity",
+        "identityDesc": "Basic info & dosage",
+        "schedule": "Dosage & Schedule",
+        "scheduleDesc": "When & how often",
+        "finalize": "Finalize & Save",
+        "finalizeDesc": "Review & extra options",
+        "dueNow": "Due Now"
       }
+    },
+    "edit": {
+      "title": "Edit Medicine",
+      "save": "Update Medicine",
+      "success": "Medicine updated successfully!"
     },
     "detail": {
       "intakeHistory": "Intake History",

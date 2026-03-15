@@ -1,5 +1,7 @@
 enum MedicineForm { tablet, capsule, syrup, injection, drops, inhaler, other }
 
+enum MedicinePriority { low, medium, high }
+
 class MedicineModel {
   final String id;
   final String name;
@@ -14,6 +16,7 @@ class MedicineModel {
   final String? strength; // e.g., "500mg"
   final String? doseAmount; // e.g., "1 tablet", "5ml"
   final List<int>? periodicDays; // 1=Monday, 7=Sunday for periodic frequency
+  final MedicinePriority priority;
 
   MedicineModel({
     required this.id,
@@ -29,6 +32,7 @@ class MedicineModel {
     this.strength,
     this.doseAmount,
     this.periodicDays,
+    this.priority = MedicinePriority.medium,
   });
 
   MedicineModel copyWith({
@@ -45,6 +49,7 @@ class MedicineModel {
     String? strength,
     String? doseAmount,
     List<int>? periodicDays,
+    MedicinePriority? priority,
   }) {
     return MedicineModel(
       id: id ?? this.id,
@@ -60,6 +65,7 @@ class MedicineModel {
       strength: strength ?? this.strength,
       doseAmount: doseAmount ?? this.doseAmount,
       periodicDays: periodicDays ?? this.periodicDays,
+      priority: priority ?? this.priority,
     );
   }
 
@@ -78,6 +84,7 @@ class MedicineModel {
       'strength': strength,
       'doseAmount': doseAmount,
       'periodicDays': periodicDays,
+      'priority': priority.name,
     };
   }
 
@@ -106,6 +113,9 @@ class MedicineModel {
       periodicDays: json['periodicDays'] != null
           ? List<int>.from(json['periodicDays'])
           : null,
+      priority: json['priority'] != null
+          ? MedicinePriority.values.byName(json['priority'])
+          : MedicinePriority.medium,
     );
   }
 }

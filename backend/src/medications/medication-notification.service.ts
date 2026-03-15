@@ -2,7 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/dto/create-notification.dto';
 import { getPKTDate } from '../common/utils/date-utils';
+import { Type } from 'class-transformer';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { MedicinePriority } from './dto/create-medication.dto';
 
 @Injectable()
 export class MedicationNotificationService {
@@ -97,11 +101,12 @@ export class MedicationNotificationService {
             {
               title: 'Medicine Reminder',
               body: `It's time to take your ${schedule.medication.medicationName}.`,
-              type: 'medicineReminder',
-              scheduledTime: dueAt,
+              type: NotificationType.MEDICINE_REMINDER,
+              scheduledTime: dueAt.toISOString(),
               actionData: {
                 medicationId: schedule.medicationId.toString(),
                 medScheduleId: schedule.medScheduleId.toString(),
+                priority: (schedule.medication as any).priority,
               }
             }
           );

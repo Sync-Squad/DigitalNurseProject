@@ -12,6 +12,10 @@ class MedicineFormData {
   String doseAmount = '';
   String strength = '';
   String notes = '';
+  MedicinePriority priority = MedicinePriority.medium;
+  String? medicineId; // Track ID for editing
+
+  bool get isEditing => medicineId != null;
 
   bool get isValid {
     return name.trim().isNotEmpty &&
@@ -23,7 +27,7 @@ class MedicineFormData {
 
 class MedicineFormProvider extends ChangeNotifier {
   int _currentStep = 0;
-  final int _totalSteps = 7;
+  final int _totalSteps = 3;
   final MedicineFormData _formData = MedicineFormData();
   String? _errorMessage;
 
@@ -34,26 +38,25 @@ class MedicineFormProvider extends ChangeNotifier {
   bool get isFirstStep => _currentStep == 0;
   bool get isLastStep => _currentStep == _totalSteps - 1;
   double get progress => (_currentStep + 1) / _totalSteps;
+  bool get isEditing => _formData.isEditing;
 
   // Step validation
   bool validateCurrentStep() {
     _errorMessage = null;
 
     switch (_currentStep) {
-      case 0: // Medicine name
+      case 0: // Identity (Name, Form, Dose)
         if (_formData.name.trim().length < 2) {
           _errorMessage =
               'Please enter a medicine name (at least 2 characters)';
           return false;
         }
-        break;
-      case 1: // Medicine form
         if (_formData.medicineForm == null) {
           _errorMessage = 'Please select a medicine form';
           return false;
         }
         break;
-      case 2: // Frequency
+      case 1: // Schedule (Frequency, Times)
         if (_formData.frequency == null) {
           _errorMessage = 'Please select a frequency';
           return false;
@@ -64,20 +67,12 @@ class MedicineFormProvider extends ChangeNotifier {
               'Please select at least one day for periodic schedule';
           return false;
         }
-        break;
-      case 3: // Schedule times
         if (_formData.reminderTimes.isEmpty) {
           _errorMessage = 'Please set at least one reminder time';
           return false;
         }
         break;
-      case 4: // Start date
-        // Start date is already initialized, no validation needed
-        break;
-      case 5: // Dose and strength
-        // Section is now skippable as per requirements
-        break;
-      case 6: // Summary - final validation
+      case 2: // Finalize (Dates, Priority, Summary)
         if (!_formData.isValid) {
           _errorMessage = 'Please complete all required fields';
           return false;
@@ -120,7 +115,7 @@ class MedicineFormProvider extends ChangeNotifier {
 
   // Auto-populate times based on frequency
   void _autoPopulateTimes() {
-    if (_currentStep == 3 && _formData.frequency != null) {
+    if (_formData.frequency != null) {
       switch (_formData.frequency!) {
         case MedicineFrequency.daily:
           _formData.reminderTimes = [const TimeOfDay(hour: 9, minute: 0)];
@@ -177,6 +172,7 @@ class MedicineFormProvider extends ChangeNotifier {
     if (frequency != MedicineFrequency.periodic) {
       _formData.periodicDays.clear();
     }
+    _autoPopulateTimes();
     notifyListeners();
   }
 
@@ -236,6 +232,41 @@ class MedicineFormProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setPriority(MedicinePriority priority) {
+    _formData.priority = priority;
+    notifyListeners();
+  }
+
+  // Initialize form with existing medicine data
+  void initializeFromMedicine(MedicineModel medicine) {
+    _formData.medicineId = medicine.id;
+    _formData.name = medicine.name;
+    _formData.medicineForm = medicine.medicineForm;
+    _formData.frequency = medicine.frequency;
+    _formData.periodicDays = medicine.periodicDays ?? [];
+    _formData.startDate = medicine.startDate;
+    _formData.endDate = medicine.endDate;
+    _formData.doseAmount = medicine.doseAmount ?? '';
+    _formData.strength = medicine.strength ?? '';
+    _formData.notes = medicine.notes ?? '';
+    _formData.priority = medicine.priority;
+
+    // Parse reminder times strings (HH:mm) to TimeOfDay
+    _formData.reminderTimes = medicine.reminderTimes.map((timeStr) {
+      final parts = timeStr.split(':');
+      if (parts.length == 2) {
+        final hour = int.parse(parts[0]);
+        final minute = int.parse(parts[1]);
+        return TimeOfDay(hour: hour, minute: minute);
+      }
+      return const TimeOfDay(hour: 9, minute: 0);
+    }).toList();
+
+    _currentStep = 0;
+    _errorMessage = null;
+    notifyListeners();
+  }
+
   // Generate MedicineModel from form data
   MedicineModel? generateMedicineModel(String userId) {
     if (!_formData.isValid) return null;
@@ -245,7 +276,7 @@ class MedicineFormProvider extends ChangeNotifier {
         : _formData.doseAmount.trim();
 
     return MedicineModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: _formData.medicineId ?? DateTime.now().millisecondsSinceEpoch.toString(),
       name: _formData.name.trim(),
       dosage: dosage,
       frequency: _formData.frequency!,
@@ -265,12 +296,13 @@ class MedicineFormProvider extends ChangeNotifier {
       periodicDays: _formData.frequency == MedicineFrequency.periodic
           ? _formData.periodicDays
           : null,
+      priority: _formData.priority,
     );
   }
 
   // Reset form
   void reset() {
-    _currentStep = 0;
+    _formData.medicineId = null;
     _formData.name = '';
     _formData.medicineForm = null;
     _formData.frequency = null;
@@ -281,6 +313,7 @@ class MedicineFormProvider extends ChangeNotifier {
     _formData.doseAmount = '';
     _formData.strength = '';
     _formData.notes = '';
+    _formData.priority = MedicinePriority.medium;
     _errorMessage = null;
     notifyListeners();
   }

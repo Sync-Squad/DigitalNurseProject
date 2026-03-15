@@ -459,6 +459,15 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
           ),
         ),
         actions: [
+          IconButton(
+            onPressed: () {
+              context.push('/medicine/add', extra: medicine);
+            },
+            icon: Icon(
+              Icons.edit_outlined,
+              color: Colors.white,
+            ),
+          ),
           _isDeleting
               ? const Padding(
                   padding: EdgeInsets.all(16.0),

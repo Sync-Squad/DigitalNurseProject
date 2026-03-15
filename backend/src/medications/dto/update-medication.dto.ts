@@ -3,6 +3,7 @@ import {
   MedicineForm,
   MedicineFrequency,
   ReminderTimeDto,
+  MedicinePriority,
 } from './create-medication.dto';
 import {
   IsArray,
@@ -84,5 +85,9 @@ export class UpdateMedicationDto {
   @IsString()
   @IsOptional()
   elderUserId?: string;
+  @ApiPropertyOptional({ enum: MedicinePriority })
+  @IsEnum(MedicinePriority)
+  @IsOptional()
+  priority?: MedicinePriority;
 }
 

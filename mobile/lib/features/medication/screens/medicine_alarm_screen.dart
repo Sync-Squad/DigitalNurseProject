@@ -51,10 +51,8 @@ class _MedicineAlarmScreenState extends State<MedicineAlarmScreen>
     // Parse payload or use direct parameters
     _parsePayload();
 
-    // COMMENTED OUT: Alarm ringing functionality temporarily disabled
-    // This was causing the app to work when screen is locked and appear on lock screen
     // Start the alarm sound
-    // _alarmService.startAlarm();
+    _alarmService.startAlarm();
 
     // Setup pulse animation
     _pulseController = AnimationController(

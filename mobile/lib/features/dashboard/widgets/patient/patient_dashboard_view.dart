@@ -11,6 +11,7 @@ import '../dashboard_theme.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/modern_surface_theme.dart';
 
+import 'due_reminders_row.dart';
 import 'patient_action_shortcuts.dart';
 import 'patient_documents_card.dart';
 import 'patient_lifestyle_card.dart';
@@ -51,10 +52,9 @@ class PatientDashboardView extends StatelessWidget {
             children: [
               const _WelcomeHeroCard(),
               SizedBox(height: cardSpacing),
-              const _HealthTipCard(),
-              SizedBox(height: cardSpacing),
               const _HealthOverviewCard(),
               SizedBox(height: cardSpacing),
+              const DueRemindersRow(),
               const _AdherenceCard(),
               SizedBox(height: cardSpacing),
               const _AlertsAndVitalsRow(),
@@ -229,7 +229,7 @@ class _HealthOverviewCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Ink(
           decoration: BoxDecoration(
-            color: const Color(0xFF1FB9AA).withValues(alpha: 0.7),
+            color: const Color(0xFF1FB9AA).withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(20),
           ),
           padding: EdgeInsets.all(16.w),
