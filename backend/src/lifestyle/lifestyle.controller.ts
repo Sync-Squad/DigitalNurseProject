@@ -49,14 +49,16 @@ export class LifestyleController {
   @Get('diet')
   @ApiOperation({ summary: 'Get all diet logs' })
   @ApiQuery({ name: 'date', required: false, type: String })
+  @ApiQuery({ name: 'startDate', required: false, type: String })
   @ApiResponse({ status: 200, description: 'List of diet logs' })
   async findAllDietLogs(
     @CurrentUser() user: any,
     @Query('date') date?: string,
+    @Query('startDate') startDate?: string,
     @Query('elderUserId') elderUserId?: string,
   ) {
     const context = await this.resolveContext(user, elderUserId);
-    return this.lifestyleService.findAllDietLogs(context, date);
+    return this.lifestyleService.findAllDietLogs(context, date, startDate);
   }
 
   @Delete('diet/:id')
@@ -85,14 +87,16 @@ export class LifestyleController {
   @Get('exercise')
   @ApiOperation({ summary: 'Get all exercise logs' })
   @ApiQuery({ name: 'date', required: false, type: String })
+  @ApiQuery({ name: 'startDate', required: false, type: String })
   @ApiResponse({ status: 200, description: 'List of exercise logs' })
   async findAllExerciseLogs(
     @CurrentUser() user: any,
     @Query('date') date?: string,
+    @Query('startDate') startDate?: string,
     @Query('elderUserId') elderUserId?: string,
   ) {
     const context = await this.resolveContext(user, elderUserId);
-    return this.lifestyleService.findAllExerciseLogs(context, date);
+    return this.lifestyleService.findAllExerciseLogs(context, date, startDate);
   }
 
   @Delete('exercise/:id')

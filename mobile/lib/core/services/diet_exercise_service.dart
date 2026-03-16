@@ -17,6 +17,7 @@ class DietExerciseService {
   Future<List<DietLogModel>> getDietLogs(
     String userId, {
     DateTime? date,
+    DateTime? startDate,
     String? elderUserId,
   }) async {
     _log(
@@ -27,6 +28,11 @@ class DietExerciseService {
       if (date != null) {
         queryParams['date'] = TimezoneUtil.toPakistanTimeIso8601(
           date,
+        ).split('T')[0];
+      }
+      if (startDate != null) {
+        queryParams['startDate'] = TimezoneUtil.toPakistanTimeIso8601(
+          startDate,
         ).split('T')[0];
       }
       if (elderUserId != null) {
@@ -117,6 +123,7 @@ class DietExerciseService {
   Future<List<ExerciseLogModel>> getExerciseLogs(
     String userId, {
     DateTime? date,
+    DateTime? startDate,
     String? elderUserId,
   }) async {
     _log(
@@ -127,6 +134,11 @@ class DietExerciseService {
       if (date != null) {
         queryParams['date'] = TimezoneUtil.toPakistanTimeIso8601(
           date,
+        ).split('T')[0];
+      }
+      if (startDate != null) {
+        queryParams['startDate'] = TimezoneUtil.toPakistanTimeIso8601(
+          startDate,
         ).split('T')[0];
       }
       if (elderUserId != null) {

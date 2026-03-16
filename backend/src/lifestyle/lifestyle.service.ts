@@ -36,11 +36,16 @@ export class LifestyleService {
     return this.mapDietLogToResponse(dietLog);
   }
 
-  async findAllDietLogs(context: ActorContext, date?: string) {
+  async findAllDietLogs(context: ActorContext, date?: string, startDate?: string) {
     const where: any = { userId: context.elderUserId };
     if (date) {
       const targetDate = getPKTDateOnly(date);
       where.logDate = targetDate;
+    } else if (startDate) {
+      const start = getPKTDateOnly(startDate);
+      where.logDate = {
+        gte: start,
+      };
     }
 
     const dietLogs = await this.prisma.dietLog.findMany({
@@ -95,11 +100,16 @@ export class LifestyleService {
     return this.mapExerciseLogToResponse(exerciseLog);
   }
 
-  async findAllExerciseLogs(context: ActorContext, date?: string) {
+  async findAllExerciseLogs(context: ActorContext, date?: string, startDate?: string) {
     const where: any = { userId: context.elderUserId };
     if (date) {
       const targetDate = getPKTDateOnly(date);
       where.logDate = targetDate;
+    } else if (startDate) {
+      const start = getPKTDateOnly(startDate);
+      where.logDate = {
+        gte: start,
+      };
     }
 
     const exerciseLogs = await this.prisma.exerciseLog.findMany({

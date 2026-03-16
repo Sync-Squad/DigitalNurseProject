@@ -12,8 +12,9 @@ import '../../../core/extensions/meal_type_extensions.dart';
 import '../../../core/extensions/activity_type_extensions.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/modern_scaffold.dart';
 import '../../../core/utils/timezone_util.dart';
+import '../../../core/widgets/horizontal_modern_calendar.dart';
+import '../../../core/widgets/modern_scaffold.dart';
 
 class DietExerciseLogScreen extends StatefulWidget {
   const DietExerciseLogScreen({super.key});
@@ -92,6 +93,13 @@ class _DietExerciseLogScreenState extends State<DietExerciseLogScreen>
             color: onPrimary,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart_rounded, color: Colors.white),
+            tooltip: 'Trends',
+            onPressed: () => context.push('/lifestyle/trends'),
+          ),
+        ],
       ),
       body: Padding(
         padding: ModernSurfaceTheme.screenPadding(),
@@ -108,19 +116,13 @@ class _DietExerciseLogScreenState extends State<DietExerciseLogScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Select Date',
+                    'Daily Activity',
                     style: ModernSurfaceTheme.sectionTitleStyle(context),
                   ),
-                  SizedBox(height: 8.h),
-                  FLineCalendar(
-                    initialSelection: _selectedDate,
-                    initialScroll: _selectedDate,
-                    onChange: (date) =>
-                        _handleDateChanged(date ?? DateTime.now()),
-                    toggleable: true,
-                    start: DateTime(1900),
-                    end: DateTime(2050),
-                    today: DateTime.now(),
+                  SizedBox(height: 12.h),
+                  HorizontalModernCalendar(
+                    selectedDate: _selectedDate,
+                    onDateChanged: _handleDateChanged,
                   ),
                 ],
               ),
@@ -128,10 +130,11 @@ class _DietExerciseLogScreenState extends State<DietExerciseLogScreen>
             SizedBox(height: 16.h),
 
             // Daily summary
-            if (summary != null) ...[
-              _DailySummaryCard(summary: summary),
-              SizedBox(height: 16.h),
-            ],
+            _DailySummaryCard(
+              summary: summary,
+              isLoading: lifestyleProvider.isLoading,
+            ),
+            SizedBox(height: 16.h),
 
             // Tab bar
             Container(
@@ -273,6 +276,7 @@ class _MealsTabState extends State<_MealsTab> {
   @override
   Widget build(BuildContext context) {
     final lifestyleProvider = context.watch<LifestyleProvider>();
+    final isLoading = lifestyleProvider.isLoading;
     final meals = lifestyleProvider.dietLogs;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -318,8 +322,14 @@ class _MealsTabState extends State<_MealsTab> {
         ),
         SizedBox(height: 16.h),
         Expanded(
-          child: meals.isEmpty
-              ? _buildEmptyState(
+          child: isLoading
+              ? Center(
+                  child: CircularProgressIndicator(
+                    color: ModernSurfaceTheme.primaryTeal,
+                  ),
+                )
+              : meals.isEmpty
+                  ? _buildEmptyState(
                   context,
                   icon: FIcons.utensils,
                   title: 'No meals logged today',
@@ -630,6 +640,7 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
   @override
   Widget build(BuildContext context) {
     final lifestyleProvider = context.watch<LifestyleProvider>();
+    final isLoading = lifestyleProvider.isLoading;
     final workouts = lifestyleProvider.exerciseLogs;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -675,8 +686,14 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
         ),
         SizedBox(height: 16.h),
         Expanded(
-          child: workouts.isEmpty
-              ? _buildEmptyState(
+          child: isLoading
+              ? Center(
+                  child: CircularProgressIndicator(
+                    color: ModernSurfaceTheme.accentBlue,
+                  ),
+                )
+              : workouts.isEmpty
+                  ? _buildEmptyState(
                   context,
                   icon: FIcons.activity,
                   title: 'No workouts logged today',
@@ -876,9 +893,10 @@ class _WorkoutsTabState extends State<_WorkoutsTab> {
 }
 
 class _DailySummaryCard extends StatelessWidget {
-  final Map<String, dynamic> summary;
+  final Map<String, dynamic>? summary;
+  final bool isLoading;
 
-  const _DailySummaryCard({required this.summary});
+  const _DailySummaryCard({this.summary, this.isLoading = false});
 
   @override
   Widget build(BuildContext context) {
@@ -888,33 +906,47 @@ class _DailySummaryCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
+      height: 140.h, // Fixed height to prevent jump when loading
       decoration: ModernSurfaceTheme.heroDecoration(context),
       padding: ModernSurfaceTheme.heroPadding(),
-      child: Row(
-        children: [
-          _SummaryMetric(
-            icon: FIcons.utensils,
-            label: 'Calories In',
-            value: '${summary['caloriesIn']}',
-            onPrimary: onPrimary,
-            textTheme: textTheme,
-          ),
-          _SummaryMetric(
-            icon: FIcons.activity,
-            label: 'Calories Out',
-            value: '${summary['caloriesOut']}',
-            onPrimary: onPrimary,
-            textTheme: textTheme,
-          ),
-          _SummaryMetric(
-            icon: FIcons.trendingUp,
-            label: 'Net',
-            value: '${summary['netCalories']}',
-            onPrimary: onPrimary,
-            textTheme: textTheme,
-          ),
-        ],
-      ),
+      child: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: Colors.white,
+              ),
+            )
+          : summary == null
+              ? Center(
+                  child: Text(
+                    'No summary available',
+                    style: textTheme.bodyMedium?.copyWith(color: onPrimary),
+                  ),
+                )
+              : Row(
+                  children: [
+                    _SummaryMetric(
+                      icon: FIcons.utensils,
+                      label: 'Calories In',
+                      value: '${summary!['caloriesIn']}',
+                      onPrimary: onPrimary,
+                      textTheme: textTheme,
+                    ),
+                    _SummaryMetric(
+                      icon: FIcons.activity,
+                      label: 'Calories Out',
+                      value: '${summary!['caloriesOut']}',
+                      onPrimary: onPrimary,
+                      textTheme: textTheme,
+                    ),
+                    _SummaryMetric(
+                      icon: FIcons.trendingUp,
+                      label: 'Net',
+                      value: '${summary!['netCalories']}',
+                      onPrimary: onPrimary,
+                      textTheme: textTheme,
+                    ),
+                  ],
+                ),
     );
   }
 }

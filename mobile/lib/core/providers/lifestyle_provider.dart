@@ -9,6 +9,8 @@ class LifestyleProvider with ChangeNotifier {
   final DietExerciseService _service = DietExerciseService();
   List<DietLogModel> _dietLogs = [];
   List<ExerciseLogModel> _exerciseLogs = [];
+  List<DietLogModel> _trendDietLogs = [];
+  List<ExerciseLogModel> _trendExerciseLogs = [];
   List<DietPlanModel> _dietPlans = [];
   List<ExercisePlanModel> _exercisePlans = [];
   Map<String, dynamic>? _dailySummary;
@@ -17,6 +19,8 @@ class LifestyleProvider with ChangeNotifier {
 
   List<DietLogModel> get dietLogs => _dietLogs;
   List<ExerciseLogModel> get exerciseLogs => _exerciseLogs;
+  List<DietLogModel> get trendDietLogs => _trendDietLogs;
+  List<ExerciseLogModel> get trendExerciseLogs => _trendExerciseLogs;
   List<DietPlanModel> get dietPlans => _dietPlans;
   List<ExercisePlanModel> get exercisePlans => _exercisePlans;
   Map<String, dynamic>? get dailySummary => _dailySummary;
@@ -199,6 +203,74 @@ class LifestyleProvider with ChangeNotifier {
     String? elderUserId,
   }) async {
     return await _service.getWeeklySummary(userId, elderUserId: elderUserId);
+  }
+
+  // Fetch data for trends (last 30 days)
+  Future<void> fetchTrendsData(String userId, {String? elderUserId}) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final startDate = DateTime.now().subtract(const Duration(days: 30));
+      _trendDietLogs = await _service.getDietLogs(
+        userId,
+        startDate: startDate,
+        elderUserId: elderUserId,
+      );
+      _trendExerciseLogs = await _service.getExerciseLogs(
+        userId,
+        startDate: startDate,
+        elderUserId: elderUserId,
+      );
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Aggregate daily calorie data for trends
+  Map<DateTime, Map<String, int>> getDailyCalorieData(int days) {
+    final Map<DateTime, Map<String, int>> dailyData = {};
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final startDate = today.subtract(Duration(days: days - 1));
+
+    for (int i = 0; i < days; i++) {
+      final date = startDate.add(Duration(days: i));
+      dailyData[date] = {'in': 0, 'out': 0, 'net': 0};
+    }
+
+    for (var log in _trendDietLogs) {
+      final date = DateTime(
+        log.timestamp.year,
+        log.timestamp.month,
+        log.timestamp.day,
+      );
+      if (dailyData.containsKey(date)) {
+        dailyData[date]!['in'] = (dailyData[date]!['in'] ?? 0) + log.calories;
+      }
+    }
+
+    for (var log in _trendExerciseLogs) {
+      final date = DateTime(
+        log.timestamp.year,
+        log.timestamp.month,
+        log.timestamp.day,
+      );
+      if (dailyData.containsKey(date)) {
+        dailyData[date]!['out'] =
+            (dailyData[date]!['out'] ?? 0) + log.caloriesBurned;
+      }
+    }
+
+    dailyData.forEach((date, data) {
+      data['net'] = data['in']! - data['out']!;
+    });
+
+    return dailyData;
   }
 
   // Initialize mock data (deprecated - no longer needed with API integration)

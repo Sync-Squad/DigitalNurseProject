@@ -27,6 +27,7 @@ import '../features/caregiver/screens/medication_management_screen.dart';
 import '../features/caregiver/screens/patient_reports_screen.dart';
 import '../features/caregiver/screens/contact_caregiver_screen.dart';
 import '../features/lifestyle/screens/diet_exercise_log_screen.dart';
+import '../features/lifestyle/screens/calorie_trends_screen.dart';
 import '../features/lifestyle/screens/add_meal_screen.dart';
 import '../features/lifestyle/screens/add_workout_screen.dart';
 import '../features/lifestyle/screens/weekly_plans_screen.dart';
@@ -296,6 +297,10 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/lifestyle',
       builder: (context, state) => const DietExerciseLogScreen(),
+    ),
+    GoRoute(
+      path: '/lifestyle/trends',
+      builder: (context, state) => const CalorieTrendsScreen(),
     ),
     GoRoute(
       path: '/lifestyle/meal/add',

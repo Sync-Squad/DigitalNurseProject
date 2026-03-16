@@ -106,6 +106,18 @@ class AppConfig {
     return _defaultAndroidEmulator;
   }
 
+  // Get base URL for the web/app (for sharing links like invitations)
+  // This is usually the same as baseUrl but without the '/api/' suffix
+  static String get appBaseUrl {
+    final base = baseUrl;
+    if (base.endsWith('/api/')) {
+      return base.substring(0, base.length - 5);
+    } else if (base.endsWith('/api')) {
+      return base.substring(0, base.length - 4);
+    }
+    return base;
+  }
+
   // Get Gemini API key with priority:
   // 1. Database (cached in SharedPreferences after login)
   // 2. Environment variable

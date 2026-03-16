@@ -10,18 +10,26 @@ class VitalsService {
     print('🔍 [VITALS] $message');
   }
 
-  // Get all vitals for a user
   Future<List<VitalMeasurementModel>> getVitals(
     String userId, {
     String? elderUserId,
+    DateTime? startDate,
+    DateTime? endDate,
   }) async {
-    _log('📋 Fetching vitals for user: $userId');
+    _log('📋 Fetching vitals for user: $userId (Range: $startDate to $endDate)');
     try {
+      final Map<String, dynamic> queryParameters = {};
+      if (elderUserId != null) queryParameters['elderUserId'] = elderUserId;
+      if (startDate != null) {
+        queryParameters['startDate'] = TimezoneUtil.toPakistanTimeIso8601(startDate);
+      }
+      if (endDate != null) {
+        queryParameters['endDate'] = TimezoneUtil.toPakistanTimeIso8601(endDate);
+      }
+
       final response = await _apiService.get(
         '/vitals',
-        queryParameters: elderUserId != null
-            ? {'elderUserId': elderUserId}
-            : null,
+        queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
       );
 
       if (response.statusCode == 200) {

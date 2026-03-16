@@ -8,6 +8,8 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
 import '../../../core/theme/modern_surface_theme.dart';
+import '../../../core/config/app_config.dart';
+import 'package:share_plus/share_plus.dart';
 
 class AddCaregiverScreen extends StatefulWidget {
   const AddCaregiverScreen({super.key});
@@ -93,7 +95,7 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
     final inviteCode =
         invitation['inviteCode']?.toString() ?? invitation['code']?.toString();
     final inviteLink = inviteCode != null && inviteCode.isNotEmpty
-        ? 'https://digitalnurse.app/invite/$inviteCode'
+        ? '${AppConfig.appBaseUrl}/invite/$inviteCode'
         : null;
     final expiresAtRaw = invitation['expiresAt'] ?? invitation['expires_at'];
     DateTime? expiresAt;
@@ -144,6 +146,17 @@ class _AddCaregiverScreenState extends State<AddCaregiverScreen> {
           ],
         ),
         actions: [
+          if (inviteLink != null)
+            TextButton.icon(
+              onPressed: () {
+                Share.share(
+                  'Join me as a caregiver on Digital Nurse! Click here to accept the invitation: $inviteLink',
+                  subject: 'Caregiver Invitation',
+                );
+              },
+              icon: const Icon(Icons.share_rounded),
+              label: const Text('Share'),
+            ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();

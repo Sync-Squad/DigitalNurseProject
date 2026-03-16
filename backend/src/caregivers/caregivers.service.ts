@@ -160,7 +160,6 @@ export class CaregiversService {
               userId: existingUser.userId,
               roleId: caregiverRole.roleId,
               createdAt: getPKTDate(),
-              updatedAt: getPKTDate(),
             },
           });
         }
@@ -220,9 +219,22 @@ export class CaregiversService {
         status: 'pending',
         expiresAt: getPKTDate(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
         createdAt: getPKTDate(),
-        updatedAt: getPKTDate(),
       },
+      include: {
+        inviterUser: true,
+      } as any,
     });
+
+    // Send email invitation if email is provided
+    if (createDto.email) {
+      const inviterName = (invitation as any).inviterUser?.full_name || 'A patient';
+      await this.emailService.sendCaregiverInvitationEmail(
+        createDto.email,
+        invitation.inviteCode,
+        inviterName,
+        createDto.relationship,
+      );
+    }
 
     return {
       id: invitation.invitationId.toString(),

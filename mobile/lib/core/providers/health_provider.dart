@@ -15,15 +15,25 @@ class HealthProvider with ChangeNotifier {
   int get abnormalVitalsCount => _vitals.where((v) => v.isAbnormal()).length;
 
   // Load vitals
-  Future<void> loadVitals(String userId, {String? elderUserId}) async {
+  Future<void> loadVitals(
+    String userId, {
+    String? elderUserId,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
     _isLoading = true;
     notifyListeners();
-
     try {
       _vitals = await _vitalsService.getVitals(
         userId,
         elderUserId: elderUserId,
+        startDate: startDate,
+        endDate: endDate,
       );
+      print('🔍 [HEALTH_PROVIDER] Loaded ${_vitals.length} vitals from API');
+      for (var v in _vitals) {
+        print('   - Vital ${v.id}: ${v.timestamp.toIso8601String()} (PKT: ${TimezoneUtil.toPakistanTime(v.timestamp).toIso8601String()})');
+      }
       _error = null;
     } catch (e) {
       _error = e.toString();
@@ -120,14 +130,20 @@ class HealthProvider with ChangeNotifier {
     );
   }
 
-  // Get vitals for a specific date (compares in Pakistan timezone)
   List<VitalMeasurementModel> getVitalsForDate(DateTime date) {
-    return _vitals.where((vital) {
+    print('🔍 [HEALTH_PROVIDER] Filtering for date: ${date.year}-${date.month}-${date.day}');
+    final filtered = _vitals.where((vital) {
       final pktTime = TimezoneUtil.toPakistanTime(vital.timestamp);
-      final vitalDate = DateTime(pktTime.year, pktTime.month, pktTime.day);
-      final targetDate = DateTime(date.year, date.month, date.day);
-      return vitalDate.isAtSameMomentAs(targetDate);
+      final isMatch = pktTime.year == date.year &&
+          pktTime.month == date.month &&
+          pktTime.day == date.day;
+      if (isMatch) {
+        print('   ✅ Match: Vital ${vital.id} (at ${pktTime.hour}:${pktTime.minute})');
+      }
+      return isMatch;
     }).toList();
+    print('🔍 [HEALTH_PROVIDER] Found ${filtered.length} matches');
+    return filtered;
   }
 
   // Calculate trends
