@@ -23,7 +23,7 @@ class CaregiverUpcomingMedicationsCard extends StatelessWidget {
         return aTime.compareTo(bTime);
       });
 
-    final now = DateTime.now();
+    final now = TimezoneUtil.nowInPakistan();
     final nextReminders = upcoming.where((reminder) {
       final time = reminder['reminderTime'] as DateTime;
       return !time.isBefore(now);
@@ -122,7 +122,7 @@ class _UpcomingReminderRow extends StatelessWidget {
         : CaregiverDashboardTheme.accentBlue;
     final timeLabel = DateFormat('h:mm a').format(time);
     final dayLabel = DateFormat('MMM d').format(time);
-    final diff = time.difference(DateTime.now());
+    final diff = time.difference(TimezoneUtil.nowInPakistan());
     final relative = diff.inMinutes <= 0
         ? 'Due now'
         : diff.inMinutes < 60

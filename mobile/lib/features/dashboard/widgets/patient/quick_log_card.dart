@@ -6,6 +6,7 @@ import '../../../../core/providers/medication_provider.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/providers/care_context_provider.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/timezone_util.dart';
 import '../../../../core/theme/modern_surface_theme.dart';
 import '../../../../core/models/medicine_model.dart';
 
@@ -209,10 +210,10 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                             crossAxisAlignment: CrossAxisAlignment.start,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (isHighPriority && time.isBefore(DateTime.now()))
+                              if (isHighPriority && time.isBefore(TimezoneUtil.nowInPakistan()))
                                 Text(
                                   () {
-                                    final diff = DateTime.now().difference(time);
+                                    final diff = TimezoneUtil.nowInPakistan().difference(time);
                                     if (diff.inHours > 0) {
                                       return '${diff.inHours}h overdue';
                                     }

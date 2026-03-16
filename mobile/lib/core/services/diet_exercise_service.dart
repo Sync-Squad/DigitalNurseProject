@@ -295,10 +295,10 @@ class DietExerciseService {
         return {
           'weekStart': data['weekStart'] != null
               ? DateTime.parse(data['weekStart'].toString())
-              : DateTime.now().subtract(const Duration(days: 7)),
+              : TimezoneUtil.nowInPakistan().subtract(const Duration(days: 7)),
           'weekEnd': data['weekEnd'] != null
               ? DateTime.parse(data['weekEnd'].toString())
-              : DateTime.now(),
+              : TimezoneUtil.nowInPakistan(),
           'totalCaloriesIn': (data['totalCaloriesIn'] ?? 0) as int,
           'totalCaloriesOut': (data['totalCaloriesOut'] ?? 0) as int,
           'avgCaloriesPerDay': (data['avgCaloriesPerDay'] ?? 0.0).toDouble(),

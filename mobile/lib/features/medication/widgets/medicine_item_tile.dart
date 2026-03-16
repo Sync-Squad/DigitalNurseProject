@@ -8,6 +8,7 @@ import '../../../core/models/medicine_model.dart';
 import '../../../core/providers/medication_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/timezone_util.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 
 class MedicineItemTile extends StatelessWidget {
@@ -110,7 +111,7 @@ class MedicineItemTile extends StatelessWidget {
         // Don't show any icon for missed medications
         return const SizedBox.shrink();
       case IntakeStatus.pending:
-        final now = DateTime.now();
+        final now = TimezoneUtil.nowInPakistan();
         final parts = reminderTime.split(':');
         final hour = int.tryParse(parts[0]) ?? 0;
         final minute = int.tryParse(parts[1]) ?? 0;

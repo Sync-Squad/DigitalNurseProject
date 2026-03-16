@@ -6,6 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:digital_nurse/core/services/medication_service.dart';
+import 'package:digital_nurse/core/utils/timezone_util.dart';
 import '../../../core/services/alarm_service.dart';
 import '../../../core/services/fcm_service.dart';
 import '../../../core/providers/medication_provider.dart';
@@ -103,7 +105,7 @@ class _MedicineAlarmScreenState extends State<MedicineAlarmScreen>
 
   void _updateTime() {
     setState(() {
-      _currentTime = DateFormat('HH:mm').format(DateTime.now());
+      _currentTime = TimezoneUtil.formatInPakistan(TimezoneUtil.nowInPakistan(), format: 'HH:mm');
     });
   }
 
@@ -120,7 +122,7 @@ class _MedicineAlarmScreenState extends State<MedicineAlarmScreen>
         if (user != null) {
           await medicationProvider.logIntake(
             medicineId: _medicineId!,
-            scheduledTime: DateTime.now(),
+            scheduledTime: TimezoneUtil.nowInPakistan(),
             status: IntakeStatus.taken,
             userId: user.id,
           );
@@ -140,7 +142,7 @@ class _MedicineAlarmScreenState extends State<MedicineAlarmScreen>
     if (_medicineId != null) {
       try {
         final fcmService = FCMService();
-        final snoozeTime = DateTime.now().add(const Duration(minutes: 5));
+        final snoozeTime = TimezoneUtil.nowInPakistan().add(const Duration(minutes: 5));
         await fcmService.scheduleLocalNotification(
           id: '${_medicineId}_snooze_${snoozeTime.millisecondsSinceEpoch}'
               .hashCode,

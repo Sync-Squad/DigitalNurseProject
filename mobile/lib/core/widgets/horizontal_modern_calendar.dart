@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import '../utils/timezone_util.dart';
 import '../theme/app_theme.dart';
 
 class HorizontalModernCalendar extends StatefulWidget {
@@ -36,7 +37,7 @@ class _HorizontalModernCalendarState extends State<HorizontalModernCalendar> {
   void _scrollToSelected() {
     if (!_scrollController.hasClients) return;
     
-    final start = widget.startDate ?? DateTime.now().subtract(const Duration(days: 30));
+    final start = widget.startDate ?? TimezoneUtil.nowInPakistan().subtract(const Duration(days: 30));
     final diff = widget.selectedDate.difference(start).inDays;
     final targetOffset = diff * (_itemWidth + _itemPadding);
     
@@ -57,8 +58,8 @@ class _HorizontalModernCalendarState extends State<HorizontalModernCalendar> {
 
   @override
   Widget build(BuildContext context) {
-    final start = widget.startDate ?? DateTime.now().subtract(const Duration(days: 30));
-    final end = widget.endDate ?? DateTime.now().add(const Duration(days: 30));
+    final start = widget.startDate ?? TimezoneUtil.nowInPakistan().subtract(const Duration(days: 30));
+    final end = widget.endDate ?? TimezoneUtil.nowInPakistan().add(const Duration(days: 30));
     final totalDays = end.difference(start).inDays + 1;
 
     return SizedBox(
@@ -71,7 +72,7 @@ class _HorizontalModernCalendarState extends State<HorizontalModernCalendar> {
         itemBuilder: (context, index) {
           final date = start.add(Duration(days: index));
           final isSelected = DateUtils.isSameDay(date, widget.selectedDate);
-          final isToday = DateUtils.isSameDay(date, DateTime.now());
+          final isToday = DateUtils.isSameDay(date, TimezoneUtil.nowInPakistan());
 
           return GestureDetector(
             onTap: () => widget.onDateChanged(date),

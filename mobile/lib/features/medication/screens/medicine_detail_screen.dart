@@ -221,7 +221,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       }
 
       // Fallback to current time if no valid time found
-      scheduledTime ??= DateTime.now();
+      scheduledTime ??= TimezoneUtil.nowInPakistan();
 
       print('🔵 [MEDICINE_DETAIL] Final scheduled time: $scheduledTime');
       print(
@@ -486,7 +486,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
               currentStatus: widget.selectedDate != null || widget.reminderTime != null 
                 ? _hasExistingIntakeForTime(
                     () {
-                      final targetDate = widget.selectedDate ?? DateTime.now();
+                      final targetDate = widget.selectedDate ?? TimezoneUtil.nowInPakistan();
                       final timeToUse = widget.reminderTime ?? (medicine.reminderTimes.isNotEmpty ? medicine.reminderTimes.first : "08:00");
                       final parts = timeToUse.split(':');
                       final hour = int.tryParse(parts[0]) ?? 8;
@@ -563,34 +563,12 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                                           ),
                                     ),
                                     Text(
-                                      () {
-                                        // Convert UTC time to Pakistan time for display
-                                        final timeToDisplay =
-                                            intake.status ==
-                                                    IntakeStatus.taken &&
-                                                intake.takenTime != null
-                                            ? intake.takenTime!
-                                            : intake.scheduledTime;
-
-                                        // Convert UTC DateTime to Pakistan timezone
-                                        final pakistanTime =
-                                            TimezoneUtil.toPakistanTime(
-                                              timeToDisplay,
-                                            );
-
-                                        // Create a DateTime with Pakistan time components for formatting
-                                        final displayDateTime = DateTime(
-                                          pakistanTime.year,
-                                          pakistanTime.month,
-                                          pakistanTime.day,
-                                          pakistanTime.hour,
-                                          pakistanTime.minute,
-                                        );
-
-                                        return DateFormat(
-                                          'MMM d, yyyy • h:mm a',
-                                        ).format(displayDateTime);
-                                      }(),
+                                      TimezoneUtil.formatInPakistan(
+                                        intake.status == IntakeStatus.taken && intake.takenTime != null
+                                          ? intake.takenTime!
+                                          : intake.scheduledTime,
+                                        format: 'MMM d, yyyy • h:mm a',
+                                      ),
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodySmall

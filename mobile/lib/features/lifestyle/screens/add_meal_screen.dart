@@ -159,7 +159,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
       );
 
       final meal = DietLogModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: TimezoneUtil.nowInPakistan().millisecondsSinceEpoch.toString(),
         mealType: _mealType,
         description: _descriptionController.text.trim(),
         calories: calories,

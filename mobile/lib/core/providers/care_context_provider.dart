@@ -3,6 +3,7 @@ import 'package:digital_nurse/core/models/user_model.dart';
 import 'package:flutter/material.dart';
 import '../models/care_recipient_model.dart';
 import '../services/caregiver_service.dart';
+import '../utils/timezone_util.dart';
 import 'auth_provider.dart';
 import 'health_provider.dart';
 import 'medication_provider.dart';
@@ -292,7 +293,7 @@ class CareContextProvider with ChangeNotifier {
   String? _calculateAge(String dobString) {
     try {
       final dob = DateTime.parse(dobString);
-      final now = DateTime.now();
+      final now = TimezoneUtil.nowInPakistan();
       int age = now.year - dob.year;
       if (now.month < dob.month ||
           (now.month == dob.month && now.day < dob.day)) {

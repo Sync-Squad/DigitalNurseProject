@@ -10,6 +10,7 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/care_context_provider.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/timezone_util.dart';
 import '../../../core/widgets/modern_scaffold.dart';
 
 class MedicineLogScreen extends StatefulWidget {
@@ -158,9 +159,10 @@ class _MedicineLogScreenState extends State<MedicineLogScreen> {
   }
 
   Widget _buildDateGroup(DateTime date, List<MedicineIntake> intakes) {
-    final isToday = DateTime.now().year == date.year &&
-        DateTime.now().month == date.month &&
-        DateTime.now().day == date.day;
+    final now = TimezoneUtil.nowInPakistan();
+    final isToday = now.year == date.year &&
+        now.month == date.month &&
+        now.day == date.day;
     
     final dateStr = isToday ? 'Today' : DateFormat('EEE, MMM d').format(date);
 

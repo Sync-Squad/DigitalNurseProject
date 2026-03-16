@@ -8,6 +8,7 @@ import 'package:easy_localization/easy_localization.dart';
 
 import '../../../../core/models/medicine_model.dart';
 import '../../../../core/providers/medication_provider.dart';
+import '../../../../core/utils/timezone_util.dart';
 import '../dashboard_theme.dart';
 import 'expandable_patient_card.dart';
 
@@ -28,7 +29,7 @@ class PatientUpcomingMedicationsCard extends StatelessWidget {
         return aTime.compareTo(bTime);
       });
 
-    final now = DateTime.now();
+    final now = TimezoneUtil.nowInPakistan();
     final nextReminders = upcoming.where((reminder) {
       final time = reminder['reminderTime'] as DateTime;
       return !time.isBefore(now);
@@ -131,7 +132,7 @@ class _UpcomingReminderRow extends StatelessWidget {
         : CaregiverDashboardTheme.accentBlue;
     final timeLabel = DateFormat('h:mm a').format(time);
     final dayLabel = DateFormat('MMM d').format(time);
-    final diff = time.difference(DateTime.now());
+    final diff = time.difference(TimezoneUtil.nowInPakistan());
     final relative = diff.inMinutes <= 0
         ? 'patient.dueNow'.tr()
         : diff.inMinutes < 60

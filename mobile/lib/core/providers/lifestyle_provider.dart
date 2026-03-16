@@ -4,6 +4,7 @@ import '../models/exercise_log_model.dart';
 import '../models/diet_plan_model.dart';
 import '../models/exercise_plan_model.dart';
 import '../services/diet_exercise_service.dart';
+import '../utils/timezone_util.dart';
 
 class LifestyleProvider with ChangeNotifier {
   final DietExerciseService _service = DietExerciseService();
@@ -244,10 +245,11 @@ class LifestyleProvider with ChangeNotifier {
     }
 
     for (var log in _trendDietLogs) {
+      final pktDate = TimezoneUtil.toPakistanTime(log.timestamp);
       final date = DateTime(
-        log.timestamp.year,
-        log.timestamp.month,
-        log.timestamp.day,
+        pktDate.year,
+        pktDate.month,
+        pktDate.day,
       );
       if (dailyData.containsKey(date)) {
         dailyData[date]!['in'] = (dailyData[date]!['in'] ?? 0) + log.calories;
@@ -255,10 +257,11 @@ class LifestyleProvider with ChangeNotifier {
     }
 
     for (var log in _trendExerciseLogs) {
+      final pktDate = TimezoneUtil.toPakistanTime(log.timestamp);
       final date = DateTime(
-        log.timestamp.year,
-        log.timestamp.month,
-        log.timestamp.day,
+        pktDate.year,
+        pktDate.month,
+        pktDate.day,
       );
       if (dailyData.containsKey(date)) {
         dailyData[date]!['out'] =

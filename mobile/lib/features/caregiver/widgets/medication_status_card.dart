@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/medication_provider.dart';
+import 'package:digital_nurse/core/utils/timezone_util.dart';
 import '../../../core/models/medicine_model.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/theme/app_theme.dart';
@@ -16,7 +17,7 @@ class MedicationStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final medicationProvider = context.watch<MedicationProvider>();
     final medicines = medicationProvider.medicines;
-    final today = DateTime.now();
+    final today = TimezoneUtil.nowInPakistan();
 
     // Count medications by status for today
     int takenCount = 0;
@@ -44,7 +45,7 @@ class MedicationStatusCard extends StatelessWidget {
           minute,
         );
 
-        if (scheduledTime.isBefore(DateTime.now())) {
+        if (scheduledTime.isBefore(TimezoneUtil.nowInPakistan())) {
           // Past time - check if taken or missed
           // For now, we'll count as missed (this should be enhanced with actual intake data)
           missedCount++;

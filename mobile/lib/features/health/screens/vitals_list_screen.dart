@@ -27,7 +27,7 @@ class VitalsListScreen extends StatefulWidget {
 }
 
 class _VitalsListScreenState extends State<VitalsListScreen> {
-  DateTime _selectedDate = DateTime.now();
+  DateTime _selectedDate = TimezoneUtil.nowInPakistan();
   String? _lastContextKey;
   String? _deletingVitalId;
 

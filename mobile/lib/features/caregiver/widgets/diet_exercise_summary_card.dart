@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/lifestyle_provider.dart';
 import '../../../core/theme/modern_surface_theme.dart';
+import '../../../core/utils/timezone_util.dart';
 
 class DietExerciseSummaryCard extends StatelessWidget {
   final String elderId;
@@ -18,7 +19,7 @@ class DietExerciseSummaryCard extends StatelessWidget {
     final dailySummary = lifestyleProvider.dailySummary;
 
     // Filter today's logs
-    final today = DateTime.now();
+    final today = TimezoneUtil.nowInPakistan();
     final todayDietLogs = dietLogs.where((log) {
       final logDate = DateTime(
         log.timestamp.year,

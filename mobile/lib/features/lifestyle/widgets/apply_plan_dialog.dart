@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import '../../../core/providers/lifestyle_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/timezone_util.dart';
 
 class ApplyPlanDialog extends StatefulWidget {
   final String planId;
@@ -22,7 +23,7 @@ class ApplyPlanDialog extends StatefulWidget {
 }
 
 class _ApplyPlanDialogState extends State<ApplyPlanDialog> {
-  DateTime _startDate = DateTime.now();
+  DateTime _startDate = TimezoneUtil.nowInPakistan();
   bool _overwriteExisting = false;
   bool _isApplying = false;
 
@@ -30,8 +31,8 @@ class _ApplyPlanDialogState extends State<ApplyPlanDialog> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _startDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      firstDate: TimezoneUtil.nowInPakistan().subtract(const Duration(days: 365)),
+      lastDate: TimezoneUtil.nowInPakistan().add(const Duration(days: 365)),
     );
     if (picked != null) {
       setState(() {

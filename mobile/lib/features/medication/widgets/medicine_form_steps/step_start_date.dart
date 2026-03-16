@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/timezone_util.dart';
 import '../../providers/medicine_form_provider.dart';
 
 class StepStartDate extends StatefulWidget {
@@ -239,8 +240,8 @@ class _StepStartDateState extends State<StepStartDate> {
     final selectedDate = await showDatePicker(
       context: context,
       initialDate: provider.formData.startDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      firstDate: TimezoneUtil.nowInPakistan().subtract(const Duration(days: 365)),
+      lastDate: TimezoneUtil.nowInPakistan().add(const Duration(days: 365)),
     );
 
     if (selectedDate != null) {
@@ -260,7 +261,7 @@ class _StepStartDateState extends State<StepStartDate> {
       context: context,
       initialDate: initialDate,
       firstDate: provider.formData.startDate,
-      lastDate: DateTime.now().add(const Duration(days: 365 * 2)),
+      lastDate: TimezoneUtil.nowInPakistan().add(const Duration(days: 365 * 2)),
     );
 
     if (selectedDate != null) {

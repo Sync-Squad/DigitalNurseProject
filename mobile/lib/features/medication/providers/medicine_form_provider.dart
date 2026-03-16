@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/utils/timezone_util.dart';
 import '../../../core/models/medicine_model.dart';
 
 class MedicineFormData {
@@ -7,7 +8,7 @@ class MedicineFormData {
   MedicineFrequency? frequency;
   List<int> periodicDays = [];
   List<TimeOfDay> reminderTimes = [];
-  DateTime startDate = DateTime.now();
+  DateTime startDate = TimezoneUtil.nowInPakistan();
   DateTime? endDate;
   String doseAmount = '';
   String strength = '';
@@ -276,7 +277,7 @@ class MedicineFormProvider extends ChangeNotifier {
         : _formData.doseAmount.trim();
 
     return MedicineModel(
-      id: _formData.medicineId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      id: _formData.medicineId ?? TimezoneUtil.nowInPakistan().millisecondsSinceEpoch.toString(),
       name: _formData.name.trim(),
       dosage: dosage,
       frequency: _formData.frequency!,
@@ -308,7 +309,7 @@ class MedicineFormProvider extends ChangeNotifier {
     _formData.frequency = null;
     _formData.periodicDays.clear();
     _formData.reminderTimes.clear();
-    _formData.startDate = DateTime.now();
+    _formData.startDate = TimezoneUtil.nowInPakistan();
     _formData.endDate = null;
     _formData.doseAmount = '';
     _formData.strength = '';

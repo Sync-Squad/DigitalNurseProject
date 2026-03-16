@@ -1,6 +1,7 @@
 import 'api_service.dart';
 import '../models/notification_model.dart';
 import 'fcm_service.dart';
+import '../utils/timezone_util.dart';
 
 class NotificationService {
   final ApiService _apiService = ApiService();
@@ -87,17 +88,17 @@ class NotificationService {
   }) async {
     // Usually notifications are created by backend now, but we keep this for local scheduling if used
     final notification = NotificationModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: TimezoneUtil.nowInPakistan().millisecondsSinceEpoch.toString(),
       title: title,
       body: body,
       type: type,
-      timestamp: scheduledTime ?? DateTime.now(),
+      timestamp: scheduledTime ?? TimezoneUtil.nowInPakistan(),
       isRead: false,
       actionData: actionData,
     );
 
     // Schedule local notification if scheduledTime is provided
-    if (scheduledTime != null && scheduledTime.isAfter(DateTime.now())) {
+    if (scheduledTime != null && scheduledTime.isAfter(TimezoneUtil.nowInPakistan())) {
       await _fcmService.scheduleLocalNotification(
         id: notification.hashCode,
         title: title,

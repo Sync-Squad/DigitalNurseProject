@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/medicine_model.dart';
 import '../services/medication_service.dart';
+import '../utils/timezone_util.dart';
 
 class MedicationProvider with ChangeNotifier {
   final MedicationService _medicationService = MedicationService();
@@ -366,7 +367,7 @@ class MedicationProvider with ChangeNotifier {
     }
 
     // If no record and time has passed, it's missed
-    if (scheduledDateTime.isBefore(DateTime.now())) {
+    if (scheduledDateTime.isBefore(TimezoneUtil.nowInPakistan())) {
       return IntakeStatus.missed;
     }
 

@@ -1,4 +1,5 @@
 import 'package:timezone/timezone.dart' as tz;
+import 'package:intl/intl.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 /// Utility class for handling Pakistan timezone conversions
@@ -28,57 +29,27 @@ class TimezoneUtil {
   /// we treat it as Pakistan local time and format accordingly.
   static String toPakistanTimeIso8601(DateTime dateTime) {
     initialize();
-
-    // Get Pakistan timezone location
     final pakistanLocation = tz.getLocation(pakistanTimeZone);
 
-    // Convert the DateTime to Pakistan timezone
-    // If dateTime is already in local time (naive), we need to interpret it as Pakistan time
-    // If dateTime is UTC, we convert it to Pakistan time
-    tz.TZDateTime pakistanTime;
+    // Always normalize to the absolute point in time and view it in Pakistan location
+    final pktTime = tz.TZDateTime.from(dateTime.toUtc(), pakistanLocation);
 
-    if (dateTime.isUtc) {
-      // If it's UTC, convert to Pakistan timezone
-      // Create TZDateTime from UTC, then convert to Pakistan location
-      final utcTime = tz.TZDateTime.from(dateTime, tz.UTC);
-      pakistanTime = tz.TZDateTime.fromMillisecondsSinceEpoch(
-        pakistanLocation,
-        utcTime.millisecondsSinceEpoch,
-      );
-    } else {
-      // If it's local time, interpret it as Pakistan local time
-      // Create a TZDateTime in Pakistan timezone with the same components
-      pakistanTime = tz.TZDateTime(
-        pakistanLocation,
-        dateTime.year,
-        dateTime.month,
-        dateTime.day,
-        dateTime.hour,
-        dateTime.minute,
-        dateTime.second,
-        dateTime.millisecond,
-        dateTime.microsecond,
-      );
-    }
+    // Format as ISO8601 with +05:00 offset
+    final year = pktTime.year.toString().padLeft(4, '0');
+    final month = pktTime.month.toString().padLeft(2, '0');
+    final day = pktTime.day.toString().padLeft(2, '0');
+    final hour = pktTime.hour.toString().padLeft(2, '0');
+    final minute = pktTime.minute.toString().padLeft(2, '0');
+    final second = pktTime.second.toString().padLeft(2, '0');
 
-    // Format as ISO8601 with timezone offset
-    // Format: YYYY-MM-DDTHH:mm:ss+05:00
-    final year = pakistanTime.year.toString().padLeft(4, '0');
-    final month = pakistanTime.month.toString().padLeft(2, '0');
-    final day = pakistanTime.day.toString().padLeft(2, '0');
-    final hour = pakistanTime.hour.toString().padLeft(2, '0');
-    final minute = pakistanTime.minute.toString().padLeft(2, '0');
-    final second = pakistanTime.second.toString().padLeft(2, '0');
+    return '$year-$month-${day}T$hour:$minute:${second}+05:00';
+  }
 
-    // Get timezone offset (should be +05:00 for Pakistan)
-    final offset = pakistanTime.timeZoneOffset;
-    final offsetHours = offset.inHours;
-    final offsetMinutes = (offset.inMinutes % 60).abs();
-    final offsetSign = offsetHours >= 0 ? '+' : '-';
-    final offsetString =
-        '${offsetSign}${offsetHours.abs().toString().padLeft(2, '0')}:${offsetMinutes.toString().padLeft(2, '0')}';
-
-    return '$year-$month-${day}T$hour:$minute:$second$offsetString';
+  /// Helper to format a DateTime for display in Pakistan time (h:mm a or similar)
+  static String formatInPakistan(DateTime dateTime, {String format = 'MMM dd, yyyy h:mm a'}) {
+    initialize();
+    final pktTime = toPakistanTime(dateTime);
+    return DateFormat(format).format(pktTime);
   }
 
   /// Parse an ISO8601 string (potentially with timezone) and return as DateTime
@@ -116,7 +87,6 @@ class TimezoneUtil {
       }
 
       // If it has timezone info, DateTime.parse converts to UTC equivalent
-      // Ensure isUtc flag is set so toPakistanTime() converts correctly
       return parsed.toUtc();
     } catch (e) {
       // Fallback: try to parse as date-only and interpret as Pakistan time
@@ -135,44 +105,23 @@ class TimezoneUtil {
         return pakistanTime.toUtc();
       } catch (e2) {
         // Last resort: return current time
-        return DateTime.now();
+        return DateTime.now().toUtc();
       }
     }
   }
 
   /// Get current time in Pakistan timezone
-  static DateTime nowInPakistan() {
+  static tz.TZDateTime nowInPakistan() {
     initialize();
     final pakistanLocation = tz.getLocation(pakistanTimeZone);
     return tz.TZDateTime.now(pakistanLocation);
   }
 
-  /// Convert a DateTime to Pakistan timezone TZDateTime (for date extraction)
-  /// Returns TZDateTime so we can extract year/month/day in Pakistan timezone
+  /// Convert a DateTime to Pakistan timezone TZDateTime
   static tz.TZDateTime toPakistanTime(DateTime dateTime) {
     initialize();
     final pakistanLocation = tz.getLocation(pakistanTimeZone);
-
-    if (dateTime.isUtc) {
-      // Convert from UTC to Pakistan timezone
-      final utcTime = tz.TZDateTime.from(dateTime, tz.UTC);
-      return tz.TZDateTime.fromMillisecondsSinceEpoch(
-        pakistanLocation,
-        utcTime.millisecondsSinceEpoch,
-      );
-    } else {
-      // Interpret as Pakistan local time
-      return tz.TZDateTime(
-        pakistanLocation,
-        dateTime.year,
-        dateTime.month,
-        dateTime.day,
-        dateTime.hour,
-        dateTime.minute,
-        dateTime.second,
-        dateTime.millisecond,
-        dateTime.microsecond,
-      );
-    }
+    // Always use .from() with UTC to ensure absolute point-in-time conversion
+    return tz.TZDateTime.from(dateTime.toUtc(), pakistanLocation);
   }
 }

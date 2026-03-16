@@ -1,4 +1,5 @@
 import '../models/medicine_model.dart';
+import '../utils/timezone_util.dart';
 import '../models/notification_model.dart';
 import '../mappers/medication_mapper.dart';
 import 'api_service.dart';
@@ -235,7 +236,7 @@ class MedicationService {
         id: '', // Will be set by backend
         medicineId: medicineId,
         scheduledTime: scheduledTime,
-        takenTime: status == IntakeStatus.taken ? DateTime.now() : null,
+        takenTime: status == IntakeStatus.taken ? TimezoneUtil.nowInPakistan() : null,
         status: status,
       );
 
@@ -447,7 +448,7 @@ class MedicationService {
             'medicine': MedicationMapper.fromApiResponse(map['medicine'] ?? {}),
             'reminderTime': DateTime.parse(
               map['reminderTime']?.toString() ??
-                  DateTime.now().toIso8601String(),
+                  TimezoneUtil.nowInPakistan().toIso8601String(),
             ),
             'status': map['status']?.toString() ?? 'pending',
           };
@@ -571,7 +572,7 @@ class MedicationService {
         );
       }
 
-      final testTime = DateTime.now().add(const Duration(seconds: 10));
+      final testTime = TimezoneUtil.nowInPakistan().add(const Duration(seconds: 10));
       await _fcmService.scheduleLocalNotification(
         id: 99999, // Use a unique ID for testing
         title: 'Test Medicine Reminder',
@@ -682,7 +683,7 @@ class MedicationService {
         return;
       }
 
-      final now = DateTime.now();
+      final now = TimezoneUtil.nowInPakistan();
       int scheduledForThisMedicine = 0;
 
       for (int i = 0; i < 7; i++) {

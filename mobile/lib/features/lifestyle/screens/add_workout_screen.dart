@@ -210,7 +210,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
       );
 
       final workout = ExerciseLogModel(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        id: TimezoneUtil.nowInPakistan().millisecondsSinceEpoch.toString(),
         activityType: _activityType,
         description: _descriptionController.text.trim(),
         durationMinutes: duration,

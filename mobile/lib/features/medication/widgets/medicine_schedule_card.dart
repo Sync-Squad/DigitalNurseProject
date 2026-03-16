@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../core/models/medicine_model.dart';
 import '../../../core/providers/medication_provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/timezone_util.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import 'medicine_item_tile.dart';
 
@@ -276,13 +277,13 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
 
     // Check if we're looking at today's date to determine if pending items are overdue
     final isToday =
-        widget.selectedDate.year == DateTime.now().year &&
-        widget.selectedDate.month == DateTime.now().month &&
-        widget.selectedDate.day == DateTime.now().day;
+        widget.selectedDate.year == TimezoneUtil.nowInPakistan().year &&
+        widget.selectedDate.month == TimezoneUtil.nowInPakistan().month &&
+        widget.selectedDate.day == TimezoneUtil.nowInPakistan().day;
 
     // Only check for overdue if we're viewing today's medications
     if (isToday && pendingCount > 0) {
-      final now = DateTime.now();
+      final now = TimezoneUtil.nowInPakistan();
       int overdueCount = 0;
 
       for (final entry in _medicineStatuses.entries) {
@@ -362,13 +363,13 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
 
     // Check if we're looking at today's date to determine if pending items are overdue
     final isToday =
-        widget.selectedDate.year == DateTime.now().year &&
-        widget.selectedDate.month == DateTime.now().month &&
-        widget.selectedDate.day == DateTime.now().day;
+        widget.selectedDate.year == TimezoneUtil.nowInPakistan().year &&
+        widget.selectedDate.month == TimezoneUtil.nowInPakistan().month &&
+        widget.selectedDate.day == TimezoneUtil.nowInPakistan().day;
 
     // Only check for overdue if we're viewing today's medications
     if (isToday && pendingCount > 0) {
-      final now = DateTime.now();
+      final now = TimezoneUtil.nowInPakistan();
       int overdueCount = 0;
 
       for (final entry in _medicineStatuses.entries) {

@@ -16,7 +16,7 @@ class MedicineReminderSection extends StatelessWidget {
         final upcomingReminders = medicationProvider.upcomingReminders;
         final todayReminders = upcomingReminders.where((reminder) {
           final reminderTime = reminder['reminderTime'] as DateTime;
-          final now = DateTime.now();
+          final now = TimezoneUtil.nowInPakistan();
           return reminderTime.year == now.year &&
               reminderTime.month == now.month &&
               reminderTime.day == now.day;

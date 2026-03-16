@@ -8,6 +8,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:permission_handler/permission_handler.dart';
 import '../models/notification_model.dart';
 import '../../firebase_options.dart';
+import '../utils/timezone_util.dart';
 
 /// Callback type for navigating to alarm screen
 typedef AlarmNavigationCallback = void Function(String? payload);
@@ -436,7 +437,7 @@ class FCMService {
       }
 
       // Only schedule if the date is in the future
-      if (scheduledDate.isBefore(DateTime.now())) {
+      if (scheduledDate.isBefore(TimezoneUtil.nowInPakistan())) {
         print('Skipping notification - scheduled time is in the past');
         return;
       }

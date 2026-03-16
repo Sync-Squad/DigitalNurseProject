@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/medication_provider.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/utils/timezone_util.dart';
 import '../../../core/providers/care_context_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
@@ -24,7 +25,7 @@ class MedicineListScreen extends StatefulWidget {
 
 class _MedicineListScreenState extends State<MedicineListScreen>
     with WidgetsBindingObserver {
-  DateTime _selectedDate = DateTime.now();
+  DateTime _selectedDate = TimezoneUtil.nowInPakistan();
   String? _lastContextKey;
   int _refreshKey = 0;
 

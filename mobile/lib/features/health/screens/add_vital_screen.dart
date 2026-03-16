@@ -9,6 +9,7 @@ import '../../../core/models/vital_measurement_model.dart';
 import '../../../core/providers/health_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/timezone_util.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
 
@@ -25,7 +26,7 @@ class _AddVitalScreenState extends State<AddVitalScreen> {
   final _notesController = TextEditingController();
 
   VitalType _selectedType = VitalType.bloodPressure;
-  DateTime _timestamp = DateTime.now();
+  DateTime _timestamp = TimezoneUtil.nowInPakistan();
 
   @override
   void dispose() {
@@ -41,7 +42,7 @@ class _AddVitalScreenState extends State<AddVitalScreen> {
     final userId = authProvider.currentUser!.id;
 
     final vital = VitalMeasurementModel(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      id: TimezoneUtil.nowInPakistan().millisecondsSinceEpoch.toString(),
       type: _selectedType,
       value: _valueController.text.trim(),
       timestamp: _timestamp,
@@ -95,8 +96,8 @@ class _AddVitalScreenState extends State<AddVitalScreen> {
     final selectedDate = await showDatePicker(
       context: context,
       initialDate: _timestamp,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now(),
+      firstDate: TimezoneUtil.nowInPakistan().subtract(const Duration(days: 365)),
+      lastDate: TimezoneUtil.nowInPakistan(),
     );
 
     if (selectedDate != null) {
@@ -130,11 +131,8 @@ class _AddVitalScreenState extends State<AddVitalScreen> {
       });
     }
   }
-
   String _getFormattedDateTime() {
-    final dateFormat = DateFormat('MMM dd, yyyy');
-    final timeFormat = DateFormat('h:mm a');
-    return '${dateFormat.format(_timestamp)} at ${timeFormat.format(_timestamp)}';
+    return TimezoneUtil.formatInPakistan(_timestamp);
   }
 
   @override

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
 import '../../../../core/providers/medication_provider.dart';
+import '../../../../core/utils/timezone_util.dart';
 import '../../../../core/theme/modern_surface_theme.dart';
 import '../../../../core/models/medicine_model.dart';
 import 'quick_log_card.dart';
@@ -24,7 +25,7 @@ class _DueRemindersRowState extends State<DueRemindersRow> {
     
     // Filter for "Due Now" (e.g., scheduled time is in the past or within next 12 hours)
     // AND not already optimistically removed
-    final now = DateTime.now();
+    final now = TimezoneUtil.nowInPakistan();
     final dueReminders = allReminders.where((r) {
       final medicine = r['medicine'] as MedicineModel?;
       final DateTime? scheduled = r['reminderTime'] as DateTime?;
