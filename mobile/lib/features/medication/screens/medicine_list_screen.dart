@@ -155,6 +155,11 @@ class _MedicineListScreenState extends State<MedicineListScreen>
           ],
         ),
         actions: [
+          IconButton(
+            icon: Icon(Icons.history, color: onPrimary),
+            onPressed: () => context.push('/medicine/log'),
+            tooltip: 'medication.history.title'.tr(),
+          ),
           if (!isCaregiver)
             IconButton(
               icon: Icon(Icons.add_circle_outline, color: onPrimary),

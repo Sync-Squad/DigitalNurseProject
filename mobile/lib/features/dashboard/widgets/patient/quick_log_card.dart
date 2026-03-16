@@ -85,6 +85,10 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
     final medicine = widget.reminder['medicine'] as MedicineModel?;
     final DateTime? time = widget.reminder['reminderTime'] as DateTime?;
 
+    if (medicine == null || time == null) {
+      return const SizedBox.shrink();
+    }
+
     final bool isHighPriority = medicine.priority == MedicinePriority.high;
     final String name = medicine.name;
     final timeStr = "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";

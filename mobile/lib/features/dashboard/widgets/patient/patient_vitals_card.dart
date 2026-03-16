@@ -40,7 +40,7 @@ class PatientVitalsCard extends StatelessWidget {
           : 'patient.vitalsSubtitleNormal'.tr(),
       count: '${recentVitals.length}',
       accentColor: CaregiverDashboardTheme.accentCoral,
-      routeForViewDetails: '/health',
+      routeForViewDetails: recentVitals.isNotEmpty ? '/health' : null,
       expandedChild: recentVitals.isEmpty
           ? Container(
               padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 18.h),

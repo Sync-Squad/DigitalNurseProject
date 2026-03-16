@@ -373,6 +373,56 @@ class MedicationService {
     }
   }
 
+  // Get all intake history for all medications
+  Future<List<MedicineIntake>> getAllIntakeHistory({
+    String? elderUserId,
+  }) async {
+    _log('📜 Fetching global intake history');
+    try {
+      final response = await _apiService.get(
+        '/medications/history/all',
+        queryParameters: elderUserId != null
+            ? {'elderUserId': elderUserId}
+            : null,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data is List ? response.data : [];
+        final intakes = data.map((json) {
+          final map = json is Map<String, dynamic> 
+              ? json 
+              : Map<String, dynamic>.from(json);
+          
+          return MedicineIntake(
+            id: map['id']?.toString() ?? '',
+            medicineId: map['medicineId']?.toString() ?? '',
+            medicineName: map['medicineName']?.toString(), // Optional field for logging
+            scheduledTime: DateTime.parse(map['scheduledTime']),
+            takenTime: map['takenTime'] != null 
+                ? DateTime.parse(map['takenTime']) 
+                : null,
+            status: IntakeStatus.values.firstWhere(
+              (e) => e.toString().split('.').last.toLowerCase() == 
+                     (map['status']?.toString() ?? 'pending').toLowerCase(),
+              orElse: () => IntakeStatus.pending,
+            ),
+          );
+        }).toList();
+        
+        _log('✅ Fetched ${intakes.length} global intake records');
+        return intakes.cast<MedicineIntake>();
+      } else {
+        _log('❌ Failed to fetch global intake history: ${response.statusMessage}');
+        throw Exception(
+          'Failed to fetch global intake history: ${response.statusMessage}',
+        );
+      }
+    } catch (e) {
+      _log('❌ Error fetching global intake history: $e');
+      throw Exception(e.toString());
+    }
+  }
+
   // Get upcoming reminders
   Future<List<Map<String, dynamic>>> getUpcomingReminders(
     String userId, {

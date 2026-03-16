@@ -103,9 +103,20 @@ export class MedicationsController {
     return this.medicationsService.remove(context, BigInt(id));
   }
 
+  @Get('history/all')
+  @ApiOperation({ summary: 'Get global intake history for all medications' })
+  @ApiResponse({ status: 200, description: 'List of all intakes' })
+  async getAllIntakeHistory(
+    @CurrentUser() user: any,
+    @Query('elderUserId') elderUserId?: string,
+  ) {
+    const context = await this.resolveContext(user, elderUserId);
+    return this.medicationsService.findAllIntakes(context);
+  }
+
   @Get(':id/intakes')
-  @ApiOperation({ summary: 'Get intake history for a medication' })
-  @ApiResponse({ status: 200, description: 'List of intakes' })
+  @ApiOperation({ summary: 'Get intake history for a specific medication' })
+  @ApiResponse({ status: 200, description: 'List of intakes for the medication' })
   async getIntakeHistory(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,

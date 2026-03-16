@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../../../core/extensions/vital_type_extensions.dart';
 import '../../../core/models/vital_measurement_model.dart';
 import '../../../core/providers/health_provider.dart';
@@ -270,8 +271,28 @@ class _AddVitalScreenState extends State<AddVitalScreen> {
                   hint: _getHintText(),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a value';
+                      return 'vitals.validation.valueRequired'.tr();
                     }
+                    
+                    if (_selectedType == VitalType.bloodPressure) {
+                      final parts = value.trim().split('/');
+                      if (parts.length != 2) {
+                        return 'vitals.validation.bpFormat'.tr();
+                      }
+                      
+                      final systolic = double.tryParse(parts[0].trim());
+                      final diastolic = double.tryParse(parts[1].trim());
+                      
+                      if (systolic == null || diastolic == null) {
+                        return 'vitals.validation.invalidNumber'.tr();
+                      }
+                    } else {
+                      final numValue = double.tryParse(value.trim());
+                      if (numValue == null) {
+                        return 'vitals.validation.invalidNumber'.tr();
+                      }
+                    }
+                    
                     return null;
                   },
                 ),

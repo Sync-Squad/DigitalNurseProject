@@ -380,6 +380,53 @@ export class MedicationsService {
   }
 
   /**
+   * Get all intake records for all medications of a user
+   */
+  async findAllIntakes(context: ActorContext) {
+    const medications = await this.prisma.medication.findMany({
+      where: {
+        elderUserId: context.elderUserId,
+      },
+      include: {
+        schedules: true,
+      } as any,
+    });
+
+    const scheduleIds = medications.flatMap((m: any) => 
+      m.schedules.map((s: any) => s.medScheduleId)
+    );
+
+    const intakes = await this.prisma.medIntake.findMany({
+      where: {
+        medScheduleId: {
+          in: scheduleIds,
+        },
+      } as any,
+      include: {
+        schedule: {
+          include: {
+            medication: true,
+          },
+        },
+      } as any,
+      orderBy: {
+        dueAt: 'desc',
+      },
+      take: 100, // Limit to recent history for performance
+    });
+
+    return intakes.map((intake: any) => ({
+      id: intake.medIntakeId.toString(),
+      medicineId: intake.schedule.medicationId.toString(),
+      medicineName: intake.schedule.medication.medicationName,
+      status: intake.status,
+      scheduledTime: intake.dueAt.toISOString(),
+      takenTime: intake.takenAt?.toISOString(),
+      remarks: intake.remarks,
+    }));
+  }
+
+  /**
    * Helper to map Prisma medication model to API response
    */
   private async mapToResponse(context: ActorContext, medication: any) {
@@ -393,7 +440,23 @@ export class MedicationsService {
     const endOfDay = getPKTDate();
     endOfDay.setHours(23, 59, 59, 999);
 
-    const scheduleIds = schedules.map((s: any) => s.medScheduleId);
+    const scheduleIds = (schedules as any[]).map((s: any) => s.medScheduleId);
+    if (scheduleIds.length === 0) {
+      return {
+        id: medication.medicationId.toString(),
+        name: medication.medicationName,
+        dosage: medication.instructions || '',
+        strength: medication.doseValue ? `${medication.doseValue} mg` : '',
+        frequency: this.daysMaskToFrequency(127, false),
+        medicineForm: medication.formCode || 'tablets',
+        notes: medication.notes || '',
+        priority: medication.priority || 'medium',
+        reminderTimes: [],
+        startDate: null,
+        endDate: null,
+        history: [],
+      };
+    }
 
     const todayIntakes = await this.prisma.medIntake.findMany({
       where: {
@@ -454,25 +517,41 @@ export class MedicationsService {
     return MedicineFrequency.PERIODIC;
   }
 
+  private getNowPKT(): Date {
+    const now = new Date();
+    try {
+      // Robust way to get PKT regardless of server timezone
+      const karachiTime = now.toLocaleString('en-US', { timeZone: 'Asia/Karachi' });
+      return new Date(karachiTime);
+    } catch (e) {
+      // Fallback if environment doesn't support IANA timezones (unlikely in modern Node)
+      // Pakistan is UTC+5
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      return new Date(utc + (3600000 * 5));
+    }
+  }
+
   /**
    * Helper to check if a medication is scheduled for a specific date
    */
   private isScheduledOnDate(schedule: any, date: Date): boolean {
     // 1. Check date range
+    // Normalize date to midnight for comparison
+    const checkDate = new Date(date);
+    checkDate.setHours(0, 0, 0, 0);
+
     const start = new Date(schedule.startDate);
     start.setHours(0, 0, 0, 0);
-    if (date < start) return false;
+    if (checkDate < start) return false;
 
     if (schedule.endDate) {
       const end = new Date(schedule.endDate);
       end.setHours(23, 59, 59, 999);
-      if (date > end) return false;
+      if (checkDate > end) return false;
     }
 
-    // 2. Check daysMask (1=Monday, ..., 7=Sunday)
-    // getDay() returns 0 for Sunday, 1 for Monday...
-    // Our mask: Bit 0 = Mon, Bit 1 = Tue, ..., Bit 6 = Sun
-    const day = date.getDay(); // 0-6 (Sun-Sat)
+    // 2. Check daysMask (Bit 0 = Monday, ..., Bit 6 = Sunday)
+    const day = checkDate.getDay(); // 0-6 (Sun-Sat)
     const shiftedDay = day === 0 ? 6 : day - 1; // 0=Mon, ..., 6=Sun
     return (schedule.daysMask & (1 << shiftedDay)) !== 0;
   }
@@ -481,7 +560,7 @@ export class MedicationsService {
    * Calculate adherence for a period
    */
   async calculateAdherence(context: ActorContext, days: number = 7) {
-    const now = getPKTDate();
+    const now = this.getNowPKT();
     const startDate = new Date(now);
     startDate.setDate(startDate.getDate() - days + 1);
     startDate.setHours(0, 0, 0, 0);
@@ -521,6 +600,7 @@ export class MedicationsService {
       for (let i = 0; i < days; i++) {
         const currentDate = new Date(startDate);
         currentDate.setDate(currentDate.getDate() + i);
+        currentDate.setHours(0, 0, 0, 0);
         const dateKey = currentDate.toISOString().split('T')[0];
 
         if (!dailyAdherence[dateKey]) {
@@ -566,7 +646,7 @@ export class MedicationsService {
    * Get adherence streak (consecutive days taken all scheduled doses)
    */
   async getAdherenceStreak(context: ActorContext) {
-    const now = getPKTDate();
+    const now = this.getNowPKT();
     let streak = 0;
     let dayOffset = 0;
 
@@ -627,14 +707,7 @@ export class MedicationsService {
       if (hadDosesOnDay && allDosesTakenOnDay) {
         streak++;
       } else if (hadDosesOnDay && !allDosesTakenOnDay) {
-        // Streak broken at a day with missed doses
-        // Exception: If it's today and not all doses are due yet, we don't break streak
-        // BUT if even one dose was missed today, streak is broken
-        // The loop above already handles future doses by skipping them
         break;
-      } else if (!hadDosesOnDay) {
-        // No medications scheduled for this day
-        // We skip this day without breaking or incrementing streak
       }
 
       dayOffset++;
@@ -647,11 +720,14 @@ export class MedicationsService {
    * Get medication status for a specific date
    */
   async getMedicationStatus(context: ActorContext, targetDate: Date) {
+    // targetDate might be UTC midnight from frontend, ensure we handle it as PKT day
     const dateStart = new Date(targetDate);
     dateStart.setHours(0, 0, 0, 0);
 
     const dateEnd = new Date(targetDate);
     dateEnd.setHours(23, 59, 59, 999);
+
+    const nowPKT = this.getNowPKT();
 
     const medications = await this.prisma.medication.findMany({
       where: {
@@ -681,8 +757,17 @@ export class MedicationsService {
       if (!Array.isArray(times) || times.length === 0) continue;
 
       // Check if medication is active on this date
-      if ((schedule as any).startDate > dateEnd) continue;
-      if ((schedule as any).endDate && (schedule as any).endDate < dateStart) continue;
+      const medStart = new Date(schedule.startDate);
+      medStart.setHours(0,0,0,0);
+      if (medStart > dateEnd) continue;
+      
+      if (schedule.endDate) {
+        const medEnd = new Date(schedule.endDate);
+        medEnd.setHours(23,59,59,999);
+        if (medEnd < dateStart) continue;
+      }
+
+      if (!this.isScheduledOnDate(schedule, dateStart)) continue;
 
       const medicationStatus: any = {
         medicineId: medication.medicationId.toString(),
@@ -695,7 +780,7 @@ export class MedicationsService {
         const timeStr = typeof timeVal === 'object' && timeVal !== null && 'time' in timeVal ? (timeVal as any).time : timeVal;
         if (typeof timeStr !== 'string') continue;
         const [hours, minutes] = timeStr.split(':').map(Number);
-        const scheduledTime = new Date(targetDate);
+        const scheduledTime = new Date(dateStart);
         scheduledTime.setHours(hours, minutes, 0, 0);
 
         // Get intake for this scheduled time
@@ -711,7 +796,7 @@ export class MedicationsService {
           status = intake.status;
           if (status === IntakeStatus.TAKEN) takenCount++;
           else if (status === IntakeStatus.MISSED) missedCount++;
-        } else if (scheduledTime < getPKTDate()) {
+        } else if (scheduledTime < nowPKT) {
           status = 'missed';
           missedCount++;
         } else {
@@ -735,9 +820,10 @@ export class MedicationsService {
 
     return {
       date: targetDate.toISOString().split('T')[0],
-      taken: takenCount,
-      missed: missedCount,
-      upcoming: upcomingCount,
+      adherence: takenCount + missedCount > 0 ? takenCount / (takenCount + missedCount) : 1.0,
+      takenCount,
+      missedCount,
+      upcomingCount,
       medications: medicationStatuses,
     };
   }
@@ -792,16 +878,17 @@ export class MedicationsService {
         } as any);
 
         const isMissedHighPriority = intake && intake.status === IntakeStatus.MISSED && medication.priority === 'high';
+        const hasIntakeRecord = !!intake;
 
         let finalReminderTime = new Date(todayReminder);
-        if (isLogged && todayReminder < now && !isMissedHighPriority) {
+        if (hasIntakeRecord && todayReminder < now && !isMissedHighPriority) {
           // If already logged and in the past, shift to tomorrow
           // EXCEPT if it's a high-priority missed dose (stay on today so user can correct it)
           finalReminderTime.setDate(todayReminder.getDate() + 1);
-        } else if (!isLogged) {
+        } else if (!hasIntakeRecord) {
           // If NOT logged, keep it as today's dose (even if overdue)
           finalReminderTime = todayReminder;
-        } else if (isLogged && todayReminder >= now) {
+        } else if (hasIntakeRecord && todayReminder >= now) {
           // Already logged but in the future? (e.g. user logged ahead of time)
           // Shift to tomorrow to show next dose
           finalReminderTime.setDate(todayReminder.getDate() + 1);

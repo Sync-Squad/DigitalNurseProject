@@ -126,6 +126,7 @@ class MedicineIntake {
   final DateTime scheduledTime;
   final DateTime? takenTime;
   final IntakeStatus status;
+  final String? medicineName;
 
   MedicineIntake({
     required this.id,
@@ -133,6 +134,7 @@ class MedicineIntake {
     required this.scheduledTime,
     this.takenTime,
     required this.status,
+    this.medicineName,
   });
 
   MedicineIntake copyWith({
@@ -141,6 +143,7 @@ class MedicineIntake {
     DateTime? scheduledTime,
     DateTime? takenTime,
     IntakeStatus? status,
+    String? medicineName,
   }) {
     return MedicineIntake(
       id: id ?? this.id,
@@ -148,6 +151,7 @@ class MedicineIntake {
       scheduledTime: scheduledTime ?? this.scheduledTime,
       takenTime: takenTime ?? this.takenTime,
       status: status ?? this.status,
+      medicineName: medicineName ?? this.medicineName,
     );
   }
 }

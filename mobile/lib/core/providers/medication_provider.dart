@@ -10,6 +10,7 @@ class MedicationProvider with ChangeNotifier {
   String? _error;
   double _adherencePercentage = 100.0;
   int _adherenceStreak = 0;
+  List<MedicineIntake> _allIntakes = [];
 
   List<MedicineModel> get medicines => _medicines;
   List<Map<String, dynamic>> get upcomingReminders => _upcomingReminders;
@@ -17,6 +18,7 @@ class MedicationProvider with ChangeNotifier {
   String? get error => _error;
   double get adherencePercentage => _adherencePercentage;
   int get adherenceStreak => _adherenceStreak;
+  List<MedicineIntake> get allIntakes => _allIntakes;
 
   // Load medicines
   Future<void> loadMedicines(String userId, {String? elderUserId}) async {
@@ -211,6 +213,24 @@ class MedicationProvider with ChangeNotifier {
       medicineId,
       elderUserId: elderUserId,
     );
+  }
+
+  // Load all intake history
+  Future<void> loadAllIntakeHistory({String? elderUserId}) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      _allIntakes = await _medicationService.getAllIntakeHistory(
+        elderUserId: elderUserId,
+      );
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   // Refresh reminders

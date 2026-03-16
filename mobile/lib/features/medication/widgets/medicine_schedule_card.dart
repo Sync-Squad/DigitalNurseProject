@@ -333,7 +333,11 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
 
   String _getStatusText(BuildContext context) {
     if (_medicineStatuses.isEmpty) {
-      return 'medication.status.noMedicines'.tr();
+      // If we have medicines but haven't loaded statuses yet, default to 'Upcoming'
+      // instead of showing 'No medicines' which is misleading.
+      return widget.medicines.isNotEmpty 
+          ? 'medication.status.upcoming'.tr() 
+          : 'medication.status.noMedicines'.tr();
     }
 
     final statusList = _medicineStatuses.values.toList();

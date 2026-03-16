@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import '../models/document_model.dart';
 import '../mappers/document_mapper.dart';
@@ -134,20 +135,18 @@ class DocumentService {
     String? description,
     String? elderUserId,
     DateTime? uploadDate,
+    Uint8List? fileBytes,
   }) async {
     _log('📤 Uploading document: $title');
     try {
-      final file = File(filePath);
-      if (!await file.exists()) {
-        throw Exception('File does not exist: $filePath');
-      }
-
       // Prepare form data
+      final fileName = filePath.split(RegExp(r'[/\\]')).last;
+      final file = File(filePath);
+
       final formData = FormData.fromMap({
-        'file': await MultipartFile.fromFile(
-          filePath,
-          filename: file.path.split('/').last,
-        ),
+        'file': fileBytes != null
+            ? MultipartFile.fromBytes(fileBytes, filename: fileName)
+            : await MultipartFile.fromFile(filePath, filename: fileName),
         'title': title,
         'type': _documentTypeToString(type),
         'visibility': _documentVisibilityToString(visibility),
@@ -168,7 +167,7 @@ class DocumentService {
           baseUrl: baseUrl,
           headers: {
             if (token != null) 'Authorization': 'Bearer $token',
-            'Content-Type': 'multipart/form-data',
+            'Accept': 'application/json',
           },
         ),
       );
@@ -176,7 +175,7 @@ class DocumentService {
       final response = await dio.post(
         '/documents',
         data: formData,
-        options: Options(headers: {'Content-Type': 'multipart/form-data'}),
+        // options: Options(headers: {'Content-Type': 'multipart/form-data'}), // DO NOT SET THIS MANUALLY
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {

@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../models/document_model.dart';
 import '../services/document_service.dart';
@@ -53,6 +54,7 @@ class DocumentProvider with ChangeNotifier {
     String? description,
     String? elderUserId,
     DateTime? uploadDate,
+    Uint8List? bytes,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -66,6 +68,7 @@ class DocumentProvider with ChangeNotifier {
         description: description,
         elderUserId: elderUserId,
         uploadDate: uploadDate,
+        fileBytes: bytes,
       );
       _documents.insert(0, uploaded);
       _error = null;

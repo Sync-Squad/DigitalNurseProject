@@ -457,7 +457,7 @@ class _AlertsCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => context.push('/health/abnormal'),
+      onTap: alertCount > 0 ? () => context.push('/health/abnormal') : null,
         borderRadius: BorderRadius.circular(20),
         child: Ink(
           decoration: BoxDecoration(
@@ -564,8 +564,20 @@ class _BloodPressureCard extends StatelessWidget {
 
     final vital = latestVital;
     final hasData = vital != null;
-    final systolicStr = hasData ? (vital.value as String).split('/')[0] : '--';
-    final diastolicStr = hasData ? (vital.value as String).split('/')[1] : '--';
+    
+    // Safely parse blood pressure values
+    String systolicStr = '--';
+    String diastolicStr = '--';
+    
+    if (hasData) {
+      final valueStr = vital.value.toString();
+      final parts = valueStr.split('/');
+      systolicStr = parts[0];
+      if (parts.length > 1) {
+        diastolicStr = parts[1];
+      }
+    }
+
     final status = hasData ? vital.getStatusLabel(context) : 'patient.noRecordsYet'.tr();
     final statusColor = hasData
         ? vital.getHealthStatus().getStatusColor(context)
@@ -577,7 +589,7 @@ class _BloodPressureCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => context.push(hasData ? '/health' : '/health/add'),
+        onTap: hasData ? () => context.push('/health') : null,
         borderRadius: BorderRadius.circular(20),
         child: Ink(
           padding: EdgeInsets.all(16.w),

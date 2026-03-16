@@ -755,11 +755,15 @@ class _MedicineInfoCard extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: medicine.priority == MedicinePriority.high 
                                   ? Colors.red.withOpacity(0.15) 
+                                  : medicine.priority == MedicinePriority.medium
+                                  ? Colors.amber.withOpacity(0.15)
                                   : Colors.blue.withOpacity(0.15),
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: medicine.priority == MedicinePriority.high 
                                     ? Colors.red.withOpacity(0.3) 
+                                    : medicine.priority == MedicinePriority.medium
+                                    ? Colors.amber.withOpacity(0.3)
                                     : Colors.blue.withOpacity(0.3),
                                 width: 1,
                               ),
@@ -772,11 +776,13 @@ class _MedicineInfoCard extends StatelessWidget {
                                 if (medicine.priority == MedicinePriority.high)
                                   SizedBox(width: 4.w),
                                 Text(
-                                  '${medicine.priority.name.capitalize()} Priority',
+                                  '${medicine.priority.name.toLowerCase()}'.tr(),
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: medicine.priority == MedicinePriority.high 
                                             ? Colors.red 
+                                            : medicine.priority == MedicinePriority.medium
+                                            ? Colors.amber[700]
                                             : Colors.blue,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 12.sp,

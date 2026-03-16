@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -74,30 +75,16 @@ class MedicineItemTile extends StatelessWidget {
                     SizedBox(height: 4.h),
                     Row(
                       children: [
-                        Text(
-                          '${medicine.dosage} • $timeDisplay',
-                          style: textTheme.bodySmall?.copyWith(color: muted),
+                        Flexible(
+                          child: Text(
+                            '${medicine.dosage} • $timeDisplay',
+                            style: textTheme.bodySmall?.copyWith(color: muted),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         ),
                         SizedBox(width: 8.w),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                          decoration: BoxDecoration(
-                            color: medicine.priority == MedicinePriority.high 
-                                ? Colors.red.withOpacity(0.1) 
-                                : Colors.blue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            medicine.priority.name.toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 8.sp,
-                              fontWeight: FontWeight.bold,
-                              color: medicine.priority == MedicinePriority.high 
-                                  ? Colors.red 
-                                  : Colors.blue,
-                            ),
-                          ),
-                        ),
+                        _PriorityBadge(priority: medicine.priority),
                       ],
                     ),
                   ],
@@ -196,6 +183,72 @@ class MedicineItemTile extends StatelessWidget {
     );
 
     onStatusChanged?.call();
+  }
+}
+
+class _PriorityBadge extends StatelessWidget {
+  final MedicinePriority priority;
+
+  const _PriorityBadge({required this.priority});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _getPriorityColor(context);
+    final icon = _getPriorityIcon();
+    
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: color.withOpacity(0.25),
+          width: 0.5,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: color),
+          SizedBox(width: 4.w),
+          Flexible(
+            child: Text(
+              '${priority.name.toLowerCase()}'.tr(),
+              style: TextStyle(
+                fontSize: 9.sp,
+                fontWeight: FontWeight.bold,
+                color: color,
+                letterSpacing: 0.2,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getPriorityColor(BuildContext context) {
+    switch (priority) {
+      case MedicinePriority.high:
+        return AppTheme.getErrorColor(context);
+      case MedicinePriority.medium:
+        return Colors.amber[700]!;
+      case MedicinePriority.low:
+        return Colors.blue;
+    }
+  }
+
+  IconData _getPriorityIcon() {
+    switch (priority) {
+      case MedicinePriority.high:
+        return Icons.priority_high;
+      case MedicinePriority.medium:
+        return Icons.info_outline;
+      case MedicinePriority.low:
+        return Icons.low_priority;
+    }
   }
 }
 

@@ -4,6 +4,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'permission_service.dart';
 
+import 'dart:typed_data';
+
 class DocumentPickerResult {
   final String filePath;
   final String fileName;
@@ -11,6 +13,7 @@ class DocumentPickerResult {
   final int fileSize;
   final bool isImage;
   final File? file;
+  final Uint8List? bytes;
 
   DocumentPickerResult({
     required this.filePath,
@@ -19,6 +22,7 @@ class DocumentPickerResult {
     required this.fileSize,
     required this.isImage,
     this.file,
+    this.bytes,
   });
 }
 
@@ -53,6 +57,7 @@ class DocumentPickerService {
       final fileSize = await file.length();
       final fileName = image.name;
       final fileExtension = fileName.split('.').last.toLowerCase();
+      final bytes = await file.readAsBytes();
 
       return DocumentPickerResult(
         filePath: image.path,
@@ -61,6 +66,7 @@ class DocumentPickerService {
         fileSize: fileSize,
         isImage: true,
         file: file,
+        bytes: bytes,
       );
     } catch (e) {
       debugPrint('Error picking image from camera: $e');
@@ -95,6 +101,7 @@ class DocumentPickerService {
       final fileSize = await file.length();
       final fileName = image.name;
       final fileExtension = fileName.split('.').last.toLowerCase();
+      final bytes = await file.readAsBytes();
 
       return DocumentPickerResult(
         filePath: image.path,
@@ -103,6 +110,7 @@ class DocumentPickerService {
         fileSize: fileSize,
         isImage: true,
         file: file,
+        bytes: bytes,
       );
     } catch (e) {
       debugPrint('Error picking image from gallery: $e');
@@ -131,6 +139,7 @@ class DocumentPickerService {
       final fileExtension = fileName.split('.').last.toLowerCase();
       final fileSize = file.size;
       final isImage = ['jpg', 'jpeg', 'png'].contains(fileExtension);
+      final bytes = file.bytes;
 
       return DocumentPickerResult(
         filePath: filePath,
@@ -139,6 +148,7 @@ class DocumentPickerService {
         fileSize: fileSize,
         isImage: isImage,
         file: filePath.isNotEmpty ? File(filePath) : null,
+        bytes: bytes,
       );
     } catch (e) {
       debugPrint('Error picking document: $e');

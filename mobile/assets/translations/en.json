@@ -256,6 +256,24 @@
       "deleteConfirm": "Are you sure you want to delete this medicine?",
       "deleteSuccess": "Medicine deleted successfully",
       "deleteFail": "Failed to delete medicine"
+    },
+    "history": {
+      "title": "Medication Log",
+      "globalLog": "Global History",
+      "filterByMedicine": "Filter by Medicine",
+      "allMedicines": "All Medicines",
+      "noHistoryForFilter": "No history found for this medicine",
+      "status": {
+        "taken": "Taken",
+        "missed": "Missed",
+        "pending": "Pending",
+        "skipped": "Skipped"
+      }
+    },
+    "priority": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low"
     }
   },
   "common": {
@@ -350,6 +368,11 @@
     "actions": {
       "logVital": "Log Vital",
       "viewTrends": "View Trends"
+    },
+    "validation": {
+      "valueRequired": "Please enter a value",
+      "bpFormat": "Please enter blood pressure as systolic/diastolic (e.g., 120/80)",
+      "invalidNumber": "Please enter a valid number"
     },
     "emptyState": {
       "noVitalsLoggedYet": "No vitals logged yet",

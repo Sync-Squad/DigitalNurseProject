@@ -13,6 +13,7 @@ import '../features/onboarding/screens/subscription_plans_screen.dart';
 import '../features/dashboard/screens/main_navigation_screen.dart';
 import '../features/medication/screens/add_medicine_screen.dart';
 import '../features/medication/screens/medicine_detail_screen.dart';
+import '../features/medication/screens/medicine_log_screen.dart';
 import '../features/medication/screens/medicine_alarm_screen.dart';
 import '../features/health/screens/add_vital_screen.dart';
 import '../features/health/screens/health_trends_screen.dart';
@@ -208,7 +209,10 @@ final goRouter = GoRouter(
         );
       },
     ),
-
+    GoRoute(
+      path: '/medicine/log',
+      builder: (context, state) => const MedicineLogScreen(),
+    ),
     // Health/Vitals routes
     GoRoute(
       path: '/vitals/add',

@@ -130,6 +130,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
           : _descriptionController.text.trim(),
       elderUserId: elderUserId,
       uploadDate: _uploadDate,
+      bytes: _selectedFile!.bytes,
     );
 
     if (mounted) {

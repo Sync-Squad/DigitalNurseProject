@@ -13,6 +13,7 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
+import '../../dashboard/widgets/dashboard_theme.dart';
 
 class HealthTrendsScreen extends StatefulWidget {
   const HealthTrendsScreen({super.key});
@@ -67,23 +68,27 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen> {
 
     for (final measurement in measurements) {
       if (measurement is VitalMeasurementModel) {
-        double value;
         if (_selectedType == VitalType.bloodPressure) {
-          // Extract systolic value from "120/80" format
           final parts = measurement.value.split('/');
-          if (parts.isNotEmpty) {
-            value = double.tryParse(parts[0]) ?? 0;
-          } else {
-            value = 0;
+          final systolic = parts.isNotEmpty ? double.tryParse(parts[0]) ?? 0.0 : 0.0;
+          final diastolic = parts.length > 1 ? double.tryParse(parts[1]) ?? 0.0 : 0.0;
+          
+          if (systolic > 0.0) {
+            dataPoints.add(
+              _ChartDataPoint(
+                date: measurement.timestamp, 
+                value: systolic,
+                value2: diastolic > 0.0 ? diastolic : null,
+              ),
+            );
           }
         } else {
-          value = double.tryParse(measurement.value) ?? 0;
-        }
-
-        if (value > 0) {
-          dataPoints.add(
-            _ChartDataPoint(date: measurement.timestamp, value: value),
-          );
+          final value = double.tryParse(measurement.value) ?? 0.0;
+          if (value > 0.0) {
+            dataPoints.add(
+              _ChartDataPoint(date: measurement.timestamp, value: value),
+            );
+          }
         }
       }
     }
@@ -93,22 +98,29 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen> {
     return dataPoints;
   }
 
-  Map<String, double> _getBarChartData() {
+  Map<String, _DailyAverage> _getBarChartData() {
     final chartData = _getChartData();
     if (chartData.isEmpty) return {};
 
-    final Map<String, List<double>> groupedData = {};
+    final Map<String, List<_ChartDataPoint>> groupedData = {};
 
     for (final point in chartData) {
       final key = DateFormat('MM/dd').format(point.date);
       groupedData.putIfAbsent(key, () => []);
-      groupedData[key]!.add(point.value);
+      groupedData[key]!.add(point);
     }
 
     // Calculate average for each day
-    final Map<String, double> averages = {};
-    groupedData.forEach((key, values) {
-      averages[key] = values.reduce((a, b) => a + b) / values.length;
+    final Map<String, _DailyAverage> averages = {};
+    groupedData.forEach((key, points) {
+      final avg1 = points.map((p) => p.value).reduce((a, b) => a + b) / points.length;
+      
+      final pointsWithVal2 = points.where((p) => p.value2 != null).toList();
+      final avg2 = pointsWithVal2.isEmpty 
+          ? null 
+          : pointsWithVal2.map((p) => p.value2!).reduce((a, b) => a + b) / pointsWithVal2.length;
+          
+      averages[key] = _DailyAverage(value1: avg1, value2: avg2);
     });
 
     return averages;
@@ -439,8 +451,16 @@ class _HealthTrendsScreenState extends State<HealthTrendsScreen> {
 class _ChartDataPoint {
   final DateTime date;
   final double value;
+  final double? value2; // For diastolic readings
 
-  _ChartDataPoint({required this.date, required this.value});
+  _ChartDataPoint({required this.date, required this.value, this.value2});
+}
+
+class _DailyAverage {
+  final double value1;
+  final double? value2;
+
+  _DailyAverage({required this.value1, this.value2});
 }
 
 class _GlassFormSection extends StatelessWidget {
@@ -627,6 +647,7 @@ class _TrendsLineChart extends StatelessWidget {
         minY: adjustedMinY,
         maxY: adjustedMaxY,
         lineBarsData: [
+          // Primary Line (Systolic or Single Value)
           LineChartBarData(
             spots: dataPoints.asMap().entries.map((entry) {
               return FlSpot(entry.key.toDouble(), entry.value.value);
@@ -659,6 +680,41 @@ class _TrendsLineChart extends StatelessWidget {
               ),
             ),
           ),
+          
+          // Secondary Line (Diastolic for BP)
+          if (dataPoints.any((p) => p.value2 != null))
+            LineChartBarData(
+              spots: dataPoints.asMap().entries.where((e) => e.value.value2 != null).map((entry) {
+                return FlSpot(entry.key.toDouble(), entry.value.value2!);
+              }).toList(),
+              isCurved: true,
+              curveSmoothness: 0.3,
+              color: ModernSurfaceTheme.accentCoral,
+              barWidth: 3,
+              isStrokeCapRound: true,
+              dotData: FlDotData(
+                show: true,
+                getDotPainter: (spot, percent, barData, index) {
+                  return FlDotCirclePainter(
+                    radius: 4,
+                    color: Colors.white,
+                    strokeWidth: 2,
+                    strokeColor: ModernSurfaceTheme.accentCoral,
+                  );
+                },
+              ),
+              belowBarData: BarAreaData(
+                show: true,
+                gradient: LinearGradient(
+                  colors: [
+                    ModernSurfaceTheme.accentCoral.withOpacity(0.2),
+                    ModernSurfaceTheme.accentCoral.withOpacity(0.02),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+            ),
         ],
         lineTouchData: LineTouchData(
           enabled: true,
@@ -668,9 +724,17 @@ class _TrendsLineChart extends StatelessWidget {
             getTooltipItems: (touchedSpots) {
               return touchedSpots.map((spot) {
                 final index = spot.x.toInt();
-                final date = dataPoints[index].date;
+                final point = dataPoints[index];
+                
+                String text;
+                if (point.value2 != null) {
+                  text = '${point.value.toStringAsFixed(0)}/${point.value2!.toStringAsFixed(0)} $unit';
+                } else {
+                  text = '${spot.y.toStringAsFixed(1)} $unit';
+                }
+                
                 return LineTooltipItem(
-                  '${spot.y.toStringAsFixed(1)} $unit\n${DateFormat('MMM d').format(date)}',
+                  '$text\n${DateFormat('MMM d').format(point.date)}',
                   const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -687,7 +751,7 @@ class _TrendsLineChart extends StatelessWidget {
 }
 
 class _TrendsBarChart extends StatelessWidget {
-  final Map<String, double> data;
+  final Map<String, _DailyAverage> data;
   final String unit;
 
   const _TrendsBarChart({required this.data, required this.unit});
@@ -699,17 +763,16 @@ class _TrendsBarChart extends StatelessWidget {
     }
 
     final entries = data.entries.toList();
-    final maxY = data.values.reduce((a, b) => a > b ? a : b);
-    final minY = data.values.reduce((a, b) => a < b ? a : b);
+    final maxY1 = data.values.map((v) => v.value1).reduce((a, b) => a > b ? a : b);
+    final maxY2 = data.values.where((v) => v.value2 != null).isEmpty 
+        ? 0.0 
+        : data.values.where((v) => v.value2 != null).map((v) => v.value2!).reduce((a, b) => a > b ? a : b);
     
-    double range = maxY - minY;
-    if (range == 0) {
-      range = maxY == 0 ? 10.0 : maxY * 0.2;
-    }
+    final maxY = maxY1 > maxY2 ? maxY1 : maxY2;
     
-    final padding = range * 0.15;
-    final adjustedMaxY = maxY + padding == 0 ? 10.0 : maxY + padding;
-    final interval = adjustedMaxY / 4;
+    final padding = maxY * 0.15;
+    final adjustedMaxY = (maxY + padding == 0 ? 10.0 : maxY + padding).toDouble();
+    final interval = (adjustedMaxY / 4).clamp(1.0, double.infinity).toDouble();
 
     return BarChart(
       BarChartData(
@@ -723,8 +786,17 @@ class _TrendsBarChart extends StatelessWidget {
             tooltipRoundedRadius: 8,
             getTooltipItem: (group, groupIndex, rod, rodIndex) {
               final label = entries[group.x.toInt()].key;
+              final avg = entries[group.x.toInt()].value;
+              
+              String text;
+              if (avg.value2 != null) {
+                text = 'Avg: ${(avg.value1).toStringAsFixed(0)}/${avg.value2!.toStringAsFixed(0)} $unit';
+              } else {
+                text = 'Avg: ${avg.value1.toStringAsFixed(1)} $unit';
+              }
+              
               return BarTooltipItem(
-                '${rod.toY.toStringAsFixed(1)} $unit\n$label',
+                '$text\n$label',
                 const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
@@ -797,20 +869,23 @@ class _TrendsBarChart extends StatelessWidget {
         ),
         borderData: FlBorderData(show: false),
         barGroups: entries.asMap().entries.map((entry) {
+          final avg = entry.value.value;
           return BarChartGroupData(
             x: entry.key,
             barRods: [
               BarChartRodData(
-                toY: entry.value.value,
+                toY: avg.value1,
                 color: AppTheme.appleGreen,
-                width: 20.w,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(6)),
-                backDrawRodData: BackgroundBarChartRodData(
-                  show: true,
-                  toY: adjustedMaxY,
-                  color: AppTheme.appleGreen.withOpacity(0.1),
-                ),
+                width: 8,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
               ),
+              if (avg.value2 != null)
+                BarChartRodData(
+                  toY: avg.value2!,
+                  color: ModernSurfaceTheme.accentCoral,
+                  width: 8,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                ),
             ],
           );
         }).toList(),
