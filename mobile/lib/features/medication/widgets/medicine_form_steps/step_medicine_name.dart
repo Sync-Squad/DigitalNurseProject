@@ -55,8 +55,23 @@ class _StepMedicineNameState extends State<StepMedicineName> {
     final provider = context.read<MedicineFormProvider>();
     _nameController.text = provider.formData.name;
     _nameController.addListener(() {
-      provider.setMedicineName(_nameController.text);
+      if (provider.formData.name != _nameController.text) {
+        provider.setMedicineName(_nameController.text);
+      }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Ensure controller is in sync with provider data (e.g. after initialization)
+    final name = context.watch<MedicineFormProvider>().formData.name;
+    if (_nameController.text != name) {
+      _nameController.text = name;
+      _nameController.selection = TextSelection.fromPosition(
+        TextPosition(offset: name.length),
+      );
+    }
   }
 
   @override

@@ -37,9 +37,7 @@ class _AddMedicineScreenState extends State<AddMedicineScreen> {
       create: (context) {
         final provider = MedicineFormProvider();
         if (widget.initialMedicine != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            provider.initializeFromMedicine(widget.initialMedicine!);
-          });
+          provider.initializeFromMedicine(widget.initialMedicine!);
         }
         return provider;
       },

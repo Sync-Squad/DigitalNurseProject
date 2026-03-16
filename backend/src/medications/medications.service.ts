@@ -60,11 +60,34 @@ export class MedicationsService {
    * Create new medication
    */
   async create(context: ActorContext, createDto: CreateMedicationDto) {
-    // Parse strength/dose value if possible
+    // Parse numerical value and unit for storage
+    // Priority 1: Strength (e.g., "500mg" -> 500, "mg")
+    // Priority 2: Dose Amount (e.g., "1 tablet" -> 1, "tablet")
     let doseValueParsed = null;
+    let doseUnit = null;
+
     if (createDto.strength) {
-      const match = String(createDto.strength).match(/(\d+(\.\d+)?)/);
-      if (match) doseValueParsed = parseFloat(match[0]);
+      const match = String(createDto.strength).match(/(\d+(\.\d+)?)\s*([a-zA-Z%]+.*)/);
+      if (match) {
+        doseValueParsed = parseFloat(match[1]);
+        doseUnit = match[3].trim() || null;
+      } else {
+        const numericMatch = String(createDto.strength).match(/(\d+(\.\d+)?)/);
+        if (numericMatch) doseValueParsed = parseFloat(numericMatch[0]);
+      }
+    }
+
+    if (!doseValueParsed && createDto.doseAmount) {
+      const match = String(createDto.doseAmount).match(/(\d+(\.\d+)?)\s*(.*)/);
+      if (match) {
+        doseValueParsed = parseFloat(match[1]);
+        if (!doseUnit) doseUnit = match[3].trim() || null;
+      }
+    }
+
+    // Ensure we at least have a unit if numeric part is missing but strength is just a unit (e.g. "mg")
+    if (!doseUnit && createDto.strength && /^[a-zA-Z%]+$/.test(String(createDto.strength).trim())) {
+      doseUnit = String(createDto.strength).trim();
     }
 
     const medication = await this.prisma.medication.create({
@@ -76,8 +99,7 @@ export class MedicationsService {
         priority: createDto.priority || 'medium',
         formCode: createDto.medicineForm || null,
         doseValue: doseValueParsed,
-        doseUnitCode:
-          createDto.strength && String(createDto.strength).trim() ? 'mg' : null,
+        doseUnitCode: doseUnit,
         createdAt: getPKTDate(),
         updatedAt: getPKTDate(),
         schedules: {
@@ -176,12 +198,45 @@ export class MedicationsService {
       throw new NotFoundException('Medication not found');
     }
 
-    // Update medication
+    // Update medication fields
     const updateData: any = {};
     if (updateDto.name) updateData.medicationName = updateDto.name;
     if (updateDto.dosage) updateData.instructions = updateDto.dosage;
     if (updateDto.notes !== undefined) updateData.notes = updateDto.notes;
     if (updateDto.priority) updateData.priority = updateDto.priority;
+    if (updateDto.medicineForm) updateData.formCode = updateDto.medicineForm;
+
+    // Parse numerical value and unit for update
+    let updatedDoseValue = null;
+    let updatedDoseUnit = null;
+
+    if (updateDto.strength) {
+      const match = String(updateDto.strength).match(/(\d+(\.\d+)?)\s*([a-zA-Z%]+.*)/);
+      if (match) {
+        updatedDoseValue = parseFloat(match[1]);
+        updatedDoseUnit = match[3].trim() || null;
+      } else {
+        const numericMatch = String(updateDto.strength).match(/(\d+(\.\d+)?)/);
+        if (numericMatch) updatedDoseValue = parseFloat(numericMatch[0]);
+      }
+    }
+
+    if (!updatedDoseValue && updateDto.doseAmount) {
+      const match = String(updateDto.doseAmount).match(/(\d+(\.\d+)?)\s*(.*)/);
+      if (match) {
+        updatedDoseValue = parseFloat(match[1]);
+        if (!updatedDoseUnit) updatedDoseUnit = match[3].trim() || null;
+      }
+    }
+
+    // Ensure we at least have a unit if numeric part is missing but strength is just a unit
+    if (!updatedDoseUnit && updateDto.strength && /^[a-zA-Z%]+$/.test(String(updateDto.strength).trim())) {
+      updatedDoseUnit = String(updateDto.strength).trim();
+    }
+
+    if (updatedDoseValue !== null) updateData.doseValue = updatedDoseValue;
+    if (updatedDoseUnit !== null) updateData.doseUnitCode = updatedDoseUnit;
+    
     updateData.updatedAt = getPKTDate();
 
     if (Object.keys(updateData).length > 0) {
@@ -191,11 +246,12 @@ export class MedicationsService {
       });
     }
 
-    // Update or create schedule if frequency or times changed
+    // Update or create schedule if frequency, times or dates changed
     if (
       updateDto.reminderTimes ||
       updateDto.frequency ||
-      updateDto.startDate !== undefined
+      updateDto.startDate !== undefined ||
+      updateDto.endDate !== undefined
     ) {
       const latestSchedule = (medication as any).schedules[0];
       if (latestSchedule) {
@@ -205,6 +261,9 @@ export class MedicationsService {
           data: {
             startDate: updateDto.startDate
               ? getPKTDate(updateDto.startDate)
+              : undefined,
+            endDate: updateDto.endDate !== undefined
+              ? (updateDto.endDate ? getPKTDate(updateDto.endDate) : null)
               : undefined,
             daysMask:
               updateDto.frequency || updateDto.periodicDays
@@ -447,6 +506,7 @@ export class MedicationsService {
         name: medication.medicationName,
         dosage: medication.instructions || '',
         strength: medication.doseValue ? `${medication.doseValue} mg` : '',
+        doseAmount: medication.doseValue ? `${medication.doseValue} ${medication.doseUnitCode || ''}`.trim() : '',
         frequency: this.daysMaskToFrequency(127, false),
         medicineForm: medication.formCode || 'tablets',
         notes: medication.notes || '',
@@ -487,11 +547,29 @@ export class MedicationsService {
       console.error('Error parsing timesLocal:', e);
     }
 
+    // Try to derive doseAmount and strength from instructions
+    let doseAmountStr = '';
+    let strengthStr = '';
+    const instr = medication.instructions || '';
+    if (instr.includes(' of ')) {
+      const parts = instr.split(' of ');
+      doseAmountStr = parts[0];
+      strengthStr = parts[1];
+    } else {
+      // Fallback: use doseValue and doseUnitCode for doseAmount
+      if (medication.doseValue) {
+        doseAmountStr = `${medication.doseValue} ${medication.doseUnitCode || ''}`.trim();
+      }
+      // Strength remains empty or from instructions if no ' of '
+      strengthStr = instr;
+    }
+
     return {
       id: medication.medicationId.toString(),
       name: medication.medicationName,
-      dosage: medication.instructions || '',
-      strength: medication.doseValue ? `${medication.doseValue} mg` : '',
+      dosage: instr,
+      strength: strengthStr,
+      doseAmount: doseAmountStr,
       frequency,
       medicineForm: medication.formCode || 'tablets',
       notes: medication.notes || '',

@@ -25,8 +25,43 @@ class _StepDoseStrengthState extends State<StepDoseStrength> {
   void initState() {
     super.initState();
     final provider = context.read<MedicineFormProvider>();
+    _initializeControllers(provider);
 
-    _doseController.text = provider.formData.doseAmount;
+    _doseController.addListener(() {
+      if (provider.formData.doseAmount != _doseController.text) {
+        provider.setDoseAmount(_doseController.text);
+      }
+    });
+
+    _strengthController.addListener(() {
+      _updateStrength(provider);
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = context.watch<MedicineFormProvider>();
+    if (_doseController.text != provider.formData.doseAmount ||
+        _getStrengthNumericPart(provider.formData.strength) != _strengthController.text) {
+      _initializeControllers(provider);
+    }
+  }
+
+  String _getStrengthNumericPart(String strength) {
+    if (strength.isEmpty) return '';
+    for (final unit in _commonUnits) {
+      if (strength.endsWith(unit)) {
+        return strength.substring(0, strength.length - unit.length).trim();
+      }
+    }
+    return strength;
+  }
+
+  void _initializeControllers(MedicineFormProvider provider) {
+    if (_doseController.text != provider.formData.doseAmount) {
+      _doseController.text = provider.formData.doseAmount;
+    }
 
     // Parse existing strength to extract numeric part and unit
     final strength = provider.formData.strength;
@@ -38,26 +73,22 @@ class _StepDoseStrengthState extends State<StepDoseStrength> {
       for (final unit in _commonUnits) {
         if (strength.endsWith(unit)) {
           extractedUnit = unit;
-          numericPart = strength
-              .substring(0, strength.length - unit.length)
-              .trim();
+          numericPart = strength.substring(0, strength.length - unit.length).trim();
           break;
         }
       }
 
-      if (extractedUnit != null) {
+      if (extractedUnit != null && extractedUnit != _selectedUnit) {
         _selectedUnit = extractedUnit;
       }
-      _strengthController.text = numericPart;
+      if (_strengthController.text != numericPart) {
+        _strengthController.text = numericPart;
+      }
+    } else {
+      if (_strengthController.text.isNotEmpty) {
+        _strengthController.text = '';
+      }
     }
-
-    _doseController.addListener(() {
-      provider.setDoseAmount(_doseController.text);
-    });
-
-    _strengthController.addListener(() {
-      _updateStrength(provider);
-    });
   }
 
   @override
@@ -245,7 +276,8 @@ class _StepDoseStrengthState extends State<StepDoseStrength> {
     if (_strengthController.text.trim().isNotEmpty) {
       provider.setStrength('${_strengthController.text.trim()}$_selectedUnit');
     } else {
-      provider.setStrength('');
+      // Send just the unit if no amount is specified, so backend can capture the unit code (e.g. "mg")
+      provider.setStrength(_selectedUnit);
     }
   }
 }

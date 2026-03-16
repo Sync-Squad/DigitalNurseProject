@@ -25,6 +25,18 @@ class _StepStartDateState extends State<StepStartDate> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final provider = context.watch<MedicineFormProvider>();
+    final hasEndDate = provider.formData.endDate != null;
+    if (_hasEndDate != hasEndDate) {
+      setState(() {
+        _hasEndDate = hasEndDate;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<MedicineFormProvider>(
       builder: (context, provider, child) {
