@@ -285,240 +285,253 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
         .where((v) => v.getHealthStatus() != VitalHealthStatus.normal)
         .length;
 
-    return Padding(
-      padding: ModernSurfaceTheme.screenPadding(),
-      child: Column(
-        children: [
-          _VitalsHero(
-            totalCount: vitals.length,
-            normalCount: normalCount,
-            warningCount: warningCount,
-            dateLabel: _getFormattedDate(_selectedDate),
-            isCaregiver: isCaregiver,
-          ),
-          if (error != null) ...[
-            SizedBox(height: 16.h),
-            _ErrorBanner(message: error, onRetry: _reloadVitals),
-          ],
-          SizedBox(height: 16.h),
-          VitalsCalendarHeader(
-            selectedDate: _selectedDate,
-            onDateChanged: (date) {
-              setState(() {
-                _selectedDate = date;
-              });
-              // Trigger reload for the new date range
-              _reloadVitals(date);
-            },
-          ),
-          SizedBox(height: 16.h),
-          Container(
-            width: double.infinity,
-            decoration: ModernSurfaceTheme.glassCard(context),
-            padding: EdgeInsets.all(16.w),
-            child: Row(
-              children: [
-                if (!isCaregiver) ...[
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => context.push('/vitals/add'),
-                      icon: const Icon(
-                        Icons.add_circle_outline,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      label: Text(
-                        'vitals.actions.logVital'.tr(),
-                        style: textTheme.titleSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12.sp,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        elevation: 0,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12.w),
-                ],
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => context.push('/health/trends'),
-                    icon: const Icon(
-                      FIcons.trendingUp,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                    label: Text(
-                      'vitals.actions.viewTrends'.tr(),
-                      style: textTheme.titleSmall?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12.sp,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 14.h),
-                      backgroundColor: AppTheme.appleGreen,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(24),
-                      ),
-                      elevation: 0,
-                    ),
-                  ),
-                ),
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: ModernSurfaceTheme.screenPadding(),
+          sliver: SliverList(
+            delegate: SliverChildListDelegate([
+              _VitalsHero(
+                totalCount: vitals.length,
+                normalCount: normalCount,
+                warningCount: warningCount,
+                dateLabel: _getFormattedDate(_selectedDate),
+                isCaregiver: isCaregiver,
+              ),
+              if (error != null) ...[
+                SizedBox(height: 16.h),
+                _ErrorBanner(message: error, onRetry: _reloadVitals),
               ],
-            ),
+              SizedBox(height: 16.h),
+              VitalsCalendarHeader(
+                selectedDate: _selectedDate,
+                onDateChanged: (date) {
+                  setState(() {
+                    _selectedDate = date;
+                  });
+                  // Trigger reload for the new date range
+                  _reloadVitals(date);
+                },
+              ),
+              SizedBox(height: 16.h),
+              Container(
+                width: double.infinity,
+                decoration: ModernSurfaceTheme.glassCard(context),
+                padding: EdgeInsets.all(16.w),
+                child: Row(
+                  children: [
+                    if (!isCaregiver) ...[
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => context.push('/vitals/add'),
+                          icon: const Icon(
+                            Icons.add_circle_outline,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          label: Text(
+                            'vitals.actions.logVital'.tr(),
+                            style: textTheme.titleSmall?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12.sp,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 14.h),
+                            backgroundColor: colorScheme.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                    ],
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () => context.push('/health/trends'),
+                        icon: const Icon(
+                          FIcons.trendingUp,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        label: Text(
+                          'vitals.actions.viewTrends'.tr(),
+                          style: textTheme.titleSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12.sp,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(vertical: 14.h),
+                          backgroundColor: AppTheme.appleGreen,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16.h),
+            ]),
           ),
-          SizedBox(height: 16.h),
-          Expanded(
-            child: healthProvider.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : vitals.isEmpty
-                    ? _buildEmptyState(context, isCaregiver: isCaregiver)
-                    : ListView.builder(
-                        padding: EdgeInsets.symmetric(horizontal: 4.w),
-                        itemCount: vitals.length,
-                        itemBuilder: (context, index) {
-                          final vital = vitals[index];
-                          final healthStatus = vital.getHealthStatus();
-                          final accent = _getStatusColor(healthStatus);
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Container(
-                              decoration: ModernSurfaceTheme.glassCard(
+        ),
+        if (healthProvider.isLoading)
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (vitals.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Padding(
+              padding: ModernSurfaceTheme.screenPadding(),
+              child: _buildEmptyState(context, isCaregiver: isCaregiver),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: ModernSurfaceTheme.screenPadding().copyWith(top: 0),
+            sliver: SliverList.builder(
+              itemCount: vitals.length,
+              itemBuilder: (context, index) {
+                final vital = vitals[index];
+                final healthStatus = vital.getHealthStatus();
+                final accent = _getStatusColor(healthStatus);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Container(
+                    decoration: ModernSurfaceTheme.glassCard(
+                      context,
+                      accent: accent,
+                    ),
+                    padding: EdgeInsets.all(16.w),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: ModernSurfaceTheme.iconBadge(
                                 context,
-                                accent: accent,
+                                accent,
                               ),
-                              padding: EdgeInsets.all(16.w),
+                              child: Icon(
+                                FIcons.activity,
+                                color: onPrimary,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(12),
-                                        decoration: ModernSurfaceTheme.iconBadge(
-                                          context,
-                                          accent,
-                                        ),
-                                        child: Icon(
-                                          FIcons.activity,
-                                          color: onPrimary,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              vital.type.displayName,
-                                              style: textTheme.bodyMedium?.copyWith(
-                                                fontWeight: FontWeight.bold,
-                                                color: onSurface,
-                                              ),
-                                            ),
-                                            SizedBox(height: 4),
-                                            Text(
-                                              DateFormat(
-                                                'MMM d, yyyy - h:mm a',
-                                              ).format(
-                                                TimezoneUtil.toPakistanTime(
-                                                  vital.timestamp,
-                                                ),
-                                              ),
-                                              style: textTheme.bodySmall?.copyWith(
-                                                color: muted,
-                                              ),
-                                            ),
-                                            if (vital.notes != null) ...[
-                                              SizedBox(height: 4),
-                                              Text(
-                                                vital.notes!,
-                                                style: textTheme.bodySmall
-                                                    ?.copyWith(color: muted),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                      ),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
-                                        children: [
-                                          Text(
-                                            vital.value,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: accent,
-                                                ),
-                                          ),
-                                          Text(
-                                            vital.type.unit,
-                                            style: Theme.of(
-                                              context,
-                                            ).textTheme.bodySmall,
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(width: 8.w),
-                                      _deletingVitalId == vital.id
-                                          ? const Padding(
-                                              padding: EdgeInsets.all(8.0),
-                                              child: SizedBox(
-                                                width: 20,
-                                                height: 20,
-                                                child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                ),
-                                              ),
-                                            )
-                                          : IconButton(
-                                              onPressed: _deletingVitalId != null
-                                                  ? null
-                                                  : () => _handleDeleteVital(
-                                                      vital.id,
-                                                      isCaregiver,
-                                                      selectedElderId,
-                                                    ),
-                                              icon: Icon(
-                                                Icons.delete_outline,
-                                                color: AppTheme.getErrorColor(
-                                                  context,
-                                                ),
-                                              ),
-                                              tooltip: 'Delete vital measurement',
-                                            ),
-                                    ],
+                                  Text(
+                                    vital.type.displayName,
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: onSurface,
+                                    ),
                                   ),
-                                  const SizedBox(height: 12),
-                                  VitalStatusBadge(
-                                    status: healthStatus,
-                                    vital: vital,
+                                  SizedBox(height: 4),
+                                  Text(
+                                    DateFormat(
+                                      'MMM d, yyyy - h:mm a',
+                                    ).format(
+                                      TimezoneUtil.toPakistanTime(
+                                        vital.timestamp,
+                                      ),
+                                    ),
+                                    style: textTheme.bodySmall?.copyWith(
+                                      color: muted,
+                                    ),
                                   ),
+                                  if (vital.notes != null) ...[
+                                    SizedBox(height: 4),
+                                    Text(
+                                      vital.notes!,
+                                      style: textTheme.bodySmall
+                                          ?.copyWith(color: muted),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
-                          );
-                        },
-                      ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  vital.value,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: accent,
+                                      ),
+                                ),
+                                Text(
+                                  vital.type.unit,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                            SizedBox(width: 8.w),
+                            _deletingVitalId == vital.id
+                                ? const Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                  )
+                                : IconButton(
+                                    onPressed: _deletingVitalId != null
+                                        ? null
+                                        : () => _handleDeleteVital(
+                                            vital.id,
+                                            isCaregiver,
+                                            selectedElderId,
+                                          ),
+                                    icon: Icon(
+                                      Icons.delete_outline,
+                                      color: AppTheme.getErrorColor(
+                                        context,
+                                      ),
+                                    ),
+                                    tooltip: 'Delete vital measurement',
+                                  ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        VitalStatusBadge(
+                          status: healthStatus,
+                          vital: vital,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
-        ],
-      ),
+      ],
     );
   }
 

@@ -55,6 +55,7 @@ class DocumentProvider with ChangeNotifier {
     String? elderUserId,
     DateTime? uploadDate,
     Uint8List? bytes,
+    String? originalFileName,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -69,6 +70,7 @@ class DocumentProvider with ChangeNotifier {
         elderUserId: elderUserId,
         uploadDate: uploadDate,
         fileBytes: bytes,
+        originalFileName: originalFileName,
       );
       _documents.insert(0, uploaded);
       _error = null;

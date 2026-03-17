@@ -131,6 +131,7 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
       elderUserId: elderUserId,
       uploadDate: _uploadDate,
       bytes: _selectedFile!.bytes,
+      originalFileName: _selectedFile!.fileName,
     );
 
     if (mounted) {
@@ -243,6 +244,12 @@ class _UploadDocumentScreenState extends State<UploadDocumentScreen> {
                         controller: _titleController,
                         label: 'documents.uploadScreen.documentTitle'.tr(),
                         hint: 'documents.uploadScreen.documentTitleHint'.tr(),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Please enter a document title';
+                          }
+                          return null;
+                        },
                       ),
                       SizedBox(height: 16.h),
                       _GlassFormSection(
@@ -696,12 +703,14 @@ class _CustomTextField extends StatelessWidget {
   final String label;
   final String hint;
   final int? maxLines;
+  final String? Function(String?)? validator;
 
   const _CustomTextField({
     required this.controller,
     required this.label,
     required this.hint,
     this.maxLines,
+    this.validator,
   });
 
   @override
@@ -720,9 +729,10 @@ class _CustomTextField extends StatelessWidget {
           ),
         ),
         SizedBox(height: 8.h),
-        TextField(
+        TextFormField(
           controller: controller,
           maxLines: maxLines ?? 1,
+          validator: validator,
           style: textTheme.bodyMedium?.copyWith(color: colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: hint,
@@ -731,6 +741,7 @@ class _CustomTextField extends StatelessWidget {
             ),
             filled: true,
             fillColor: colorScheme.surface,
+            errorStyle: const TextStyle(color: Colors.redAccent),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(
@@ -746,6 +757,14 @@ class _CustomTextField extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide(color: AppTheme.appleGreen, width: 2),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.redAccent, width: 2),
             ),
             contentPadding: EdgeInsets.symmetric(
               horizontal: 16.w,

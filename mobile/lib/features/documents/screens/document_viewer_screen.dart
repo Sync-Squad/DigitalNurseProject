@@ -22,6 +22,9 @@ import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
 import '../../../core/utils/timezone_util.dart';
 import 'package:dio/dio.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter/services.dart';
+import '../../../core/utils/file_saver_util.dart';
 
 class DocumentViewerScreen extends StatefulWidget {
   final String documentId;
@@ -131,33 +134,40 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
         (d) => d.id == widget.documentId,
       );
 
-      // Get download directory
-      final directory = await getApplicationDocumentsDirectory();
-      final fileName =
-          '${document.title}_${document.id}.${_getFileExtension(document)}';
-      final savePath = '${directory.path}/$fileName';
-
-      // Download the file
-      await _documentService.downloadDocument(widget.documentId, savePath);
+      final fileName = document.getFileName();
+      
+      // Fetch bytes
+      final bytes = await _documentService.downloadDocumentBytes(widget.documentId);
+      
+      // Save file cross-platform
+      final savedPath = await FileSaverUtil.saveFile(
+        bytes: bytes,
+        fileName: fileName,
+        mimeType: document.fileType,
+      );
 
       setState(() {
         _isDownloading = false;
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Document downloaded to: $fileName'),
-            backgroundColor: AppTheme.getSuccessColor(context),
-          ),
-        );
+        if (savedPath != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Document downloaded: $fileName'),
+              backgroundColor: AppTheme.getSuccessColor(context),
+            ),
+          );
+        } else {
+          throw Exception('Could not save file');
+        }
       }
     } catch (e) {
-      setState(() {
-        _isDownloading = false;
-      });
-
       if (mounted) {
+        setState(() {
+          _isDownloading = false;
+        });
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to download: $e'),
@@ -168,30 +178,53 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
     }
   }
 
+  Future<void> _handleShare(DocumentModel document) async {
+    final fileUrl = await _getFileUrl(document);
+    if (fileUrl == null) return;
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => _DocumentShareDialog(
+        document: document,
+        fileUrl: fileUrl,
+        documentService: _documentService,
+      ),
+    );
+  }
+
   String _getFileExtension(DocumentModel document) {
-    if (document.fileType != null) {
-      final type = document.fileType!.toLowerCase();
-      if (type.contains('pdf')) return 'pdf';
-      if (type.contains('jpeg') || type.contains('jpg')) return 'jpg';
-      if (type.contains('png')) return 'png';
-      if (type.contains('gif')) return 'gif';
-    }
-    return 'pdf'; // Default
+    return document.extension;
   }
 
   Future<String?> _getFileUrl(DocumentModel document) async {
-    if (document.fileUrl != null) {
-      final baseUrl = await AppConfig.getBaseUrl();
-      if (document.fileUrl!.startsWith('http://') ||
-          document.fileUrl!.startsWith('https://')) {
-        return document.fileUrl;
-      }
-      return '$baseUrl${document.fileUrl}';
-    }
-    // Fallback: construct URL from document ID
     final baseUrl = await AppConfig.getBaseUrl();
     final token = await _tokenService.getAccessToken();
-    return '$baseUrl/documents/${document.id}/file${token != null ? '?token=$token' : ''}';
+    
+    String? path = document.fileUrl;
+    if (path == null || path.isEmpty) {
+      // Fallback
+      path = 'documents/${document.id}/view';
+    }
+
+    // Standardize path (remove leading slash)
+    if (path.startsWith('/')) {
+      path = path.substring(1);
+    }
+
+    // Standardize base URL (ensure trailing slash)
+    String normalizedBase = baseUrl;
+    if (!normalizedBase.endsWith('/')) {
+      normalizedBase += '/';
+    }
+
+    String fullUrl = '$normalizedBase$path';
+    if (token != null) {
+      fullUrl += '${fullUrl.contains('?') ? '&' : '?'}token=$token';
+    }
+    
+    return fullUrl;
   }
 
   Widget _buildDocumentPreview(DocumentModel document) {
@@ -199,14 +232,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
       future: _getFileUrl(document),
       builder: (context, snapshot) {
         if (!snapshot.hasData || snapshot.data == null) {
-          return Container(
-            height: 400,
-            decoration: ModernSurfaceTheme.glassCard(
-              context,
-              accent: AppTheme.getDocumentColor(context, document.type.name),
-            ),
-            child: const Center(child: CircularProgressIndicator()),
-          );
+          return _buildLoadingPlaceholder(context);
         }
 
         final fileUrl = snapshot.data!;
@@ -395,7 +421,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
 
   Widget _buildGenericPreview(DocumentModel document, String fileUrl) {
     return Container(
-      height: 220,
+      height: 300,
       decoration: ModernSurfaceTheme.glassCard(
         context,
         accent: AppTheme.getDocumentColor(context, document.type.name),
@@ -404,13 +430,13 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            FIcons.fileText,
+            _getIconForFileType(document.fileType),
             size: 64,
             color: ModernSurfaceTheme.primaryTeal,
           ),
           SizedBox(height: 12.h),
           Text(
-            document.fileType ?? 'Document',
+            document.fileType ?? 'application/octet-stream',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
               color: ModernSurfaceTheme.deepTeal.withOpacity(0.7),
             ),
@@ -423,6 +449,16 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingPlaceholder(BuildContext context) {
+    return Container(
+      height: 300,
+      decoration: ModernSurfaceTheme.glassCard(context),
+      child: const Center(
+        child: CircularProgressIndicator(),
       ),
     );
   }
@@ -538,14 +574,7 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
             ),
             SizedBox(height: 12.h),
             OutlinedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Share functionality (mock)'),
-                    backgroundColor: AppTheme.getSuccessColor(context),
-                  ),
-                );
-              },
+              onPressed: () => _handleShare(document),
               icon: const Icon(FIcons.share),
               label: Text('documents.viewerScreen.share'.tr()),
               style: OutlinedButton.styleFrom(
@@ -563,6 +592,15 @@ class _DocumentViewerScreenState extends State<DocumentViewerScreen> {
         ),
       ),
     );
+  }
+
+  IconData _getIconForFileType(String? fileType) {
+    if (fileType == null) return FIcons.fileText;
+    final type = fileType.toLowerCase();
+    if (type.contains('pdf')) return FIcons.fileText;
+    if (type.contains('image')) return FIcons.image;
+    if (type.contains('word')) return FIcons.fileText;
+    return FIcons.fileText;
   }
 
   String _getVisibilityText(DocumentVisibility visibility) {
@@ -605,6 +643,98 @@ class _InfoRow extends StatelessWidget {
               color: ModernSurfaceTheme.deepTeal,
             ),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DocumentShareDialog extends StatefulWidget {
+  final DocumentModel document;
+  final String fileUrl;
+  final DocumentService documentService;
+
+  const _DocumentShareDialog({
+    required this.document,
+    required this.fileUrl,
+    required this.documentService,
+  });
+
+  @override
+  State<_DocumentShareDialog> createState() => _DocumentShareDialogState();
+}
+
+class _DocumentShareDialogState extends State<_DocumentShareDialog> {
+  bool _isSharing = false;
+
+  Future<void> _shareOnWhatsApp() async {
+    final message = 'Check out this document from Digital Nurse: ${widget.document.title}\n${widget.fileUrl}';
+    final whatsappUrl = 'whatsapp://send?text=${Uri.encodeComponent(message)}';
+    
+    // On web or if direct link fails, share via share_plus
+    await Share.share(message, subject: widget.document.title);
+  }
+
+  Future<void> _shareFile() async {
+    if (_isSharing) return;
+    
+    setState(() => _isSharing = true);
+    
+    try {
+      final bytes = await widget.documentService.downloadDocumentBytes(widget.document.id);
+      final fileName = widget.document.getFileName();
+      
+      await Share.shareXFiles(
+        [XFile.fromData(bytes, name: fileName, mimeType: widget.document.fileType)],
+        text: 'Document: ${widget.document.title}',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to share file: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSharing = false);
+    }
+  }
+
+  String _getFileExtension(DocumentModel document) {
+    return document.extension;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Share Document'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: _isSharing 
+              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.share_rounded, color: Colors.blue),
+            title: const Text('Share as Attachment'),
+            subtitle: const Text('Send the actual PDF or Image file'),
+            onTap: _isSharing ? null : _shareFile,
+          ),
+          ListTile(
+            leading: const Icon(Icons.copy_rounded, color: Colors.grey),
+            title: const Text('Copy Link'),
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: widget.fileUrl));
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Link copied to clipboard')),
+              );
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
         ),
       ],
     );

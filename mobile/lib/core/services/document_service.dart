@@ -136,6 +136,7 @@ class DocumentService {
     String? elderUserId,
     DateTime? uploadDate,
     Uint8List? fileBytes,
+    String? originalFileName,
   }) async {
     _log('📤 Uploading document: $title');
     try {
@@ -143,10 +144,12 @@ class DocumentService {
       final fileName = filePath.split(RegExp(r'[/\\]')).last;
       final file = File(filePath);
 
+      final effectiveFileName = originalFileName ?? fileName;
+
       final formData = FormData.fromMap({
         'file': fileBytes != null
-            ? MultipartFile.fromBytes(fileBytes, filename: fileName)
-            : await MultipartFile.fromFile(filePath, filename: fileName),
+            ? MultipartFile.fromBytes(fileBytes, filename: effectiveFileName)
+            : await MultipartFile.fromFile(filePath, filename: effectiveFileName),
         'title': title,
         'type': _documentTypeToString(type),
         'visibility': _documentVisibilityToString(visibility),
@@ -295,9 +298,9 @@ class DocumentService {
     }
   }
 
-  // Download document file
-  Future<String> downloadDocument(String documentId, String savePath) async {
-    _log('📥 Downloading document: $documentId');
+  // Download document file as raw bytes
+  Future<Uint8List> downloadDocumentBytes(String documentId) async {
+    _log('📥 Downloading document bytes: $documentId');
     try {
       final baseUrl = await AppConfig.getBaseUrl();
       final token = await _getAuthToken();
@@ -315,20 +318,26 @@ class DocumentService {
       );
 
       if (response.statusCode == 200) {
-        final file = File(savePath);
-        await file.writeAsBytes(response.data);
-        _log('✅ Document downloaded successfully to: $savePath');
-        return savePath;
+        return Uint8List.fromList(response.data);
       } else {
-        _log('❌ Failed to download document: ${response.statusMessage}');
+        _log('❌ Failed to download document bytes: ${response.statusMessage}');
         throw Exception(
           'Failed to download document: ${response.statusMessage}',
         );
       }
     } catch (e) {
-      _log('❌ Error downloading document: $e');
+      _log('❌ Error downloading document bytes: $e');
       throw Exception(e.toString());
     }
+  }
+
+  // Download document file (Legacy - updated to use bytes internally)
+  Future<String> downloadDocument(String documentId, String savePath) async {
+    final bytes = await downloadDocumentBytes(documentId);
+    final file = File(savePath);
+    await file.writeAsBytes(bytes);
+    _log('✅ Document downloaded successfully to: $savePath');
+    return savePath;
   }
 
   // Helper methods

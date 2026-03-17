@@ -97,6 +97,8 @@ class DocumentMapper {
       filePath: filePath,
       fileUrl: fileUrl,
       fileType: fileType,
+      fileName: json['fileName']?.toString() ?? '',
+      abspath: json['abspath']?.toString(),
       uploadDate: uploadDate,
       visibility: visibility,
       description: json['description']?.toString(),
