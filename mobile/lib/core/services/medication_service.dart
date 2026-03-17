@@ -4,6 +4,7 @@ import '../models/notification_model.dart';
 import '../mappers/medication_mapper.dart';
 import 'api_service.dart';
 import 'fcm_service.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class MedicationService {
   final ApiService _apiService = ApiService();
@@ -398,9 +399,9 @@ class MedicationService {
             id: map['id']?.toString() ?? '',
             medicineId: map['medicineId']?.toString() ?? '',
             medicineName: map['medicineName']?.toString(), // Optional field for logging
-            scheduledTime: DateTime.parse(map['scheduledTime']),
+            scheduledTime: TimezoneUtil.toPakistanTime(DateTime.parse(map['scheduledTime'])),
             takenTime: map['takenTime'] != null 
-                ? DateTime.parse(map['takenTime']) 
+                ? TimezoneUtil.toPakistanTime(DateTime.parse(map['takenTime'])) 
                 : null,
             status: IntakeStatus.values.firstWhere(
               (e) => e.toString().split('.').last.toLowerCase() == 
@@ -444,12 +445,30 @@ class MedicationService {
           final map = item is Map<String, dynamic>
               ? item
               : Map<String, dynamic>.from(item);
+
+          final String timeStr = map['time']?.toString() ?? '09:00';
+          final parts = timeStr.split(':');
+          final hour = int.tryParse(parts[0]) ?? 9;
+          final minute = int.tryParse(parts[1]) ?? 0;
+          
+          final DateTime baseDate = DateTime.parse(
+            map['reminderTime']?.toString() ??
+                TimezoneUtil.nowInPakistan().toIso8601String(),
+          );
+          
+          final tz.TZDateTime correctPktTime = tz.TZDateTime(
+            tz.getLocation('Asia/Karachi'),
+            baseDate.year,
+            baseDate.month,
+            baseDate.day,
+            hour,
+            minute,
+          );
+
           return {
+            'timeStr': timeStr,
             'medicine': MedicationMapper.fromApiResponse(map['medicine'] ?? {}),
-            'reminderTime': DateTime.parse(
-              map['reminderTime']?.toString() ??
-                  TimezoneUtil.nowInPakistan().toIso8601String(),
-            ),
+            'reminderTime': correctPktTime,
             'status': map['status']?.toString() ?? 'pending',
           };
         }).toList();

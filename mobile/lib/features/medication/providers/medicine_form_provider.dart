@@ -119,20 +119,26 @@ class MedicineFormProvider extends ChangeNotifier {
     if (_formData.frequency != null) {
       switch (_formData.frequency!) {
         case MedicineFrequency.daily:
-          _formData.reminderTimes = [const TimeOfDay(hour: 9, minute: 0)];
+          if (_formData.reminderTimes.isEmpty) {
+            _formData.reminderTimes = [const TimeOfDay(hour: 9, minute: 0)];
+          }
           break;
         case MedicineFrequency.twiceDaily:
-          _formData.reminderTimes = [
-            const TimeOfDay(hour: 9, minute: 0),
-            const TimeOfDay(hour: 21, minute: 0),
-          ];
+          if (_formData.reminderTimes.length != 2) {
+            _formData.reminderTimes = [
+              const TimeOfDay(hour: 9, minute: 0),
+              const TimeOfDay(hour: 21, minute: 0),
+            ];
+          }
           break;
         case MedicineFrequency.thriceDaily:
-          _formData.reminderTimes = [
-            const TimeOfDay(hour: 8, minute: 0),
-            const TimeOfDay(hour: 14, minute: 0),
-            const TimeOfDay(hour: 20, minute: 0),
-          ];
+          if (_formData.reminderTimes.length != 3) {
+            _formData.reminderTimes = [
+              const TimeOfDay(hour: 8, minute: 0),
+              const TimeOfDay(hour: 14, minute: 0),
+              const TimeOfDay(hour: 20, minute: 0),
+            ];
+          }
           break;
         case MedicineFrequency.periodic:
           if (_formData.reminderTimes.isEmpty) {
@@ -169,10 +175,12 @@ class MedicineFormProvider extends ChangeNotifier {
   }
 
   void setFrequency(MedicineFrequency frequency) {
+    if (_formData.frequency == frequency) return;
     _formData.frequency = frequency;
     if (frequency != MedicineFrequency.periodic) {
       _formData.periodicDays.clear();
     }
+    _formData.reminderTimes.clear();
     _autoPopulateTimes();
     notifyListeners();
   }
