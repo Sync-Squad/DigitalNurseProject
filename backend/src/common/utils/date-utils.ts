@@ -29,3 +29,21 @@ export function getPKTDateOnly(date?: Date | string | number): Date {
 export function fromPKTDate(date: Date): Date {
   return date;
 }
+/**
+ * Returns a proper UTC Date object by interpreting a date and time string in Asia/Karachi timezone.
+ * Example: getUTCFromPKT(new Date("2024-03-17"), "09:00") -> 2024-03-17T04:00:00.000Z
+ */
+export function getUTCFromPKT(date: Date, timeStr: string): Date {
+  const d = new Date(date);
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  
+  // Format as YYYY-MM-DDTHH:mm:00 in Karachi time
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const isoStr = `${year}-${month}-${day}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
+  
+  // Create a localized string with offset for parsing
+  // Karachi is always UTC+5, no DST
+  return new Date(`${isoStr}+05:00`);
+}

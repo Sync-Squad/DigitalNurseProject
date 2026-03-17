@@ -64,6 +64,55 @@ export class MedicationsController {
     return this.medicationsService.getUpcomingReminders(context);
   }
 
+  @Get('history/all')
+  @ApiOperation({ summary: 'Get global intake history for all medications' })
+  @ApiResponse({ status: 200, description: 'List of all intakes' })
+  async getAllIntakeHistory(
+    @CurrentUser() user: any,
+    @Query('elderUserId') elderUserId?: string,
+  ) {
+    const context = await this.resolveContext(user, elderUserId);
+    return this.medicationsService.findAllIntakes(context);
+  }
+
+  @Get('adherence/streak')
+  @ApiOperation({ summary: 'Get overall medication adherence streak' })
+  @ApiResponse({ status: 200, description: 'Overall adherence streak' })
+  async getOverallAdherenceStreak(
+    @CurrentUser() user: any,
+    @Query('elderUserId') elderUserId?: string,
+  ) {
+    const context = await this.resolveContext(user, elderUserId);
+    return this.medicationsService.getAdherenceStreak(context);
+  }
+
+  @Get('adherence')
+  @ApiOperation({ summary: 'Get period-based medication adherence for all medications' })
+  @ApiResponse({ status: 200, description: 'Period adherence data' })
+  async getPeriodAdherence(
+    @CurrentUser() user: any,
+    @Query('period') period?: string,
+    @Query('days') days?: string,
+    @Query('elderUserId') elderUserId?: string,
+  ) {
+    const context = await this.resolveContext(user, elderUserId);
+    const daysNum = days ? parseInt(days, 10) : period === 'monthly' ? 30 : 7;
+    return this.medicationsService.calculateAdherence(context, daysNum);
+  }
+
+  @Get('status')
+  @ApiOperation({ summary: 'Get medication status for a specific date' })
+  @ApiResponse({ status: 200, description: 'Medication status' })
+  async getMedicationStatus(
+    @CurrentUser() user: any,
+    @Query('date') date?: string,
+    @Query('elderUserId') elderUserId?: string,
+  ) {
+    const context = await this.resolveContext(user, elderUserId);
+    const targetDate = date ? new Date(date) : new Date();
+    return this.medicationsService.getMedicationStatus(context, targetDate);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a medication by ID' })
   @ApiResponse({ status: 200, description: 'Medication details' })
@@ -101,17 +150,6 @@ export class MedicationsController {
   ) {
     const context = await this.resolveContext(user, elderUserId);
     return this.medicationsService.remove(context, BigInt(id));
-  }
-
-  @Get('history/all')
-  @ApiOperation({ summary: 'Get global intake history for all medications' })
-  @ApiResponse({ status: 200, description: 'List of all intakes' })
-  async getAllIntakeHistory(
-    @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
-  ) {
-    const context = await this.resolveContext(user, elderUserId);
-    return this.medicationsService.findAllIntakes(context);
   }
 
   @Get(':id/intakes')
@@ -152,53 +190,5 @@ export class MedicationsController {
       context,
       days ? parseInt(days, 10) : 7,
     );
-  }
-
-  async getAdherenceStreak(
-    @CurrentUser() user: any,
-    @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
-  ) {
-    const context = await this.resolveContext(user, elderUserId);
-    // Even if called with ID, we currently return overall streak as requested by context
-    return this.medicationsService.getAdherenceStreak(context);
-  }
-
-  @Get('adherence/streak')
-  @ApiOperation({ summary: 'Get overall medication adherence streak' })
-  @ApiResponse({ status: 200, description: 'Overall adherence streak' })
-  async getOverallAdherenceStreak(
-    @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
-  ) {
-    const context = await this.resolveContext(user, elderUserId);
-    return this.medicationsService.getAdherenceStreak(context);
-  }
-
-  @Get('adherence')
-  @ApiOperation({ summary: 'Get period-based medication adherence for all medications' })
-  @ApiResponse({ status: 200, description: 'Period adherence data' })
-  async getPeriodAdherence(
-    @CurrentUser() user: any,
-    @Query('period') period?: string,
-    @Query('days') days?: string,
-    @Query('elderUserId') elderUserId?: string,
-  ) {
-    const context = await this.resolveContext(user, elderUserId);
-    const daysNum = days ? parseInt(days, 10) : period === 'monthly' ? 30 : 7;
-    return this.medicationsService.calculateAdherence(context, daysNum);
-  }
-
-  @Get('status')
-  @ApiOperation({ summary: 'Get medication status for a specific date' })
-  @ApiResponse({ status: 200, description: 'Medication status' })
-  async getMedicationStatus(
-    @CurrentUser() user: any,
-    @Query('date') date?: string,
-    @Query('elderUserId') elderUserId?: string,
-  ) {
-    const context = await this.resolveContext(user, elderUserId);
-    const targetDate = date ? new Date(date) : new Date();
-    return this.medicationsService.getMedicationStatus(context, targetDate);
   }
 }

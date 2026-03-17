@@ -92,7 +92,7 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
 
     final bool isHighPriority = medicine.priority == MedicinePriority.high;
     final String name = medicine.name;
-    final timeStr = "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+    final timeStr = TimezoneUtil.formatInPakistan(time, format: 'h:mm a');
 
     final Color cardColor = isHighPriority ? const Color(0xFFFFEBEE) : const Color(0xFFFFF8E1); // Light Red vs Light Amber
     final Color accentColor = isHighPriority ? Colors.red : Colors.amber;

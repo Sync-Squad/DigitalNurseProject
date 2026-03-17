@@ -108,7 +108,7 @@ class _DueRemindersRowState extends State<DueRemindersRow> {
           Stack(
             children: [
               SizedBox(
-                height: 85.h,
+                height: 110.h,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: dueReminders.length,

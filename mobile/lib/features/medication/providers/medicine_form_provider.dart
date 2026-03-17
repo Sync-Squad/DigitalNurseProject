@@ -89,7 +89,6 @@ class MedicineFormProvider extends ChangeNotifier {
   bool nextStep() {
     if (validateCurrentStep() && _currentStep < _totalSteps - 1) {
       _currentStep++;
-      _autoPopulateTimes();
       notifyListeners();
       return true;
     }
@@ -115,8 +114,11 @@ class MedicineFormProvider extends ChangeNotifier {
   }
 
   // Auto-populate times based on frequency
-  void _autoPopulateTimes() {
+  void _autoPopulateTimes({bool force = false}) {
     if (_formData.frequency != null) {
+      // If we already have times and we're not forcing a reset, don't do anything
+      if (_formData.reminderTimes.isNotEmpty && !force) return;
+
       switch (_formData.frequency!) {
         case MedicineFrequency.daily:
           _formData.reminderTimes = [const TimeOfDay(hour: 9, minute: 0)];
@@ -135,24 +137,16 @@ class MedicineFormProvider extends ChangeNotifier {
           ];
           break;
         case MedicineFrequency.periodic:
-          if (_formData.reminderTimes.isEmpty) {
-            _formData.reminderTimes = [const TimeOfDay(hour: 9, minute: 0)];
-          }
+          _formData.reminderTimes = [const TimeOfDay(hour: 9, minute: 0)];
           break;
         case MedicineFrequency.beforeMeal:
-          if (_formData.reminderTimes.isEmpty) {
-            _formData.reminderTimes = [const TimeOfDay(hour: 8, minute: 0)];
-          }
+          _formData.reminderTimes = [const TimeOfDay(hour: 8, minute: 0)];
           break;
         case MedicineFrequency.afterMeal:
-          if (_formData.reminderTimes.isEmpty) {
-            _formData.reminderTimes = [const TimeOfDay(hour: 9, minute: 0)];
-          }
+          _formData.reminderTimes = [const TimeOfDay(hour: 9, minute: 0)];
           break;
         default:
-          if (_formData.reminderTimes.isEmpty) {
-            _formData.reminderTimes = [const TimeOfDay(hour: 9, minute: 0)];
-          }
+          _formData.reminderTimes = [const TimeOfDay(hour: 9, minute: 0)];
       }
     }
   }
@@ -169,11 +163,13 @@ class MedicineFormProvider extends ChangeNotifier {
   }
 
   void setFrequency(MedicineFrequency frequency) {
+    if (_formData.frequency == frequency) return;
+
     _formData.frequency = frequency;
     if (frequency != MedicineFrequency.periodic) {
       _formData.periodicDays.clear();
     }
-    _autoPopulateTimes();
+    _autoPopulateTimes(force: true); // Force update to new defaults for the new frequency
     notifyListeners();
   }
 

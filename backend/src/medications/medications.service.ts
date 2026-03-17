@@ -638,7 +638,7 @@ export class MedicationsService {
    * Calculate adherence for a period
    */
   async calculateAdherence(context: ActorContext, days: number = 7) {
-    const now = this.getNowPKT();
+    const now = new Date(); // Use absolute UTC time for comparisons
     const startDate = new Date(now);
     startDate.setDate(startDate.getDate() - days + 1);
     startDate.setHours(0, 0, 0, 0);
@@ -660,7 +660,14 @@ export class MedicationsService {
     for (const med of medications) {
       if (!med.schedules?.[0]) continue;
       const schedule = med.schedules[0];
-      const times = schedule.timesLocal || [];
+      let times = schedule.timesLocal || [];
+      if (typeof times === 'string') {
+        try {
+          times = JSON.parse(times);
+        } catch (e) {
+          times = [];
+        }
+      }
 
       // Get all intakes for this medication in the period
       const intakes = await this.prisma.medIntake.findMany({
@@ -687,9 +694,7 @@ export class MedicationsService {
 
         if (this.isScheduledOnDate(schedule, currentDate)) {
           for (const timeStr of times) {
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            const dueAt = new Date(currentDate);
-            dueAt.setHours(hours, minutes, 0, 0);
+            const dueAt = getUTCFromPKT(currentDate, timeStr);
 
             // Skip doses in the future
             if (dueAt > now) continue;
@@ -724,7 +729,7 @@ export class MedicationsService {
    * Get adherence streak (consecutive days taken all scheduled doses)
    */
   async getAdherenceStreak(context: ActorContext) {
-    const now = this.getNowPKT();
+    const now = new Date(); // Use absolute UTC time
     let streak = 0;
     let dayOffset = 0;
 
@@ -756,11 +761,17 @@ export class MedicationsService {
         const schedule = med.schedules[0];
         
         if (this.isScheduledOnDate(schedule, checkDate)) {
-          const times = schedule.timesLocal || [];
+          let times = schedule.timesLocal || [];
+          if (typeof times === 'string') {
+            try {
+              times = JSON.parse(times);
+            } catch (e) {
+              times = [];
+            }
+          }
+
           for (const timeStr of times) {
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            const dueAt = new Date(checkDate);
-            dueAt.setHours(hours, minutes, 0, 0);
+            const dueAt = getUTCFromPKT(checkDate, timeStr);
 
             // Skip future doses for today's check
             if (dueAt > now) continue;
@@ -857,9 +868,9 @@ export class MedicationsService {
       for (let timeVal of times) {
         const timeStr = typeof timeVal === 'object' && timeVal !== null && 'time' in timeVal ? (timeVal as any).time : timeVal;
         if (typeof timeStr !== 'string') continue;
-        const [hours, minutes] = timeStr.split(':').map(Number);
-        const scheduledTime = new Date(dateStart);
-        scheduledTime.setHours(hours, minutes, 0, 0);
+        
+        // Use proper UTC point-in-time conversion
+        const scheduledTime = getUTCFromPKT(dateStart, timeStr);
 
         // Get intake for this scheduled time
         const intake = await this.prisma.medIntake.findFirst({
