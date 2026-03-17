@@ -294,16 +294,42 @@ class CaregiverService {
     try {
       final response = await _apiService.delete('/caregivers/$caregiverId');
 
+      _log('📡 Delete response: ${response.statusCode} - ${response.data}');
+
       if (response.statusCode == 200) {
         _log('✅ Caregiver removed successfully');
       } else {
-        _log('❌ Failed to remove caregiver: ${response.statusMessage}');
+        _log('❌ Failed to remove caregiver: ${response.statusCode} ${response.statusMessage}');
+        _log('📦 Error response: ${response.data}');
         throw Exception(
           'Failed to remove caregiver: ${response.statusMessage}',
         );
       }
     } catch (e) {
       _log('❌ Error removing caregiver: $e');
+      throw Exception(e.toString());
+    }
+  }
+
+  // Remove/Cancel invitation
+  Future<void> removeInvitation(String invitationId) async {
+    _log('🗑️ Removing invitation: $invitationId');
+    try {
+      final response =
+          await _apiService.delete('/caregivers/invitations/$invitationId');
+
+      _log('📡 Delete invitation response: ${response.statusCode} - ${response.data}');
+
+      if (response.statusCode == 200) {
+        _log('✅ Invitation removed successfully');
+      } else {
+        _log('❌ Failed to remove invitation: ${response.statusCode} ${response.statusMessage}');
+        throw Exception(
+          'Failed to remove invitation: ${response.statusMessage}',
+        );
+      }
+    } catch (e) {
+      _log('❌ Error removing invitation: $e');
       throw Exception(e.toString());
     }
   }

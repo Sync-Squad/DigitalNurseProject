@@ -47,7 +47,7 @@ class PatientCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: CaregiverDashboardTheme.cardRadius(),
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
           decoration: CaregiverDashboardTheme.tintedCard(context, accentColor),
           child: Row(
             children: [
@@ -101,6 +101,8 @@ class PatientCard extends StatelessWidget {
                                     color: mutedContent,
                                     fontSize: 13.sp,
                                   ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             if (patient.age != null) ...[
                               Text(
@@ -110,7 +112,7 @@ class PatientCard extends StatelessWidget {
                                       color: mutedContent,
                                       fontSize: 13.sp,
                                     ),
-                              ),
+                                ),
                             ],
                           ],
                           if (patient.age != null)
@@ -121,6 +123,8 @@ class PatientCard extends StatelessWidget {
                                     color: mutedContent,
                                     fontSize: 13.sp,
                                   ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                         ],
                       ),

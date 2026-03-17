@@ -5,20 +5,20 @@ class AvatarUtil {
   /// Professional color palette for avatars
   /// These colors are muted, professional, and suitable for healthcare contexts
   static const List<Color> _professionalColors = [
-    Color(0xFF1FB9AA), // Teal
+    Color(0xFF1FB9AA), // Primary Teal
     Color(0xFF0D4E47), // Deep Teal
     Color(0xFF3B82F6), // Blue
-    Color(0xFF6366F1), // Indigo
-    Color(0xFF8B5CF6), // Purple
     Color(0xFF14B8A6), // Cyan
     Color(0xFF10B981), // Emerald
-    Color(0xFF059669), // Green
+    Color(0xFF6366F1), // Indigo
+    Color(0xFF8B5CF6), // Purple
     Color(0xFF7C3AED), // Violet
-    Color(0xFFDC2626), // Red (muted)
-    Color(0xFFEA580C), // Orange (muted)
-    Color(0xFFCA8A04), // Amber (muted)
+    Color(0xFF059669), // Green
     Color(0xFF64748B), // Slate
     Color(0xFF475569), // Dark Slate
+    Color(0xFFCA8A04), // Amber (muted)
+    Color(0xFFEA580C), // Orange (muted)
+    Color(0xFFDC2626), // Red (muted)
   ];
 
   /// Generates a consistent avatar color based on a seed (user ID or name)

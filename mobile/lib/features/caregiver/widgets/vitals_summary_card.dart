@@ -96,25 +96,15 @@ class _VitalItem extends StatelessWidget {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: isAbnormal
-            ? statusColor.withOpacity(0.1)
-            : Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isAbnormal ? statusColor.withOpacity(0.3) : Colors.transparent,
-          width: 1,
-        ),
-      ),
+      decoration: isAbnormal
+          ? ModernSurfaceTheme.tintedCard(context, statusColor)
+          : ModernSurfaceTheme.glassCard(context),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(statusIcon, size: 20, color: statusColor),
+            decoration: ModernSurfaceTheme.iconBadge(context, statusColor),
+            child: Icon(statusIcon, size: 20, color: Colors.white),
           ),
           SizedBox(width: 12.w),
           Expanded(
@@ -123,31 +113,36 @@ class _VitalItem extends StatelessWidget {
               children: [
                 Text(
                   vital.type.displayName,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: isAbnormal
+                        ? ModernSurfaceTheme.tintedForegroundColor(statusColor)
+                        : null,
+                  ),
                 ),
                 SizedBox(height: 4.h),
                 Text(
                   '${vital.value} ${vital.type.unit}',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    color: isAbnormal
+                        ? ModernSurfaceTheme.tintedMutedColor(statusColor)
+                        : Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
             ),
           ),
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(8),
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+            decoration: ModernSurfaceTheme.frostedChip(
+              context,
+              baseColor: isAbnormal ? Colors.white : statusColor,
             ),
             child: Text(
               statusText,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: statusColor,
-                fontWeight: FontWeight.w600,
+                color: isAbnormal ? statusColor : Colors.white,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ),

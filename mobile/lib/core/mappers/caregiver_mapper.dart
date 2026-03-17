@@ -129,35 +129,40 @@ class CaregiverMapper {
       }
     }
 
-    // Extract inviter info (the patient who sent the invitation)
-    String name = '';
-    String phone = '';
-    if (json['inviter'] != null && json['inviter'] is Map) {
+    // Extract info (the person being invited or the person who sent it depends on context)
+    // For the patient's view, we want the invited caregiver's info
+    String name = json['name']?.toString() ??
+        json['full_name']?.toString() ??
+        json['inviteName']?.toString() ??
+        '';
+
+    String phone = json['phone']?.toString() ??
+        json['invitePhone']?.toString() ??
+        '';
+
+    // If still empty and inviter exists, this might be from the caregiver's perspective
+    if (name.isEmpty && json['inviter'] != null && json['inviter'] is Map) {
       final inviter = json['inviter'] as Map<String, dynamic>;
-      name =
-          inviter['full_name']?.toString() ?? inviter['name']?.toString() ?? '';
+      name = inviter['full_name']?.toString() ?? inviter['name']?.toString() ?? '';
       phone = inviter['phone']?.toString() ?? '';
-    } else {
-      name = json['inviterName']?.toString() ?? '';
-      phone = json['inviterPhone']?.toString() ?? '';
     }
 
     return CaregiverModel(
-      id: json['elderAssignmentId']?.toString() ??
+      id: json['invitationId']?.toString() ??
           json['id']?.toString() ??
-          json['invitationId']?.toString() ??
+          json['elderAssignmentId']?.toString() ??
           '',
-      name: name,
+      name: name.isEmpty ? 'Pending Caregiver' : name,
       phone: phone,
       status: status,
-      relationship: json['relationship']?.toString(),
+      relationship: json['relationship']?.toString() ?? json['relationshipCode']?.toString(),
       linkedPatientId:
           json['elderUserId']?.toString() ??
           json['patientId']?.toString() ??
           '',
       invitedAt: invitedAt,
       acceptedAt: acceptedAt,
-      isActive: json['isActive'] ?? true,
+      isActive: json['isActive'] ?? true, // For invitations, usually true or irrelevant until accepted
     );
   }
 

@@ -55,6 +55,7 @@ class _MedicationActionDialogState extends State<MedicationActionDialog> {
         scheduledTime: widget.scheduledTime,
         status: status == 'taken' ? IntakeStatus.taken : IntakeStatus.skipped,
         userId: authProvider.currentUser!.id,
+        elderUserId: widget.elderId,
       );
 
       // TODO: Save notes if provided

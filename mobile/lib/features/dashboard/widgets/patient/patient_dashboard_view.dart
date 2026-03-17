@@ -802,11 +802,10 @@ class _BeatingHeartState extends State<_BeatingHeart>
     final adherence = widget.adherencePercentage;
     final progress = (adherence / 100).clamp(0.0, 1.0);
 
-    // Medical Gradient Palette
-    const Color topColor = Color(0xFFFF6B81);
-    const Color midColor = Color(0xFFFF4D6D);
-    const Color bottomColor = Color(0xFFE63946);
-    const Color glowColor = Color(0x40FF506E); // rgba(255, 80, 110, 0.25)
+    // Natural Red Gradient Palette (Rich & Deep)
+    const Color topLineColor = Color(0xFFFF304F);
+    const Color bottomLineColor = Color(0xFFC70039);
+    const Color glowColor = Color(0x40FF304F); 
 
     final emptyColor = Colors.white.withOpacity(0.15);
 
@@ -848,9 +847,9 @@ class _BeatingHeartState extends State<_BeatingHeart>
                       blendMode: BlendMode.srcIn,
                       shaderCallback: (Rect bounds) {
                         return const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [topColor, midColor, bottomColor],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [topLineColor, bottomLineColor],
                         ).createShader(bounds);
                       },
                       child: Icon(

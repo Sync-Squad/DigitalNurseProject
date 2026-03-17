@@ -83,7 +83,7 @@ class _CaregiverDashboardViewState extends State<CaregiverDashboardView> {
           bottom: 40.h,
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Welcome Message
             _WelcomeMessage(
@@ -142,6 +142,7 @@ class _CaregiverDashboardViewState extends State<CaregiverDashboardView> {
             ],
             SizedBox(height: 24.h),
             const DueRemindersRow(),
+            SizedBox(height: 24.h),
             PatientCardsGrid(
               careContext: widget.careContext,
               onPatientSelected: widget.onRecipientSelected,

@@ -86,19 +86,19 @@ class MedicationMapper {
     }
 
     // Parse dates
-    DateTime startDate = DateTime.now();
+    DateTime startDate = TimezoneUtil.nowInPakistan();
     if (json['startDate'] != null) {
       try {
-        startDate = DateTime.parse(json['startDate'].toString());
+        startDate = TimezoneUtil.toPakistanTime(DateTime.parse(json['startDate'].toString()));
       } catch (e) {
-        startDate = DateTime.now();
+        startDate = TimezoneUtil.nowInPakistan();
       }
     }
 
     DateTime? endDate;
     if (json['endDate'] != null) {
       try {
-        endDate = DateTime.parse(json['endDate'].toString());
+        endDate = TimezoneUtil.toPakistanTime(DateTime.parse(json['endDate'].toString()));
       } catch (e) {
         endDate = null;
       }
@@ -254,19 +254,19 @@ class MedicationMapper {
       }
     }
 
-    DateTime scheduledTime = DateTime.now();
+    DateTime scheduledTime = TimezoneUtil.nowInPakistan();
     if (json['scheduledTime'] != null) {
       try {
-        scheduledTime = DateTime.parse(json['scheduledTime'].toString());
+        scheduledTime = TimezoneUtil.toPakistanTime(DateTime.parse(json['scheduledTime'].toString()));
       } catch (e) {
-        scheduledTime = DateTime.now();
+        scheduledTime = TimezoneUtil.nowInPakistan();
       }
     }
 
     DateTime? takenTime;
     if (json['takenTime'] != null) {
       try {
-        takenTime = DateTime.parse(json['takenTime'].toString());
+        takenTime = TimezoneUtil.toPakistanTime(DateTime.parse(json['takenTime'].toString()));
       } catch (e) {
         takenTime = null;
       }

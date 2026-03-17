@@ -4,6 +4,7 @@ import '../models/notification_model.dart';
 import '../mappers/medication_mapper.dart';
 import 'api_service.dart';
 import 'fcm_service.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 class MedicationService {
   final ApiService _apiService = ApiService();
@@ -398,9 +399,9 @@ class MedicationService {
             id: map['id']?.toString() ?? '',
             medicineId: map['medicineId']?.toString() ?? '',
             medicineName: map['medicineName']?.toString(), // Optional field for logging
-            scheduledTime: DateTime.parse(map['scheduledTime']),
+            scheduledTime: TimezoneUtil.toPakistanTime(DateTime.parse(map['scheduledTime'])),
             takenTime: map['takenTime'] != null 
-                ? DateTime.parse(map['takenTime']) 
+                ? TimezoneUtil.toPakistanTime(DateTime.parse(map['takenTime'])) 
                 : null,
             status: IntakeStatus.values.firstWhere(
               (e) => e.toString().split('.').last.toLowerCase() == 
@@ -444,12 +445,30 @@ class MedicationService {
           final map = item is Map<String, dynamic>
               ? item
               : Map<String, dynamic>.from(item);
+
+          final String timeStr = map['time']?.toString() ?? '09:00';
+          final parts = timeStr.split(':');
+          final hour = int.tryParse(parts[0]) ?? 9;
+          final minute = int.tryParse(parts[1]) ?? 0;
+          
+          final DateTime baseDate = DateTime.parse(
+            map['reminderTime']?.toString() ??
+                TimezoneUtil.nowInPakistan().toIso8601String(),
+          );
+          
+          final tz.TZDateTime correctPktTime = tz.TZDateTime(
+            tz.getLocation('Asia/Karachi'),
+            baseDate.year,
+            baseDate.month,
+            baseDate.day,
+            hour,
+            minute,
+          );
+
           return {
+            'timeStr': timeStr,
             'medicine': MedicationMapper.fromApiResponse(map['medicine'] ?? {}),
-            'reminderTime': DateTime.parse(
-              map['reminderTime']?.toString() ??
-                  TimezoneUtil.nowInPakistan().toIso8601String(),
-            ),
+            'reminderTime': correctPktTime,
             'status': map['status']?.toString() ?? 'pending',
           };
         }).toList();
@@ -481,16 +500,19 @@ class MedicationService {
     String? elderUserId,
   }) async {
     _log(
-      '📊 Calculating overall adherence percentage for user: $userId (last $days days)',
+      '📊 Calculating overall adherence percentage for user: $userId (last $days days), elderUserId: $elderUserId',
     );
+    final queryParams = {
+      'days': days.toString(),
+      'period': days <= 7 ? 'weekly' : 'monthly',
+      if (elderUserId != null && elderUserId.isNotEmpty) 'elderUserId': elderUserId,
+    };
+    _log('📊 Adherence Query Params: $queryParams');
 
     try {
       final response = await _apiService.get(
         '/medications/adherence',
-        queryParameters: {
-          'days': days.toString(),
-          if (elderUserId != null) 'elderUserId': elderUserId,
-        },
+        queryParameters: queryParams,
       );
 
       if (response.statusCode == 200) {
@@ -499,6 +521,8 @@ class MedicationService {
         final percentage = rate * 100;
         _log('✅ Overall adherence: ${percentage.toStringAsFixed(1)}%');
         return percentage;
+      } else {
+        _log('❌ Adherence API returned ${response.statusCode}: ${response.data}');
       }
     } catch (e) {
       _log('⚠️ Warning: Failed to get overall adherence: $e');
@@ -509,14 +533,16 @@ class MedicationService {
 
   // Get adherence streak (consecutive days with 100% adherence)
   Future<int> getAdherenceStreak(String userId, {String? elderUserId}) async {
-    _log('🔥 Calculating overall adherence streak for user: $userId');
+    _log('🔥 Calculating overall adherence streak for user: $userId, elderUserId: $elderUserId');
+    final queryParams = {
+      if (elderUserId != null && elderUserId.isNotEmpty) 'elderUserId': elderUserId,
+    };
+    _log('🔥 Streak Query Params: $queryParams');
 
     try {
       final response = await _apiService.get(
         '/medications/adherence/streak',
-        queryParameters: elderUserId != null
-            ? {'elderUserId': elderUserId}
-            : null,
+        queryParameters: queryParams,
       );
 
       if (response.statusCode == 200) {
@@ -524,6 +550,8 @@ class MedicationService {
         final streak = (data['streak'] ?? 0) as int;
         _log('✅ Overall adherence streak: $streak days');
         return streak;
+      } else {
+        _log('❌ Streak API returned ${response.statusCode}: ${response.data}');
       }
     } catch (e) {
       _log('⚠️ Warning: Failed to get overall streak: $e');

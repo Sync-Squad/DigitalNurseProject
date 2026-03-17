@@ -5,7 +5,7 @@ import { CreateMedicationDto, MedicineFrequency } from './dto/create-medication.
 import { UpdateMedicationDto } from './dto/update-medication.dto';
 import { LogIntakeDto, IntakeStatus } from './dto/log-intake.dto';
 import { ActorContext } from '../common/services/access-control.service';
-import { getPKTDate } from '../common/utils/date-utils';
+import { getPKTDate, getUTCFromPKT } from '../common/utils/date-utils';
 
 @Injectable()
 export class MedicationsService {
@@ -613,23 +613,28 @@ export class MedicationsService {
    * Helper to check if a medication is scheduled for a specific date
    */
   private isScheduledOnDate(schedule: any, date: Date): boolean {
-    // 1. Check date range
-    // Normalize date to midnight for comparison
-    const checkDate = new Date(date);
-    checkDate.setHours(0, 0, 0, 0);
+    // Normalize date to midnight in PKT context for comparison
+    // Karachi is UTC+5
+    const pktDate = new Date(date.getTime() + (5 * 60 * 60 * 1000));
+    const checkDate = new Date(pktDate);
+    checkDate.setUTCHours(0, 0, 0, 0);
 
     const start = new Date(schedule.startDate);
-    start.setHours(0, 0, 0, 0);
-    if (checkDate < start) return false;
+    start.setHours(0, 0, 0, 0); // Start date is already stored as midnight
+    
+    // Convert current check date back to "Calendar Date" for comparison with start/end
+    const calendarDate = new Date(pktDate.getUTCFullYear(), pktDate.getUTCMonth(), pktDate.getUTCDate());
+    
+    if (calendarDate < start) return false;
 
     if (schedule.endDate) {
       const end = new Date(schedule.endDate);
       end.setHours(23, 59, 59, 999);
-      if (checkDate > end) return false;
+      if (calendarDate > end) return false;
     }
 
     // 2. Check daysMask (Bit 0 = Monday, ..., Bit 6 = Sunday)
-    const day = checkDate.getDay(); // 0-6 (Sun-Sat)
+    const day = pktDate.getUTCDay(); // 0-6 (Sun-Sat) in PKT
     const shiftedDay = day === 0 ? 6 : day - 1; // 0=Mon, ..., 6=Sun
     return (schedule.daysMask & (1 << shiftedDay)) !== 0;
   }
@@ -638,10 +643,17 @@ export class MedicationsService {
    * Calculate adherence for a period
    */
   async calculateAdherence(context: ActorContext, days: number = 7) {
-    const now = new Date(); // Use absolute UTC time for comparisons
-    const startDate = new Date(now);
-    startDate.setDate(startDate.getDate() - days + 1);
-    startDate.setHours(0, 0, 0, 0);
+    console.log(`DEBUG [ADHERENCE] Calculating for ${days} days. User: ${context.elderUserId}`);
+    const now = new Date(); // Current UTC time
+    
+    // Get start date in PKT midnight
+    const pktNow = new Date(now.getTime() + (5 * 60 * 60 * 1000));
+    const startDatePkt = new Date(pktNow);
+    startDatePkt.setUTCHours(0, 0, 0, 0);
+    startDatePkt.setUTCDate(startDatePkt.getUTCDate() - days + 1);
+    
+    // Convert back to UTC for DB queries
+    const startDateUtc = new Date(startDatePkt.getTime() - (5 * 60 * 60 * 1000));
 
     const medications = await this.prisma.medication.findMany({
       where: { elderUserId: context.elderUserId },
@@ -673,7 +685,7 @@ export class MedicationsService {
       const intakes = await this.prisma.medIntake.findMany({
         where: {
           medScheduleId: schedule.medScheduleId,
-          dueAt: { gte: startDate, lte: now }
+          dueAt: { gte: startDateUtc, lte: now }
         } as any
       });
 
@@ -683,18 +695,18 @@ export class MedicationsService {
 
       // Iterate through each day in the period
       for (let i = 0; i < days; i++) {
-        const currentDate = new Date(startDate);
-        currentDate.setDate(currentDate.getDate() + i);
-        currentDate.setHours(0, 0, 0, 0);
-        const dateKey = currentDate.toISOString().split('T')[0];
+        const checkDatePkt = new Date(startDatePkt);
+        checkDatePkt.setUTCDate(checkDatePkt.getUTCDate() + i);
+        const dateKey = checkDatePkt.toISOString().split('T')[0];
 
         if (!dailyAdherence[dateKey]) {
           dailyAdherence[dateKey] = { taken: 0, total: 0 };
         }
 
-        if (this.isScheduledOnDate(schedule, currentDate)) {
+        // isScheduledOnDate expects a date to check against
+        if (this.isScheduledOnDate(schedule, new Date(checkDatePkt.getTime() - (5 * 60 * 60 * 1000)))) {
           for (const timeStr of times) {
-            const dueAt = getUTCFromPKT(currentDate, timeStr);
+            const dueAt = getUTCFromPKT(new Date(checkDatePkt.getTime() - (5 * 60 * 60 * 1000)), timeStr);
 
             // Skip doses in the future
             if (dueAt > now) continue;
@@ -706,11 +718,20 @@ export class MedicationsService {
             if (status === IntakeStatus.TAKEN) {
               totalTakenDoses++;
               dailyAdherence[dateKey].taken++;
+            } else {
+              if (status) {
+                console.log(`DEBUG [ADHERENCE] Med: ${med.medicationName}, Date: ${dateKey}, Time: ${timeStr}, Status: ${status} (NOT TAKEN)`);
+              } else {
+                console.log(`DEBUG [ADHERENCE] Med: ${med.medicationName}, Date: ${dateKey}, Time: ${timeStr}, Status: MISSING (NOT TAKEN)`);
+              }
             }
           }
         }
       }
     }
+
+    const adherenceRate = totalScheduledDoses > 0 ? totalTakenDoses / totalScheduledDoses : 1.0;
+    console.log(`DEBUG [ADHERENCE] Result: ${adherenceRate * 100}% (${totalTakenDoses}/${totalScheduledDoses})`);
 
     const history = Object.entries(dailyAdherence)
       .map(([date, stats]) => ({
@@ -720,7 +741,7 @@ export class MedicationsService {
       .sort((a, b) => a.date.localeCompare(b.date));
 
     return {
-      adherenceRate: totalScheduledDoses > 0 ? totalTakenDoses / totalScheduledDoses : 1.0,
+      adherenceRate,
       history,
     };
   }
@@ -746,9 +767,12 @@ export class MedicationsService {
     if (medications.length === 0) return { streak: 0 };
 
     while (true) {
-      const checkDate = new Date(now);
-      checkDate.setDate(checkDate.getDate() - dayOffset);
-      checkDate.setHours(0, 0, 0, 0);
+      const pktNow = new Date(now.getTime() + (5 * 60 * 60 * 1000));
+      const checkDatePkt = new Date(pktNow);
+      checkDatePkt.setUTCHours(0, 0, 0, 0);
+      checkDatePkt.setUTCDate(checkDatePkt.getUTCDate() - dayOffset);
+      
+      const checkDateUtc = new Date(checkDatePkt.getTime() - (5 * 60 * 60 * 1000));
 
       // Don't go back too far (max 365 days for performance)
       if (dayOffset > 365) break;
@@ -760,7 +784,7 @@ export class MedicationsService {
         if (!med.schedules?.[0]) continue;
         const schedule = med.schedules[0];
         
-        if (this.isScheduledOnDate(schedule, checkDate)) {
+        if (this.isScheduledOnDate(schedule, checkDateUtc)) {
           let times = schedule.timesLocal || [];
           if (typeof times === 'string') {
             try {
@@ -771,7 +795,7 @@ export class MedicationsService {
           }
 
           for (const timeStr of times) {
-            const dueAt = getUTCFromPKT(checkDate, timeStr);
+            const dueAt = getUTCFromPKT(checkDateUtc, timeStr);
 
             // Skip future doses for today's check
             if (dueAt > now) continue;
@@ -786,6 +810,7 @@ export class MedicationsService {
 
             if (!intake || intake.status !== IntakeStatus.TAKEN) {
               allDosesTakenOnDay = false;
+              console.log(`DEBUG [STREAK] Broken at ${dueAt.toISOString()} for ${med.medicationName}. Status: ${intake?.status || 'MISSING'}`);
               break;
             }
           }

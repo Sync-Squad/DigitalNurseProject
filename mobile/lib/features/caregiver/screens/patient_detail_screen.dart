@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/care_context_provider.dart';
 import '../../../core/providers/health_provider.dart';
 import '../../../core/providers/medication_provider.dart';
@@ -106,7 +107,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
     return ModernScaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppTheme.teal,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
@@ -181,7 +182,7 @@ class _PatientHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: ModernSurfaceTheme.cardPadding(),
-      decoration: ModernSurfaceTheme.glassCard(context, highlighted: true),
+      decoration: ModernSurfaceTheme.heroDecoration(context),
       child: Row(
         children: [
           // Patient photo
@@ -201,6 +202,7 @@ class _PatientHeader extends StatelessWidget {
                   patient.name,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
                 ),
                 if (patient.age != null) ...[
@@ -208,7 +210,7 @@ class _PatientHeader extends StatelessWidget {
                   Text(
                     '${patient.age} years old',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
                 ],
@@ -219,10 +221,10 @@ class _PatientHeader extends StatelessWidget {
                     vertical: 6.h,
                   ),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: statusColor.withOpacity(0.3),
+                      color: Colors.white.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -234,14 +236,14 @@ class _PatientHeader extends StatelessWidget {
                             ? Icons.check_circle
                             : Icons.warning_amber_rounded,
                         size: 16,
-                        color: statusColor,
+                        color: Colors.white,
                       ),
                       SizedBox(width: 6.w),
                       Text(
                         statusText,
                         style: Theme.of(context).textTheme.labelMedium
                             ?.copyWith(
-                              color: statusColor,
+                              color: Colors.white,
                               fontWeight: FontWeight.w600,
                             ),
                       ),

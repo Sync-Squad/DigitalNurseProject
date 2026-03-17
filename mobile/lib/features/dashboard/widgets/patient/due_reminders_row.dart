@@ -25,16 +25,18 @@ class _DueRemindersRowState extends State<DueRemindersRow> {
     
     // Filter for "Due Now" (e.g., scheduled time is in the past or within next 12 hours)
     // AND not already optimistically removed
-    final now = TimezoneUtil.nowInPakistan();
+    final now = DateTime.now().toUtc();
     final dueReminders = allReminders.where((r) {
       final medicine = r['medicine'] as MedicineModel?;
-      final DateTime? scheduled = r['reminderTime'] as DateTime?;
+      final DateTime? scheduledTime = r['reminderTime'] as DateTime?;
 
-      if (medicine == null || scheduled == null) return false;
+      if (medicine == null || scheduledTime == null) return false;
       
-      final String id = "${medicine.id}_${scheduled.millisecondsSinceEpoch}";
+      final String id = "${medicine.id}_${scheduledTime.millisecondsSinceEpoch}";
       
       if (_removedIds.contains(id)) return false;
+      
+      final scheduled = scheduledTime.toUtc();
       
       // Show if it's due within last 12 hours (overdue) or next 30 mins (upcoming)
       return scheduled.isAfter(now.subtract(const Duration(hours: 12))) && 

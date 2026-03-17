@@ -22,7 +22,16 @@ class CaregiverProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _caregivers = await _caregiverService.getCaregivers(patientId);
+      final results = await Future.wait([
+        _caregiverService.getCaregivers(patientId),
+        _caregiverService.getInvitations(patientId),
+      ]);
+
+      final assignments = results[0] as List<CaregiverModel>;
+      final invitations = results[1] as List<CaregiverModel>;
+
+      // Combine both lists
+      _caregivers = [...assignments, ...invitations];
       _error = null;
     } catch (e) {
       _error = e.toString();
@@ -92,13 +101,23 @@ class CaregiverProvider with ChangeNotifier {
     }
   }
 
-  // Remove caregiver (Hard delete)
+  // Remove caregiver (Hard delete or cancel invitation)
   Future<bool> removeCaregiver(String caregiverId) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      await _caregiverService.removeCaregiver(caregiverId);
+      // Find the caregiver to check its status
+      final caregiver = _caregivers.firstWhere((c) => c.id == caregiverId);
+      
+      if (caregiver.status == CaregiverStatus.accepted) {
+        // It's an accepted assignment
+        await _caregiverService.removeCaregiver(caregiverId);
+      } else {
+        // It's a pending invitation, cancel it
+        await _caregiverService.removeInvitation(caregiverId);
+      }
+      
       _caregivers.removeWhere((c) => c.id == caregiverId);
       _error = null;
       _isLoading = false;
@@ -114,6 +133,7 @@ class CaregiverProvider with ChangeNotifier {
 
   // Toggle caregiver status (Enable/Disable)
   Future<bool> toggleCaregiverStatus(String assignmentId, bool isActive) async {
+    print('📝 [PROVIDER] toggleCaregiverStatus called for $assignmentId to $isActive');
     _isLoading = true;
     notifyListeners();
 
@@ -123,7 +143,9 @@ class CaregiverProvider with ChangeNotifier {
         isActive,
       );
 
+      print('📝 [PROVIDER] Status updated successfully in service');
       // Update local state
+// ...
       final index = _caregivers.indexWhere((c) => c.id == assignmentId);
       if (index != -1) {
         _caregivers[index] =

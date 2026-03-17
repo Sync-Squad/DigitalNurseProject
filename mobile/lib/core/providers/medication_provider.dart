@@ -37,11 +37,11 @@ class MedicationProvider with ChangeNotifier {
       );
       _adherencePercentage = await _medicationService.getAdherencePercentage(
         userId,
-        elderUserId: elderUserId,
+        elderUserId: elderUserId ?? userId,
       );
       _adherenceStreak = await _medicationService.getAdherenceStreak(
         userId,
-        elderUserId: elderUserId,
+        elderUserId: elderUserId ?? userId,
       );
 
       // Reschedule all medicine reminders after loading
@@ -190,11 +190,11 @@ class MedicationProvider with ChangeNotifier {
       await _refreshReminders(userId, elderUserId: elderUserId);
       _adherencePercentage = await _medicationService.getAdherencePercentage(
         userId,
-        elderUserId: elderUserId,
+        elderUserId: elderUserId ?? userId,
       );
       _adherenceStreak = await _medicationService.getAdherenceStreak(
         userId,
-        elderUserId: elderUserId,
+        elderUserId: elderUserId ?? userId,
       );
       notifyListeners();
       return true;

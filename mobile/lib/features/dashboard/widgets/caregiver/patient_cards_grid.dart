@@ -171,7 +171,7 @@ class _PatientCardsGridState extends State<PatientCardsGrid> {
     }).toList();
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -194,36 +194,18 @@ class _PatientCardsGridState extends State<PatientCardsGrid> {
           ],
         ),
         SizedBox(height: 16.h),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth >= 600;
-            final crossAxisCount = isWide ? 2 : 1;
-            final crossAxisSpacing = 16.w;
-            final mainAxisSpacing = 16.h;
-
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: crossAxisSpacing,
-                mainAxisSpacing: mainAxisSpacing,
-                childAspectRatio: isWide ? 2.5 : 3.5,
-              ),
-              itemCount: recipients.length,
-              itemBuilder: (context, index) {
-                final patient = recipients[index];
-                return PatientCard(
-                  patient: patient,
-                  onTap: () {
-                    widget.onPatientSelected?.call(patient.elderId);
-                    context.push('/caregiver/patient/${patient.elderId}');
-                  },
-                );
+        ...recipients.map((patient) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: 16.h),
+            child: PatientCard(
+              patient: patient,
+              onTap: () {
+                widget.onPatientSelected?.call(patient.elderId);
+                context.push('/caregiver/patient/${patient.elderId}');
               },
-            );
-          },
-        ),
+            ),
+          );
+        }).toList(),
       ],
     );
   }

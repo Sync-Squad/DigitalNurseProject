@@ -584,4 +584,27 @@ export class CaregiversService {
 
     return { success: true, message: 'Message sent to caregiver successfully' };
   }
+
+  /**
+   * Remove/Cancel caregiver invitation
+   */
+  async removeInvitation(userId: bigint, invitationId: bigint) {
+    const invitation = await this.prisma.userInvitation.findUnique({
+      where: { invitationId },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    if (invitation.inviterUserId !== userId) {
+      throw new BadRequestException('You are not authorized to cancel this invitation');
+    }
+
+    await this.prisma.userInvitation.delete({
+      where: { invitationId },
+    });
+
+    return { success: true };
+  }
 }

@@ -133,6 +133,15 @@ export class CaregiversController {
     return this.caregiversService.declineInvitation(userId, BigInt(id));
   }
 
+  @Delete('invitations/:id')
+  @ApiOperation({ summary: 'Cancel/Remove caregiver invitation' })
+  @ApiResponse({ status: 200, description: 'Invitation removed successfully' })
+  @ApiResponse({ status: 404, description: 'Invitation not found' })
+  removeInvitation(@CurrentUser() user: any, @Param('id', ParseIntPipe) id: string) {
+    const userId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
+    return this.caregiversService.removeInvitation(userId, BigInt(id));
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Remove caregiver assignment' })
   @ApiResponse({ status: 200, description: 'Caregiver removed successfully' })

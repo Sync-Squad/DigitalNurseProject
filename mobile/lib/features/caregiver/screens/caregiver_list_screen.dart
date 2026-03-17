@@ -172,66 +172,111 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: _loadCaregivers,
-        child: caregiverProvider.caregivers.isEmpty
-            ? _buildEmptyState(context, colorScheme, textTheme, muted, onPrimary, onSurface)
-            : CustomScrollView(
-                slivers: [
-                  SliverPadding(
-                    padding: ModernSurfaceTheme.screenPadding(),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final caregiver = activeCaregivers[index];
-                          return _buildCaregiverCard(
-                            context,
-                            caregiver,
-                            textTheme,
-                            colorScheme,
-                            muted,
-                            onPrimary,
-                          );
-                        },
-                        childCount: activeCaregivers.length,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            // Hero section
+            SliverToBoxAdapter(
+              child: Container(
+                margin: ModernSurfaceTheme.screenPadding(),
+                decoration: ModernSurfaceTheme.heroDecoration(context),
+                padding: ModernSurfaceTheme.heroPadding(),
+                child: Column(
+                  children: [
+                    Icon(FIcons.users, size: 48.r, color: Colors.white),
+                    SizedBox(height: 16.h),
+                    Text(
+                      'Your Support Team',
+                      style: textTheme.headlineSmall?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Text(
+                      'Manage people who help with your daily care',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            if (caregiverProvider.caregivers.isEmpty)
+              SliverFillRemaining(
+                hasScrollBody: false,
+                child: _buildEmptyState(
+                  context,
+                  colorScheme,
+                  textTheme,
+                  muted,
+                  onPrimary,
+                  onSurface,
+                ),
+              )
+            else ...[
+              SliverPadding(
+                padding: ModernSurfaceTheme.screenPadding(),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final caregiver = activeCaregivers[index];
+                      return _buildCaregiverCard(
+                        context,
+                        caregiver,
+                        textTheme,
+                        colorScheme,
+                        muted,
+                        onPrimary,
+                      );
+                    },
+                    childCount: activeCaregivers.length,
+                  ),
+                ),
+              ),
+              if (inactiveCaregivers.isNotEmpty) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: ModernSurfaceTheme.screenPadding()
+                        .copyWith(bottom: 8.h, top: 24.h),
+                    child: Text(
+                      'Inactive or Pending',
+                      style: textTheme.titleMedium?.copyWith(
+                        color: onPrimary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  if (inactiveCaregivers.isNotEmpty) ...[
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: ModernSurfaceTheme.screenPadding()
-                            .copyWith(bottom: 8.h, top: 24.h),
-                        child: Text(
-                          'Caregiver History',
-                          style: textTheme.titleMedium?.copyWith(
-                            color: onPrimary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
+                ),
+                SliverPadding(
+                  padding: ModernSurfaceTheme.screenPadding(),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final caregiver = inactiveCaregivers[index];
+                        return _buildCaregiverCard(
+                          context,
+                          caregiver,
+                          textTheme,
+                          colorScheme,
+                          muted,
+                          onPrimary,
+                          isHistorical: true,
+                        );
+                      },
+                      childCount: inactiveCaregivers.length,
                     ),
-                    SliverPadding(
-                      padding: ModernSurfaceTheme.screenPadding(),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final caregiver = inactiveCaregivers[index];
-                            return _buildCaregiverCard(
-                              context,
-                              caregiver,
-                              textTheme,
-                              colorScheme,
-                              muted,
-                              onPrimary,
-                              isHistorical: true,
-                            );
-                          },
-                          childCount: inactiveCaregivers.length,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+                  ),
+                ),
+              ],
+            ],
+            // Adding bottom padding for the list
+            SliverToBoxAdapter(child: SizedBox(height: 40.h)),
+          ],
+        ),
       ),
     );
   }
@@ -298,9 +343,15 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
     Color onPrimary, {
     bool isHistorical = false,
   }) {
-    final accent = ModernSurfaceTheme.primaryTeal.withValues(
-      alpha: isHistorical ? 0.3 : 1.0,
-    );
+    final isPending = caregiver.status == CaregiverStatus.pending;
+    final isAccepted = caregiver.status == CaregiverStatus.accepted;
+    
+    // Determine card accent color
+    Color accent = ModernSurfaceTheme.primaryTeal;
+    if (isPending) accent = Colors.amber;
+    if (isHistorical && isAccepted) accent = ModernSurfaceTheme.primaryTeal.withValues(alpha: 0.5);
+    if (caregiver.status == CaregiverStatus.declined) accent = Colors.redAccent;
+
     final provider = context.read<CaregiverProvider>();
 
     return Padding(
@@ -309,12 +360,14 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
         decoration: ModernSurfaceTheme.glassCard(
           context,
           accent: accent,
+          highlighted: !isHistorical && isAccepted,
         ),
         padding: EdgeInsets.all(16.w),
         child: Column(
           children: [
             Row(
               children: [
+                // Avatar/Initial with themed badge
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: ModernSurfaceTheme.iconBadge(
@@ -322,12 +375,10 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
                     accent,
                   ),
                   child: Text(
-                    caregiver.name[0].toUpperCase(),
+                    caregiver.name.isNotEmpty ? caregiver.name[0].toUpperCase() : '?',
                     style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: onPrimary.withValues(
-                        alpha: isHistorical ? 0.7 : 1.0,
-                      ),
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -338,30 +389,22 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
                     children: [
                       Text(
                         caregiver.name,
-                        style: textTheme.bodyMedium?.copyWith(
+                        style: textTheme.bodyLarge?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface.withValues(
-                            alpha: isHistorical ? 0.6 : 1.0,
-                          ),
+                          color: colorScheme.onSurface,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         caregiver.phone,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: muted.withValues(
-                            alpha: isHistorical ? 0.5 : 1.0,
-                          ),
-                        ),
+                        style: textTheme.bodySmall?.copyWith(color: muted),
                       ),
                       if (caregiver.relationship != null) ...[
                         const SizedBox(height: 2),
                         Text(
                           caregiver.relationship!,
                           style: textTheme.bodySmall?.copyWith(
-                            color: muted.withValues(
-                              alpha: isHistorical ? 0.4 : 0.8,
-                            ),
+                            color: muted.withValues(alpha: 0.8),
                             fontStyle: FontStyle.italic,
                           ),
                         ),
@@ -369,26 +412,35 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
                     ],
                   ),
                 ),
-                Switch.adaptive(
-                  value: caregiver.isActive,
-                  activeColor: ModernSurfaceTheme.primaryTeal,
-                  activeTrackColor:
-                      ModernSurfaceTheme.primaryTeal.withValues(alpha: 0.4),
-                  inactiveThumbColor: Colors.white.withValues(alpha: 0.8),
-                  inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
-                  onChanged: (value) async {
-                    final success = await provider.toggleCaregiverStatus(
-                      caregiver.id,
-                      value,
-                    );
-                    if (mounted && !success) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text('Failed to update status')),
+                
+                // Only show toggle for accepted caregivers
+                if (isAccepted)
+                  Switch.adaptive(
+                    value: caregiver.isActive,
+                    activeColor: ModernSurfaceTheme.primaryTeal,
+                    activeTrackColor:
+                        ModernSurfaceTheme.primaryTeal.withValues(alpha: 0.4),
+                    inactiveThumbColor: Colors.white.withValues(alpha: 0.8),
+                    inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
+                    onChanged: (value) async {
+                      final success = await provider.toggleCaregiverStatus(
+                        caregiver.id,
+                        value,
                       );
-                    }
-                  },
-                ),
+                      if (mounted && !success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Failed to update status')),
+                        );
+                      }
+                    },
+                  )
+                else if (isPending)
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: ModernSurfaceTheme.iconBadge(context, Colors.amber),
+                    child: Icon(FIcons.clock, size: 16.r, color: Colors.white),
+                  ),
               ],
             ),
             const SizedBox(height: 12),
@@ -396,44 +448,72 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 10.w,
-                    vertical: 4.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: caregiver.isActive
-                        ? AppTheme.appleGreen.withValues(alpha: 0.2)
-                        : Colors.orange.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    caregiver.isActive ? 'Access Active' : 'Access Disabled',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: caregiver.isActive
-                          ? AppTheme.appleGreen
-                          : Colors.orange,
-                      fontWeight: FontWeight.bold,
+                // Status Chip
+                _buildStatusChip(context, caregiver, textTheme),
+                
+                // Actions
+                Row(
+                  children: [
+                    if (isPending)
+                      Text(
+                        'Awaiting Approval',
+                        style: textTheme.labelSmall?.copyWith(color: muted),
+                      ),
+                    const SizedBox(width: 8),
+                    TextButton.icon(
+                      onPressed: () => _confirmDeletion(context, caregiver),
+                      icon: Icon(
+                        FIcons.trash,
+                        size: 14.r,
+                        color: Colors.redAccent.withValues(alpha: 0.8),
+                      ),
+                      label: Text(
+                        isPending ? 'Cancel Invitation' : 'Remove',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: Colors.redAccent.withValues(alpha: 0.8),
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: () => _confirmDeletion(context, caregiver),
-                  icon: Icon(
-                    FIcons.trash,
-                    size: 14.r,
-                    color: Colors.redAccent.withValues(alpha: 0.8),
-                  ),
-                  label: Text(
-                    'Delete Forever',
-                    style: textTheme.labelSmall?.copyWith(
-                      color: Colors.redAccent.withValues(alpha: 0.8),
-                    ),
-                  ),
+                  ],
                 ),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(BuildContext context, CaregiverModel caregiver, TextTheme textTheme) {
+    String label = 'Access Disabled';
+    Color baseColor = Colors.orange;
+    
+    if (caregiver.status == CaregiverStatus.pending) {
+      label = 'Pending Invitation';
+      baseColor = Colors.amber;
+    } else if (caregiver.status == CaregiverStatus.declined) {
+      label = 'Invitation Declined';
+      baseColor = Colors.redAccent;
+    } else if (caregiver.isActive) {
+      label = 'Access Active';
+      baseColor = AppTheme.appleGreen;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: 10.w,
+        vertical: 4.h,
+      ),
+      decoration: BoxDecoration(
+        color: baseColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: baseColor.withValues(alpha: 0.3)),
+      ),
+      child: Text(
+        label,
+        style: textTheme.labelSmall?.copyWith(
+          color: baseColor,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );

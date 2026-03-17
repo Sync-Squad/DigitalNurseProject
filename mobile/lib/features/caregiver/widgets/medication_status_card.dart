@@ -123,12 +123,10 @@ class MedicationStatusCard extends StatelessWidget {
               ),
             )
           else
-            ...medicines
-                .take(3)
-                .map(
-                  (medicine) =>
-                      _MedicationItem(medicine: medicine, elderId: elderId),
-                ),
+            ...medicines.take(3).map((medicine) => Padding(
+                  padding: EdgeInsets.only(bottom: 12.h),
+                  child: _MedicationItem(medicine: medicine, elderId: elderId),
+                )),
         ],
       ),
     );
@@ -152,27 +150,30 @@ class _StatusMetric extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 1),
-      ),
+      decoration: ModernSurfaceTheme.tintedCard(context, color),
       child: Column(
         children: [
-          Icon(icon, size: 24, color: color),
+          Container(
+            padding: EdgeInsets.all(6.w),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: Colors.white),
+          ),
           SizedBox(height: 8.h),
           Text(
             '$count',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: color,
-              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
             ),
           ),
           SizedBox(height: 4.h),
           Text(
             label,
             style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: color,
+              color: Colors.white.withValues(alpha: 0.9),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -191,25 +192,17 @@ class _MedicationItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: ModernSurfaceTheme.glassCard(context),
       child: Row(
         children: [
           Container(
             padding: EdgeInsets.all(8.w),
-            decoration: BoxDecoration(
-              color: ModernSurfaceTheme.primaryTeal.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(8),
+            decoration: ModernSurfaceTheme.iconBadge(
+              context,
+              ModernSurfaceTheme.primaryTeal,
             ),
-            child: Icon(
-              Icons.medication,
-              size: 20,
-              color: ModernSurfaceTheme.primaryTeal,
-            ),
+            child: const Icon(Icons.medication, size: 20, color: Colors.white),
           ),
           SizedBox(width: 12.w),
           Expanded(
