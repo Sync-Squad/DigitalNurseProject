@@ -607,8 +607,9 @@ class MedicationService {
         body: 'Time to take $medicineName - This is a test notification',
         scheduledDate: testTime,
         payload:
-            '{"type": "test_notification", "medicineName": "$medicineName"}',
+            '{"type": "medicine_reminder", "medicineName": "$medicineName", "priority": "high"}',
         type: NotificationType.medicineReminder,
+        priority: MedicinePriority.high,
       );
 
       _log(
@@ -766,8 +767,9 @@ class MedicationService {
                 body: 'Time to take ${medicine.name} ${medicine.dosage}',
                 scheduledDate: reminderTime,
                 payload:
-                    '{"medicineId": "${medicine.id}", "medicineName": "${medicine.name}", "dosage": "${medicine.dosage}", "type": "medicine_reminder"}',
+                    '{"medicineId": "${medicine.id}", "medicineName": "${medicine.name}", "dosage": "${medicine.dosage}", "type": "medicine_reminder", "priority": "${medicine.priority.name}"}',
                 type: NotificationType.medicineReminder,
+                priority: medicine.priority,
               );
               scheduledForThisMedicine++;
             } else {

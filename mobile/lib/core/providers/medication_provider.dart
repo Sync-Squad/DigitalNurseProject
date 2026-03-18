@@ -12,6 +12,9 @@ class MedicationProvider with ChangeNotifier {
   double _adherencePercentage = 100.0;
   int _adherenceStreak = 0;
   List<MedicineIntake> _allIntakes = [];
+  
+  // Track reminder IDs and their intended status locally
+  final Map<String, IntakeStatus> _pendingActions = {};
 
   List<MedicineModel> get medicines => _medicines;
   List<Map<String, dynamic>> get upcomingReminders => _upcomingReminders;
@@ -20,6 +23,102 @@ class MedicationProvider with ChangeNotifier {
   double get adherencePercentage => _adherencePercentage;
   int get adherenceStreak => _adherenceStreak;
   List<MedicineIntake> get allIntakes => _allIntakes;
+  
+  // Get medicines due now (Within last 12h or next 30m, and status is pending)
+  List<Map<String, dynamic>> get dueReminders {
+    final now = DateTime.now().toUtc();
+    return _upcomingReminders.where((r) {
+      final medicine = r['medicine'] as MedicineModel?;
+      final scheduled = (r['reminderTime'] as DateTime).toUtc();
+      if (medicine == null) return false;
+
+      // Create unique ID for this reminder instance using date components to avoid precision issues
+      final String reminderId = "${medicine.id}_${scheduled.year}_${scheduled.month}_${scheduled.day}_${scheduled.hour}_${scheduled.minute}";
+      
+      // 0. Filter out if any action was taken locally (Taken OR Missed)
+      if (_pendingActions.containsKey(reminderId)) {
+        print('🚫 DueReminders DEBUG: Filtering out $reminderId (Status marked as ${_pendingActions[reminderId]})');
+        return false;
+      }
+
+      final status = r['status']?.toString() ?? 'pending';
+
+      // 1. Must be pending on server
+      if (status != 'pending') return false;
+
+      // 2. Window: -12h to +30m
+      return scheduled.isAfter(now.subtract(const Duration(hours: 12))) && 
+             scheduled.isBefore(now.add(const Duration(minutes: 30)));
+    }).toList();
+  }
+
+  // Get medicines missed today
+  List<Map<String, dynamic>> get recentlyMissedReminders {
+    final now = DateTime.now();
+    final startOfToday = DateTime(now.year, now.month, now.day);
+    
+    // 1. Get items from server that are already marked missed
+    final List<Map<String, dynamic>> missed = _upcomingReminders.where((r) {
+      final medicine = r['medicine'] as MedicineModel?;
+      final scheduledRaw = r['reminderTime'] as DateTime;
+      final scheduled = scheduledRaw.toUtc();
+      if (medicine == null) return false;
+
+      final String reminderId = "${medicine.id}_${scheduled.year}_${scheduled.month}_${scheduled.day}_${scheduled.hour}_${scheduled.minute}";
+      
+      // Filter out if explicitly dismissed by user (status is missed but user hid the alert)
+      if (_pendingActions[reminderId] == IntakeStatus.missed && r['status'] == 'missed') {
+        return false; 
+      }
+
+      final status = r['status']?.toString() ?? 'pending';
+      return status == 'missed' && scheduledRaw.isAfter(startOfToday);
+    }).toList();
+
+    // 2. ALSO add items that are pending but were marked missed LOCALLY
+    final List<Map<String, dynamic>> pendingMissed = _upcomingReminders.where((r) {
+      final medicine = r['medicine'] as MedicineModel?;
+      final scheduled = (r['reminderTime'] as DateTime).toUtc();
+      if (medicine == null) return false;
+
+      final String reminderId = "${medicine.id}_${scheduled.year}_${scheduled.month}_${scheduled.day}_${scheduled.hour}_${scheduled.minute}";
+      
+      // If it's pending on server but marked as missed locally, include it!
+      return r['status'] == 'pending' && _pendingActions[reminderId] == IntakeStatus.missed;
+    }).toList();
+
+    final allMissed = [...missed, ...pendingMissed];
+
+    // Sort: High Priority first, then by time
+    allMissed.sort((a, b) {
+      final medA = a['medicine'] as MedicineModel;
+      final medB = b['medicine'] as MedicineModel;
+      final timeA = a['reminderTime'] as DateTime;
+      final timeB = b['reminderTime'] as DateTime;
+
+      if (medA.priority == MedicinePriority.high && medB.priority != MedicinePriority.high) {
+        return -1;
+      }
+      if (medB.priority == MedicinePriority.high && medA.priority != MedicinePriority.high) {
+        return 1;
+      }
+      return timeA.compareTo(timeB);
+    });
+
+    return allMissed;
+  }
+
+  // Mark a reminder as actioned locally to hide it immediately
+  void markReminderActioned(String reminderId, IntakeStatus status) {
+    print('📍 Provider DEBUG: markReminderActioned ID=$reminderId, Status=$status');
+    _pendingActions[reminderId] = status;
+    notifyListeners();
+  }
+
+  // Clear pending actions (useful after a full refresh)
+  void _clearPendingActions() {
+    _pendingActions.clear();
+  }
 
   // Load medicines
   Future<void> loadMedicines(String userId, {String? elderUserId}) async {
@@ -35,6 +134,9 @@ class MedicationProvider with ChangeNotifier {
         userId,
         elderUserId: elderUserId,
       );
+      
+      // Clear pending actions after successful refresh to sync with server state
+      _clearPendingActions();
       _adherencePercentage = await _medicationService.getAdherencePercentage(
         userId,
         elderUserId: elderUserId ?? userId,
@@ -240,6 +342,33 @@ class MedicationProvider with ChangeNotifier {
       userId,
       elderUserId: elderUserId,
     );
+    
+    // Smart clear: Only clear IDs that are now confirmed as NOT pending on the server
+    final Map<String, IntakeStatus> stillPending = {};
+    _pendingActions.forEach((id, status) {
+      // Find this reminder in the new upcoming list
+      bool foundAsPending = false;
+      for (final r in _upcomingReminders) {
+        final medicine = r['medicine'] as MedicineModel?;
+        final scheduled = (r['reminderTime'] as DateTime).toUtc();
+        if (medicine == null) continue;
+        
+        final String currentId = "${medicine.id}_${scheduled.year}_${scheduled.month}_${scheduled.day}_${scheduled.hour}_${scheduled.minute}";
+        if (currentId == id && r['status'] == 'pending') {
+          foundAsPending = true;
+          break;
+        }
+      }
+      
+      if (foundAsPending) {
+        stillPending[id] = status;
+      }
+    });
+
+    _pendingActions.clear();
+    _pendingActions.addAll(stillPending);
+    
+    notifyListeners();
   }
 
   // Initialize mock data (deprecated - no longer needed with API integration)

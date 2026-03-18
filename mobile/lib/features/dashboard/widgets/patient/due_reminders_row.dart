@@ -16,33 +16,15 @@ class DueRemindersRow extends StatefulWidget {
 }
 
 class _DueRemindersRowState extends State<DueRemindersRow> {
-  final Set<String> _removedIds = {};
 
   @override
   Widget build(BuildContext context) {
     final medProvider = context.watch<MedicationProvider>();
-    final allReminders = medProvider.upcomingReminders;
+    final dueRemindersList = medProvider.dueReminders;
+    print('📦 DueRemindersRow rebuild. Found ${dueRemindersList.length} reminders in provider.');
     
-    // Filter for "Due Now" (e.g., scheduled time is in the past or within next 12 hours)
-    // AND not already optimistically removed
-    final now = DateTime.now().toUtc();
-    final dueReminders = allReminders.where((r) {
-      final medicine = r['medicine'] as MedicineModel?;
-      final DateTime? scheduledTime = r['reminderTime'] as DateTime?;
-
-      if (medicine == null || scheduledTime == null) return false;
-      
-      final String id = "${medicine.id}_${scheduledTime.millisecondsSinceEpoch}";
-      
-      if (_removedIds.contains(id)) return false;
-      
-      final scheduled = scheduledTime.toUtc();
-      
-      // Show if it's due within last 12 hours (overdue) or next 30 mins (upcoming)
-      return scheduled.isAfter(now.subtract(const Duration(hours: 12))) && 
-             scheduled.isBefore(now.add(const Duration(minutes: 30)));
-    }).toList();
-
+    final dueReminders = [...dueRemindersList];
+    
     // Sort: High Priority first, then by time
     dueReminders.sort((a, b) {
       final medA = a['medicine'] as MedicineModel;
@@ -59,7 +41,7 @@ class _DueRemindersRowState extends State<DueRemindersRow> {
       return timeA.compareTo(timeB);
     });
 
-    if (allReminders.isEmpty) {
+    if (medProvider.upcomingReminders.isEmpty) {
       return const SizedBox.shrink(); // No reminders at all from service
     }
 
@@ -119,14 +101,14 @@ class _DueRemindersRowState extends State<DueRemindersRow> {
                     final reminder = dueReminders[index];
                     final medicine = reminder['medicine'] as MedicineModel;
                     final scheduled = reminder['reminderTime'] as DateTime;
-                    final String id = "${medicine.id}_${scheduled.millisecondsSinceEpoch}";
+                    final scheduledUtc = scheduled.toUtc();
+                    final String id = "${medicine.id}_${scheduledUtc.year}_${scheduledUtc.month}_${scheduledUtc.day}_${scheduledUtc.hour}_${scheduledUtc.minute}";
 
                     return QuickLogCard(
                       reminder: reminder,
-                      onLogged: () {
-                        setState(() {
-                          _removedIds.add(id);
-                        });
+                      onLogged: (status) {
+                        print('🖱️ User action on Dashboard: ID=$id, Status=$status');
+                        medProvider.markReminderActioned(id, status);
                       },
                     );
                   },

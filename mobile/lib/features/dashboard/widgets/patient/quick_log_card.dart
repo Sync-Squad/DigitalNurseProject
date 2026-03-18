@@ -12,7 +12,7 @@ import '../../../../core/models/medicine_model.dart';
 
 class QuickLogCard extends StatefulWidget {
   final Map<String, dynamic> reminder;
-  final VoidCallback onLogged;
+  final void Function(IntakeStatus status) onLogged;
 
   const QuickLogCard({
     super.key,
@@ -46,13 +46,8 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
       
       if (medicineId == null || scheduledTime == null) return;
       
-      // Only optimistically hide if NOT (Missed AND High priority)
-      final medicine = widget.reminder['medicine'] as MedicineModel?;
-      final bool isHighPriority = medicine?.priority == MedicinePriority.high;
-      
-      if (status != IntakeStatus.missed || !isHighPriority) {
-        widget.onLogged();
-      }
+      // Always optimistically hide once action is taken
+      widget.onLogged(status);
 
       final success = await medProvider.logIntake(
         medicineId: medicineId,

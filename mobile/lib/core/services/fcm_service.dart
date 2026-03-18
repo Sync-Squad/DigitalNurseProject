@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'dart:typed_data';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -7,6 +8,7 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:permission_handler/permission_handler.dart';
 import '../models/notification_model.dart';
+import '../models/medicine_model.dart';
 import '../../firebase_options.dart';
 import '../utils/timezone_util.dart';
 
@@ -100,8 +102,17 @@ class FCMService {
     const medicationChannel = AndroidNotificationChannel(
       'medication_reminders',
       'Medication Reminders',
-      description: 'Notifications for medication reminders and missed doses',
+      description: 'Notifications for regular medication reminders',
       importance: Importance.high,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    const alarmChannel = AndroidNotificationChannel(
+      'medication_alarms',
+      'Medication Alarms',
+      description: 'Full-screen alarms for high-priority medications',
+      importance: Importance.max,
       playSound: true,
       enableVibration: true,
     );
@@ -127,6 +138,12 @@ class FCMService {
           AndroidFlutterLocalNotificationsPlugin
         >()
         ?.createNotificationChannel(medicationChannel);
+
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.createNotificationChannel(alarmChannel);
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
@@ -258,8 +275,13 @@ class FCMService {
           payloadStr.contains('medicineId')) {
         
         // Check if it's high priority
-        bool isHighPriority = payloadStr.contains('"priority":"high"') || 
-                             payloadStr.contains("'priority': 'high'");
+        bool isHighPriority = false;
+        try {
+          final data = jsonDecode(payloadStr);
+          isHighPriority = data['priority'] == 'high';
+        } catch (e) {
+          print('Error decoding notification payload: $e');
+        }
         
         if (isHighPriority) {
           // Navigate to alarm screen for high priority
@@ -330,7 +352,7 @@ class FCMService {
       case 'missed_dose':
       case 'NotificationType.medicineReminder':
       case 'NotificationType.missedDose':
-        return 'medication_reminders';
+        return data['priority'] == 'high' ? 'medication_alarms' : 'medication_reminders';
       case 'health_alert':
       case 'vitals_reminder':
       case 'NotificationType.healthAlert':
@@ -423,6 +445,7 @@ class FCMService {
     required DateTime scheduledDate,
     String? payload,
     NotificationType type = NotificationType.general,
+    MedicinePriority priority = MedicinePriority.medium,
   }) async {
     try {
       // Check if FCM service is initialized
@@ -448,33 +471,28 @@ class FCMService {
         'type': type.toString(),
       });
 
-      // Configure sound and vibration for medicine reminders
+      final isHighPriority = priority == MedicinePriority.high;
       final isMedicineReminder = type == NotificationType.medicineReminder;
 
       final androidDetails = AndroidNotificationDetails(
-        channelId,
-        channelName,
-        channelDescription: channelDescription,
-        importance: Importance.max,
-        priority: Priority.max,
+        isHighPriority ? 'medication_alarms' : channelId,
+        isHighPriority ? 'Medication Alarms' : channelName,
+        channelDescription: isHighPriority ? 'Full-screen alarms for high-priority medications' : channelDescription,
+        importance: isHighPriority ? Importance.max : Importance.high,
+        priority: isHighPriority ? Priority.max : Priority.high,
         icon: '@mipmap/ic_launcher',
-        // Enable sound and vibration for medicine reminders
-        // Sound will use the channel's default or system default notification sound
         playSound: true,
         enableVibration: true,
         vibrationPattern: isMedicineReminder
             ? Int64List.fromList([0, 500, 250, 500, 250, 500])
             : null,
         channelShowBadge: true,
-        autoCancel: false, // Keep notification until user interacts
-        // Make it more prominent
+        autoCancel: !isHighPriority, 
         ticker: isMedicineReminder ? 'Medicine Reminder' : null,
-        // Full-screen intent for alarm-like behavior
-        fullScreenIntent: isMedicineReminder,
-        category: isMedicineReminder ? AndroidNotificationCategory.alarm : null,
+        fullScreenIntent: isHighPriority,
+        category: isHighPriority ? AndroidNotificationCategory.alarm : null,
         visibility: NotificationVisibility.public,
-        // Keep playing sound
-        ongoing: isMedicineReminder,
+        ongoing: isHighPriority,
       );
 
       const iosDetails = DarwinNotificationDetails(

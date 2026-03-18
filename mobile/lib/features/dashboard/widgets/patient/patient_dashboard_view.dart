@@ -12,6 +12,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/modern_surface_theme.dart';
 
 import 'due_reminders_row.dart';
+import 'missed_reminders_row.dart';
 import 'patient_action_shortcuts.dart';
 import 'patient_documents_card.dart';
 import 'patient_lifestyle_card.dart';
@@ -55,6 +56,7 @@ class PatientDashboardView extends StatelessWidget {
               const _HealthOverviewCard(),
               SizedBox(height: cardSpacing),
               const DueRemindersRow(),
+              const MissedRemindersRow(),
               const _AdherenceCard(),
               SizedBox(height: cardSpacing),
               const _AlertsAndVitalsRow(),
