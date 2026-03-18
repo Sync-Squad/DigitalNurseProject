@@ -98,7 +98,7 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                   : 'Marked as missed',
             ),
             backgroundColor: result['status'] == IntakeStatus.taken 
-                ? AppTheme.appleGreen 
+                ? const Color(0xFF1CB5A9) 
                 : Colors.red[600],
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
@@ -289,7 +289,7 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                                   SizedBox(width: 8.w),
                                   _ActionButton(
                                     icon: Icons.check_rounded,
-                                    color: AppTheme.appleGreen,
+                                    color: const Color(0xFF1CB5A9),
                                     isSelected: widget.reminder['status'] == 'taken',
                                     onTap: () => _handleStatus(context, IntakeStatus.taken),
                                   ),

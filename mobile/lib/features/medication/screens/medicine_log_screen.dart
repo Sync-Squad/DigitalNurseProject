@@ -194,7 +194,7 @@ class _MedicineLogScreenState extends State<MedicineLogScreen> {
 
   Widget _buildLogCard(MedicineIntake log) {
     final isTaken = log.status == IntakeStatus.taken;
-    final color = isTaken ? AppTheme.getSuccessColor(context) : Theme.of(context).colorScheme.error;
+    final color = isTaken ? const Color(0xFF1CB5A9) : Theme.of(context).colorScheme.error;
     final icon = isTaken ? Icons.check_circle : Icons.error_outline;
     
     final timeStr = DateFormat('hh:mm a').format(log.scheduledTime);

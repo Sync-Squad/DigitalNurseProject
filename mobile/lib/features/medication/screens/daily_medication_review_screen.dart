@@ -131,7 +131,7 @@ class _IntakeReviewCard extends StatelessWidget {
 
   Color _getStatusColor(IntakeStatus status) {
     switch (status) {
-      case IntakeStatus.taken: return AppTheme.appleGreen;
+      case IntakeStatus.taken: return const Color(0xFF1CB5A9); // Light Teal representing taken
       case IntakeStatus.missed: return Colors.red[600]!;
       case IntakeStatus.skipped: return Colors.orange[600]!;
       case IntakeStatus.snoozed: return Colors.blue[600]!;
@@ -418,7 +418,7 @@ class _IntakeReviewCard extends StatelessWidget {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: const Text('Medication updated successfully'),
-              backgroundColor: AppTheme.appleGreen,
+              backgroundColor: const Color(0xFF1CB5A9),
               behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 1),
             ),
