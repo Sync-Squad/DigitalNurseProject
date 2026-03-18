@@ -17,6 +17,7 @@ import { CreateMedicationDto } from './dto/create-medication.dto';
 import { UpdateMedicationDto } from './dto/update-medication.dto';
 import { LogIntakeDto } from './dto/log-intake.dto';
 import { GetAdherenceDto } from './dto/get-adherence.dto';
+import { GetMedicationStatusDto } from './dto/get-medication-status.dto';
 import { BaseQueryDto } from '../common/dto/base-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -110,11 +111,10 @@ export class MedicationsController {
   @ApiResponse({ status: 200, description: 'Medication status' })
   async getMedicationStatus(
     @CurrentUser() user: any,
-    @Query('date') date?: string,
-    @Query() query?: BaseQueryDto,
+    @Query() query: GetMedicationStatusDto,
   ) {
-    const context = await this.resolveContext(user, query?.elderUserId);
-    const targetDate = date ? new Date(date) : new Date();
+    const context = await this.resolveContext(user, query.elderUserId);
+    const targetDate = query.date ? new Date(query.date) : new Date();
     return this.medicationsService.getMedicationStatus(context, targetDate);
   }
 

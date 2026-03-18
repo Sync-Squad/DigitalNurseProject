@@ -15,6 +15,7 @@ import { VitalsService } from './vitals.service';
 import { CreateVitalDto, VitalType } from './dto/create-vital.dto';
 import { UpdateVitalDto } from './dto/update-vital.dto';
 import { GetVitalsTrendsDto } from './dto/get-vitals-trends.dto';
+import { GetVitalsDto } from './dto/get-vitals.dto';
 import { BaseQueryDto } from '../common/dto/base-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -60,17 +61,14 @@ export class VitalsController {
   @ApiResponse({ status: 200, description: 'List of vital measurements' })
   async findAll(
     @CurrentUser() user: any,
-    @Query('type') type?: VitalType,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    @Query() query?: BaseQueryDto,
+    @Query() query: GetVitalsDto,
   ) {
-    const context = await this.resolveContext(user, query?.elderUserId);
+    const context = await this.resolveContext(user, query.elderUserId);
     return this.vitalsService.findAll(
       context,
-      type,
-      startDate ? new Date(startDate) : undefined,
-      endDate ? new Date(endDate) : undefined,
+      query.type,
+      query.startDate ? new Date(query.startDate) : undefined,
+      query.endDate ? new Date(query.endDate) : undefined,
     );
   }
 

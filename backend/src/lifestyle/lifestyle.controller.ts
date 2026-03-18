@@ -21,6 +21,8 @@ import { UpdateExercisePlanDto } from './dto/update-exercise-plan.dto';
 import { ApplyPlanDto } from './dto/apply-plan.dto';
 import { PlanComplianceResponseDto } from './dto/plan-compliance.dto';
 import { GetLifestyleDto } from './dto/get-lifestyle.dto';
+import { GetDailySummaryDto } from './dto/get-daily-summary.dto';
+import { GetPlanComplianceDto } from './dto/get-plan-compliance.dto';
 import { BaseQueryDto } from '../common/dto/base-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -115,11 +117,10 @@ export class LifestyleController {
   @ApiResponse({ status: 200, description: 'Daily summary' })
   async getDailySummary(
     @CurrentUser() user: any,
-    @Query('date') date: string,
-    @Query() query?: BaseQueryDto,
+    @Query() query: GetDailySummaryDto,
   ) {
-    const context = await this.resolveContext(user, query?.elderUserId);
-    return this.lifestyleService.getDailySummary(context, date);
+    const context = await this.resolveContext(user, query.elderUserId);
+    return this.lifestyleService.getDailySummary(context, query.date);
   }
 
   @Get('summary/weekly')
@@ -217,13 +218,11 @@ export class LifestyleController {
   async getDietPlanCompliance(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: GetPlanComplianceDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
-    const start = startDate ? new Date(startDate) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const end = endDate ? new Date(endDate) : new Date();
+    const context = await this.resolveContext(user, query.elderUserId);
+    const start = query.startDate ? new Date(query.startDate) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const end = query.endDate ? new Date(query.endDate) : new Date();
     return this.lifestyleService.getDietPlanCompliance(context, BigInt(id), start, end);
   }
 
@@ -311,13 +310,11 @@ export class LifestyleController {
   async getExercisePlanCompliance(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: GetPlanComplianceDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
-    const start = startDate ? new Date(startDate) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const end = endDate ? new Date(endDate) : new Date();
+    const context = await this.resolveContext(user, query.elderUserId);
+    const start = query.startDate ? new Date(query.startDate) : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const end = query.endDate ? new Date(query.endDate) : new Date();
     return this.lifestyleService.getExercisePlanCompliance(context, BigInt(id), start, end);
   }
 }
