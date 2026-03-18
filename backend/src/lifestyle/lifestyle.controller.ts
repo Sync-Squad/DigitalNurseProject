@@ -20,6 +20,8 @@ import { CreateExercisePlanDto } from './dto/create-exercise-plan.dto';
 import { UpdateExercisePlanDto } from './dto/update-exercise-plan.dto';
 import { ApplyPlanDto } from './dto/apply-plan.dto';
 import { PlanComplianceResponseDto } from './dto/plan-compliance.dto';
+import { GetLifestyleDto } from './dto/get-lifestyle.dto';
+import { BaseQueryDto } from '../common/dto/base-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AccessControlService } from '../common/services/access-control.service';
@@ -53,12 +55,10 @@ export class LifestyleController {
   @ApiResponse({ status: 200, description: 'List of diet logs' })
   async findAllDietLogs(
     @CurrentUser() user: any,
-    @Query('date') date?: string,
-    @Query('startDate') startDate?: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: GetLifestyleDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
-    return this.lifestyleService.findAllDietLogs(context, date, startDate);
+    const context = await this.resolveContext(user, query.elderUserId);
+    return this.lifestyleService.findAllDietLogs(context, query.date, query.startDate);
   }
 
   @Delete('diet/:id')
@@ -67,9 +67,9 @@ export class LifestyleController {
   async removeDietLog(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.lifestyleService.removeDietLog(context, BigInt(id));
   }
 
@@ -91,12 +91,10 @@ export class LifestyleController {
   @ApiResponse({ status: 200, description: 'List of exercise logs' })
   async findAllExerciseLogs(
     @CurrentUser() user: any,
-    @Query('date') date?: string,
-    @Query('startDate') startDate?: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: GetLifestyleDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
-    return this.lifestyleService.findAllExerciseLogs(context, date, startDate);
+    const context = await this.resolveContext(user, query.elderUserId);
+    return this.lifestyleService.findAllExerciseLogs(context, query.date, query.startDate);
   }
 
   @Delete('exercise/:id')
@@ -105,9 +103,9 @@ export class LifestyleController {
   async removeExerciseLog(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.lifestyleService.removeExerciseLog(context, BigInt(id));
   }
 
@@ -118,9 +116,9 @@ export class LifestyleController {
   async getDailySummary(
     @CurrentUser() user: any,
     @Query('date') date: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.lifestyleService.getDailySummary(context, date);
   }
 
@@ -129,9 +127,9 @@ export class LifestyleController {
   @ApiResponse({ status: 200, description: 'Weekly summary' })
   async getWeeklySummary(
     @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.lifestyleService.getWeeklySummary(context);
   }
 
@@ -152,9 +150,9 @@ export class LifestyleController {
   @ApiResponse({ status: 200, description: 'List of diet plans' })
   async findAllDietPlans(
     @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.lifestyleService.findAllDietPlans(context);
   }
 
@@ -164,9 +162,9 @@ export class LifestyleController {
   async findDietPlanById(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.lifestyleService.findDietPlanById(context, BigInt(id));
   }
 
@@ -189,9 +187,9 @@ export class LifestyleController {
   async deleteDietPlan(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.lifestyleService.deleteDietPlan(context, BigInt(id));
   }
 
@@ -246,9 +244,9 @@ export class LifestyleController {
   @ApiResponse({ status: 200, description: 'List of exercise plans' })
   async findAllExercisePlans(
     @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.lifestyleService.findAllExercisePlans(context);
   }
 
@@ -258,9 +256,9 @@ export class LifestyleController {
   async findExercisePlanById(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.lifestyleService.findExercisePlanById(context, BigInt(id));
   }
 
@@ -283,9 +281,9 @@ export class LifestyleController {
   async deleteExercisePlan(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.lifestyleService.deleteExercisePlan(context, BigInt(id));
   }
 

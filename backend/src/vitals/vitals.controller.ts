@@ -14,6 +14,8 @@ import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@ne
 import { VitalsService } from './vitals.service';
 import { CreateVitalDto, VitalType } from './dto/create-vital.dto';
 import { UpdateVitalDto } from './dto/update-vital.dto';
+import { GetVitalsTrendsDto } from './dto/get-vitals-trends.dto';
+import { BaseQueryDto } from '../common/dto/base-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AccessControlService } from '../common/services/access-control.service';
@@ -61,9 +63,9 @@ export class VitalsController {
     @Query('type') type?: VitalType,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.vitalsService.findAll(
       context,
       type,
@@ -77,9 +79,9 @@ export class VitalsController {
   @ApiResponse({ status: 200, description: 'Latest vital measurements' })
   async getLatest(
     @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.vitalsService.getLatest(context);
   }
 
@@ -92,13 +94,11 @@ export class VitalsController {
   @ApiResponse({ status: 200, description: 'Trend data' })
   async getTrends(
     @CurrentUser() user: any,
-    @Query('kindCode') kindCode?: string,
-    @Query('period') period?: string,
-    @Query('days') days?: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: GetVitalsTrendsDto,
   ) {
+    const { kindCode, period, days, elderUserId } = query;
     const context = await this.resolveContext(user, elderUserId);
-    const daysNum = days ? parseInt(days, 10) : period === 'monthly' ? 30 : 7;
+    const daysNum = days || (period === 'monthly' ? 30 : 7);
     return this.vitalsService.getTrends(context, kindCode, daysNum);
   }
 
@@ -107,9 +107,9 @@ export class VitalsController {
   @ApiResponse({ status: 200, description: 'List of abnormal readings' })
   async getAbnormal(
     @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.vitalsService.getAbnormal(context);
   }
 
@@ -120,9 +120,9 @@ export class VitalsController {
   async findOne(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.vitalsService.findOne(context, BigInt(id));
   }
 
@@ -146,9 +146,9 @@ export class VitalsController {
   async remove(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.vitalsService.remove(context, BigInt(id));
   }
 }

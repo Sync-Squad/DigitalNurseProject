@@ -16,6 +16,8 @@ import { MedicationsService } from './medications.service';
 import { CreateMedicationDto } from './dto/create-medication.dto';
 import { UpdateMedicationDto } from './dto/update-medication.dto';
 import { LogIntakeDto } from './dto/log-intake.dto';
+import { GetAdherenceDto } from './dto/get-adherence.dto';
+import { BaseQueryDto } from '../common/dto/base-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AccessControlService } from '../common/services/access-control.service';
@@ -40,10 +42,10 @@ export class MedicationsController {
   @ApiResponse({ status: 200, description: 'Overall adherence streak' })
   async getOverallAdherenceStreak(
     @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: BaseQueryDto,
   ) {
-    console.log(`🔍 [ADHERENCE] Request: Streak. elderUserId: ${elderUserId}`);
-    const context = await this.resolveContext(user, elderUserId);
+    console.log(`🔍 [ADHERENCE] Request: Streak. elderUserId: ${query.elderUserId}`);
+    const context = await this.resolveContext(user, query.elderUserId);
     return this.medicationsService.getAdherenceStreak(context);
   }
 
@@ -52,13 +54,12 @@ export class MedicationsController {
   @ApiResponse({ status: 200, description: 'Period adherence data' })
   async getPeriodAdherence(
     @CurrentUser() user: any,
-    @Query('period') period?: string,
-    @Query('days') days?: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: GetAdherenceDto,
   ) {
+    const { period, days, elderUserId } = query;
     console.log(`🔍 [ADHERENCE] Request: Period. days: ${days}, period: ${period}, elderUserId: ${elderUserId}`);
     const context = await this.resolveContext(user, elderUserId);
-    const daysNum = days ? parseInt(days, 10) : period === 'monthly' ? 30 : 7;
+    const daysNum = days || (period === 'monthly' ? 30 : 7);
     return this.medicationsService.calculateAdherence(context, daysNum);
   }
 
@@ -75,9 +76,9 @@ export class MedicationsController {
   @ApiResponse({ status: 200, description: 'List of medications' })
   async findAll(
     @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query.elderUserId);
     return this.medicationsService.findAll(context);
   }
 
@@ -86,9 +87,9 @@ export class MedicationsController {
   @ApiResponse({ status: 200, description: 'List of upcoming reminders' })
   async getUpcomingReminders(
     @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query.elderUserId);
     return this.medicationsService.getUpcomingReminders(context);
   }
 
@@ -97,9 +98,9 @@ export class MedicationsController {
   @ApiResponse({ status: 200, description: 'List of all intakes' })
   async getAllIntakeHistory(
     @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query.elderUserId);
     return this.medicationsService.findAllIntakes(context);
   }
 
@@ -110,9 +111,9 @@ export class MedicationsController {
   async getMedicationStatus(
     @CurrentUser() user: any,
     @Query('date') date?: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     const targetDate = date ? new Date(date) : new Date();
     return this.medicationsService.getMedicationStatus(context, targetDate);
   }
@@ -124,10 +125,10 @@ export class MedicationsController {
   async findOne(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: BaseQueryDto,
   ) {
-    console.log(`🔍 [MEDICATION] Request: findOne. ID: ${id}, elderUserId: ${elderUserId}`);
-    const context = await this.resolveContext(user, elderUserId);
+    console.log(`🔍 [MEDICATION] Request: findOne. ID: ${id}, elderUserId: ${query.elderUserId}`);
+    const context = await this.resolveContext(user, query.elderUserId);
     return this.medicationsService.findOne(context, BigInt(id));
   }
 
@@ -151,9 +152,9 @@ export class MedicationsController {
   async remove(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query.elderUserId);
     return this.medicationsService.remove(context, BigInt(id));
   }
 
@@ -163,9 +164,9 @@ export class MedicationsController {
   async getIntakeHistory(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query.elderUserId);
     return this.medicationsService.getIntakeHistory(context, BigInt(id));
   }
 
@@ -187,13 +188,12 @@ export class MedicationsController {
   async getAdherence(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('days') days?: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: GetAdherenceDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query.elderUserId);
     return this.medicationsService.calculateAdherence(
       context,
-      days ? parseInt(days, 10) : 7,
+      query.days || 7,
     );
   }
 }

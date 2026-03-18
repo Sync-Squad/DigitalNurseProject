@@ -12,6 +12,8 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { GetNotificationsDto } from './dto/get-notifications.dto';
+import { BaseQueryDto } from '../common/dto/base-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AccessControlService } from '../common/services/access-control.service';
@@ -61,20 +63,15 @@ export class NotificationsController {
   @ApiResponse({ status: 200, description: 'List of notifications' })
   async findAll(
     @CurrentUser() user: any,
-    @Query('isRead') isRead?: string,
-    @Query('type') type?: string,
-    @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query: GetNotificationsDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
-    const isReadBool = isRead === 'true' ? true : isRead === 'false' ? false : undefined;
+    const context = await this.resolveContext(user, query.elderUserId);
     return this.notificationsService.findAll(
       context,
-      isReadBool,
-      type,
-      startDate ? new Date(startDate) : undefined,
-      endDate ? new Date(endDate) : undefined,
+      query.isRead,
+      query.type,
+      query.startDate ? new Date(query.startDate) : undefined,
+      query.endDate ? new Date(query.endDate) : undefined,
     );
   }
 
@@ -83,9 +80,9 @@ export class NotificationsController {
   @ApiResponse({ status: 200, description: 'List of unread notifications' })
   async getUnread(
     @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.notificationsService.getUnread(context);
   }
 
@@ -94,9 +91,9 @@ export class NotificationsController {
   @ApiResponse({ status: 200, description: 'Unread count' })
   async getUnreadCount(
     @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.notificationsService.getUnreadCount(context);
   }
 
@@ -107,9 +104,9 @@ export class NotificationsController {
   async markAsRead(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.notificationsService.markAsRead(context, BigInt(id));
   }
 
@@ -118,9 +115,9 @@ export class NotificationsController {
   @ApiResponse({ status: 200, description: 'All notifications marked as read' })
   async markAllAsRead(
     @CurrentUser() user: any,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.notificationsService.markAllAsRead(context);
   }
 
@@ -131,9 +128,9 @@ export class NotificationsController {
   async remove(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.notificationsService.remove(context, BigInt(id));
   }
 }

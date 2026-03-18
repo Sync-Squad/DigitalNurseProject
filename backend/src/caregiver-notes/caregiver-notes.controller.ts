@@ -12,6 +12,7 @@ import {
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { CaregiverNotesService } from './caregiver-notes.service';
 import { CreateCaregiverNoteDto } from './dto/create-caregiver-note.dto';
+import { BaseQueryDto } from '../common/dto/base-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AccessControlService } from '../common/services/access-control.service';
@@ -42,8 +43,8 @@ export class CaregiverNotesController {
   @ApiOperation({ summary: 'Get all caregiver notes for a patient' })
   @ApiQuery({ name: 'elderUserId', required: false, type: String })
   @ApiResponse({ status: 200, description: 'List of caregiver notes' })
-  async findAll(@CurrentUser() user: any, @Query('elderUserId') elderUserId?: string) {
-    const context = await this.resolveContext(user, elderUserId);
+  async findAll(@CurrentUser() user: any, @Query() query?: BaseQueryDto) {
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.caregiverNotesService.findAll(context);
   }
 
@@ -54,9 +55,9 @@ export class CaregiverNotesController {
   async findOne(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.caregiverNotesService.findOne(context, BigInt(id));
   }
 
@@ -67,9 +68,9 @@ export class CaregiverNotesController {
   async remove(
     @CurrentUser() user: any,
     @Param('id', ParseIntPipe) id: string,
-    @Query('elderUserId') elderUserId?: string,
+    @Query() query?: BaseQueryDto,
   ) {
-    const context = await this.resolveContext(user, elderUserId);
+    const context = await this.resolveContext(user, query?.elderUserId);
     return this.caregiverNotesService.remove(context, BigInt(id));
   }
 }
