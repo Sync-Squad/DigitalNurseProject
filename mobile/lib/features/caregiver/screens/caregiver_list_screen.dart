@@ -154,8 +154,8 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
         title: Text(
           'My Caregivers',
           style: textTheme.titleLarge?.copyWith(
-            color: onPrimary,
-            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
           ),
         ),
         actions: [
@@ -218,45 +218,69 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
                 ),
               )
             else ...[
-              SliverPadding(
-                padding: ModernSurfaceTheme.screenPadding(),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final caregiver = activeCaregivers[index];
-                      return _buildCaregiverCard(
-                        context,
-                        caregiver,
-                        textTheme,
-                        colorScheme,
-                        muted,
-                        onPrimary,
-                      );
-                    },
-                    childCount: activeCaregivers.length,
-                  ),
-                ),
-              ),
-              if (inactiveCaregivers.isNotEmpty) ...[
+              // Accepted Caregivers Section
+              if (caregiverProvider.caregivers.any((c) => c.status == CaregiverStatus.accepted)) ...[
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: ModernSurfaceTheme.screenPadding()
-                        .copyWith(bottom: 8.h, top: 24.h),
+                    padding: ModernSurfaceTheme.screenPadding().copyWith(bottom: 8.h, top: 0),
                     child: Text(
-                      'Inactive or Pending',
+                      'Your Caregivers',
                       style: textTheme.titleMedium?.copyWith(
-                        color: onPrimary,
+                        color: ModernSurfaceTheme.primaryTeal,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                 ),
                 SliverPadding(
-                  padding: ModernSurfaceTheme.screenPadding(),
-                  sliver: SliverList(
+                   padding: ModernSurfaceTheme.screenPadding().copyWith(top: 0),
+                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final caregiver = inactiveCaregivers[index];
+                        final accepted = caregiverProvider.caregivers
+                            .where((c) => c.status == CaregiverStatus.accepted)
+                            .toList();
+                        final caregiver = accepted[index];
+                        return _buildCaregiverCard(
+                          context,
+                          caregiver,
+                          textTheme,
+                          colorScheme,
+                          muted,
+                          onPrimary,
+                        );
+                      },
+                      childCount: caregiverProvider.caregivers
+                          .where((c) => c.status == CaregiverStatus.accepted)
+                          .length,
+                    ),
+                  ),
+                ),
+              ],
+
+              // Pending / Other Section
+              if (caregiverProvider.caregivers.any((c) => c.status != CaregiverStatus.accepted)) ...[
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: ModernSurfaceTheme.screenPadding().copyWith(bottom: 8.h, top: 24.h),
+                    child: Text(
+                      'Pending Invitations',
+                      style: textTheme.titleMedium?.copyWith(
+                        color: ModernSurfaceTheme.primaryTeal,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+                SliverPadding(
+                   padding: ModernSurfaceTheme.screenPadding().copyWith(top: 0),
+                   sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final pending = caregiverProvider.caregivers
+                            .where((c) => c.status != CaregiverStatus.accepted)
+                            .toList();
+                        final caregiver = pending[index];
                         return _buildCaregiverCard(
                           context,
                           caregiver,
@@ -267,7 +291,9 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
                           isHistorical: true,
                         );
                       },
-                      childCount: inactiveCaregivers.length,
+                      childCount: caregiverProvider.caregivers
+                          .where((c) => c.status != CaregiverStatus.accepted)
+                          .length,
                     ),
                   ),
                 ),
@@ -420,8 +446,8 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
                     activeColor: ModernSurfaceTheme.primaryTeal,
                     activeTrackColor:
                         ModernSurfaceTheme.primaryTeal.withValues(alpha: 0.4),
-                    inactiveThumbColor: Colors.white.withValues(alpha: 0.8),
-                    inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
+                    inactiveThumbColor: Colors.white,
+                    inactiveTrackColor: Colors.grey.withValues(alpha: 0.3),
                     onChanged: (value) async {
                       final success = await provider.toggleCaregiverStatus(
                         caregiver.id,
@@ -429,8 +455,10 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
                       );
                       if (mounted && !success) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Failed to update status')),
+                          SnackBar(
+                            content: Text(provider.error ?? 'Failed to update status'),
+                            backgroundColor: AppTheme.getErrorColor(context),
+                          ),
                         );
                       }
                     },
@@ -453,15 +481,14 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
                 
                 // Actions
                 Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (isPending)
-                      Text(
-                        'Awaiting Approval',
-                        style: textTheme.labelSmall?.copyWith(color: muted),
-                      ),
-                    const SizedBox(width: 8),
                     TextButton.icon(
                       onPressed: () => _confirmDeletion(context, caregiver),
+                      style: TextButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                      ),
                       icon: Icon(
                         FIcons.trash,
                         size: 14.r,
@@ -471,6 +498,7 @@ class _CaregiverListScreenState extends State<CaregiverListScreen> {
                         isPending ? 'Cancel Invitation' : 'Remove',
                         style: textTheme.labelSmall?.copyWith(
                           color: Colors.redAccent.withValues(alpha: 0.8),
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -30,9 +29,7 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
   }
 
   Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
     final authProvider = context.read<AuthProvider>();
     final userId = authProvider.currentUser!.id;
@@ -41,17 +38,15 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
     await lifestyleProvider.fetchTrendsData(userId);
 
     if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final lifestyleProvider = context.watch<LifestyleProvider>();
+    final dailyData = lifestyleProvider.getDailyCalorieData(_selectedDays);
 
     return ModernScaffold(
       appBar: AppBar(
@@ -62,10 +57,10 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          'Calorie Trends',
+          'Lifestyle Analytics',
           style: textTheme.titleLarge?.copyWith(
             color: Colors.white,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
           ),
         ),
       ),
@@ -76,253 +71,323 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _PeriodSelector(
+                   _PeriodSelector(
                     selectedDays: _selectedDays,
-                    onChanged: (days) {
-                      setState(() {
-                        _selectedDays = days;
-                      });
-                    },
+                    onChanged: (days) => setState(() => _selectedDays = days),
                   ),
-                  SizedBox(height: 16.h),
-                  _buildSummarySection(context, lifestyleProvider),
+                  SizedBox(height: 20.h),
+                  _buildNetSummaryRing(context, dailyData),
                   SizedBox(height: 24.h),
-                  _buildChartSection(context, lifestyleProvider),
+                  _buildPulseGrid(context, dailyData),
+                  SizedBox(height: 24.h),
+                  _buildDailyBreakdown(context, dailyData),
                 ],
               ),
             ),
     );
   }
 
-  Widget _buildSummarySection(
-      BuildContext context, LifestyleProvider provider) {
-    final dailyData = provider.getDailyCalorieData(_selectedDays);
-    
+  Widget _buildNetSummaryRing(BuildContext context, Map<DateTime, Map<String, int>> dailyData) {
+    if (dailyData.isEmpty) return const SizedBox();
+
     int totalIn = 0;
     int totalOut = 0;
     for (var data in dailyData.values) {
       totalIn += data['in']!;
       totalOut += data['out']!;
     }
-    
-    final avgIn = totalIn / _selectedDays;
-    final avgOut = totalOut / _selectedDays;
-    final avgNet = (totalIn - totalOut) / _selectedDays;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Averages (Last $_selectedDays Days)',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-        ),
-        SizedBox(height: 12.h),
-        Row(
-          children: [
-            _StatCard(
-              label: 'Avg In',
-              value: avgIn.round().toString(),
-              color: AppTheme.appleGreen,
-              unit: 'kcal',
-            ),
-            SizedBox(width: 12.w),
-            _StatCard(
-              label: 'Avg Out',
-              value: avgOut.round().toString(),
-              color: Colors.orange,
-              unit: 'kcal',
-            ),
-            SizedBox(width: 12.w),
-            _StatCard(
-              label: 'Avg Net',
-              value: avgNet.round().toString(),
-              color: AppTheme.blueTertiary,
-              unit: 'kcal',
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildChartSection(BuildContext context, LifestyleProvider provider) {
-    final dailyData = provider.getDailyCalorieData(_selectedDays);
-    if (dailyData.isEmpty) {
-      return const Center(child: Text('No data available'));
-    }
-
-    final sortedDates = dailyData.keys.toList()..sort();
-    
-    // Calculate range for Y axis
-    double maxY = 0;
-    for (var data in dailyData.values) {
-      final values = [data['in']!.toDouble(), data['out']!.toDouble(), data['net']!.toDouble()];
-      for (var v in values) {
-        if (v > maxY) maxY = v;
-      }
-    }
-    
-    // Add padding (10%)
-    final range = maxY;
-    final padding = range > 0 ? range * 0.1 : 500.0;
-    final adjustedMinY = 0.0;
-    final adjustedMaxY = maxY + padding;
-    final horizontalInterval = (range > 0 ? (range / 4).roundToDouble() : 500.0).clamp(100.0, 1000.0);
+    final net = totalIn - totalOut;
+    final isDeficit = net <= 0;
+    final netAbs = net.abs();
+    final accentColor = isDeficit ? AppTheme.appleGreen : Colors.orange;
 
     return Container(
-      decoration: ModernSurfaceTheme.glassCard(context),
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(24.w),
+      decoration: ModernSurfaceTheme.glassCard(context, accent: accentColor),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Daily Trends',
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          SizedBox(height: 24.h),
-          SizedBox(
-            height: 300.h,
-            child: LineChart(
-              LineChartData(
-                minY: adjustedMinY,
-                maxY: adjustedMaxY,
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: horizontalInterval,
-                  getDrawingHorizontalLine: (value) => FlLine(
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
-                    strokeWidth: 1,
-                  ),
-                ),
-                titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      interval: horizontalInterval,
-                      getTitlesWidget: (value, meta) => Text(
-                        '${value.toInt()}',
-                        style: TextStyle(fontSize: 10.sp, color: Colors.grey),
-                      ),
-                    ),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      interval: _selectedDays > 14 ? 5 : 2,
-                      getTitlesWidget: (value, meta) {
-                        final index = value.toInt();
-                        if (index < 0 || index >= sortedDates.length) return const SizedBox();
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            DateFormat('MM/dd').format(sortedDates[index]),
-                            style: TextStyle(fontSize: 10.sp, color: Colors.grey),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  _createLine(sortedDates, dailyData, 'in', AppTheme.appleGreen),
-                  _createLine(sortedDates, dailyData, 'out', Colors.orange),
-                  _createLine(sortedDates, dailyData, 'net', AppTheme.blueTertiary),
-                ],
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (spot) => Colors.blueGrey.withOpacity(0.8),
-                    getTooltipItems: (touchedSpots) {
-                      return touchedSpots.map((spot) {
-                        final date = sortedDates[spot.x.toInt()];
-                        final label = ['In', 'Out', 'Net'][spot.barIndex];
-                        return LineTooltipItem(
-                          '${DateFormat('MMM d').format(date)}\n$label: ${spot.y.toInt()} kcal',
-                          const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        );
-                      }).toList();
-                    },
-                  ),
-                ),
-              ),
+            'PERIODIC BALANCE',
+            style: TextStyle(
+              fontSize: 10.sp,
+              fontWeight: FontWeight.w800,
+              color: Colors.grey[600],
+              letterSpacing: 2,
             ),
           ),
           SizedBox(height: 16.h),
-          _ChartLegend(),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              SizedBox(
+                height: 140.w,
+                width: 140.w,
+                child: CircularProgressIndicator(
+                  value: 0.7, // Visual representation
+                  strokeWidth: 12,
+                  backgroundColor: accentColor.withOpacity(0.1),
+                  valueColor: AlwaysStoppedAnimation<Color>(accentColor),
+                  strokeCap: StrokeCap.round,
+                ),
+              ),
+              Column(
+                children: [
+                  Text(
+                    netAbs.toString(),
+                    style: TextStyle(
+                      fontSize: 32.sp,
+                      fontWeight: FontWeight.w900,
+                      color: accentColor,
+                    ),
+                  ),
+                  Text(
+                    'kcal',
+                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            isDeficit ? 'TOTAL DEFICIT' : 'TOTAL SURPLUS',
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.w700,
+              color: accentColor,
+            ),
+          ),
+          SizedBox(height: 4.h),
+          Text(
+            'Based on your last $_selectedDays days',
+            style: TextStyle(fontSize: 11.sp, color: Colors.grey[500]),
+          ),
         ],
       ),
     );
   }
 
-  LineChartBarData _createLine(List<DateTime> dates, Map<DateTime, Map<String, int>> data, String key, Color color) {
-    return LineChartBarData(
-      spots: dates.asMap().entries.map((e) {
-        double val = data[e.value]![key]!.toDouble();
-        if (val < 0) val = 0; // Clamp negative values to 0 for visualization
-        return FlSpot(e.key.toDouble(), val);
-      }).toList(),
-      isCurved: true,
-      color: color,
-      barWidth: 3,
-      dotData: const FlDotData(show: false),
-      belowBarData: BarAreaData(
-        show: true,
-        color: color.withOpacity(0.05),
-      ),
+  Widget _buildPulseGrid(BuildContext context, Map<DateTime, Map<String, int>> dailyData) {
+    if (dailyData.isEmpty) return const SizedBox();
+    
+    final sortedDates = dailyData.keys.toList()..sort();
+    final isWeekly = sortedDates.length <= 7;
+    
+    // Find max intensity for normalization
+    double maxIntensity = 1;
+    for (var data in dailyData.values) {
+      final intensity = (data['in']! + data['out']!).toDouble();
+      if (intensity > maxIntensity) maxIntensity = intensity;
+    }
+
+    final successColor = AppTheme.getSuccessColor(context);
+    final warningColor = AppTheme.getWarningColor(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 4.w),
+          child: Text(
+            'DAILY HEALTH PULSE',
+            style: TextStyle(
+              fontSize: 10.sp,
+              fontWeight: FontWeight.w800,
+              color: Colors.grey[400],
+              letterSpacing: 1.5,
+            ),
+          ),
+        ),
+        SizedBox(height: 16.h),
+        Container(
+          height: 100.h,
+          padding: EdgeInsets.symmetric(vertical: 10.h),
+          decoration: ModernSurfaceTheme.glassCard(context).copyWith(
+            color: Colors.white.withOpacity(0.02),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Connecting Line
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 30.w),
+                child: Divider(
+                  color: Colors.white.withOpacity(0.05),
+                  thickness: 1,
+                ),
+              ),
+              ListView.builder(
+                scrollDirection: Axis.horizontal,
+                physics: isWeekly ? const NeverScrollableScrollPhysics() : const BouncingScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: isWeekly ? 10.w : 20.w),
+                itemCount: sortedDates.length,
+                itemBuilder: (context, index) {
+                  final date = sortedDates[index];
+                  final data = dailyData[date]!;
+                  final intensity = (data['in']! + data['out']!).toDouble();
+                  final net = data['in']! - data['out']!;
+                  final isDeficit = net <= 0;
+                  final color = isDeficit ? successColor : warningColor;
+                  
+                  // Scale based on intensity (min 0.5, max 1.0)
+                  final scale = 0.5 + (0.5 * (intensity / maxIntensity));
+                  final dotSize = 36.w * scale;
+                  
+                  return Container(
+                    width: isWeekly ? (1.sw - 60.w) / 7 : 55.w,
+                    alignment: Alignment.center,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          DateFormat('E').format(date).toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        SizedBox(height: 12.h),
+                        Container(
+                          height: dotSize,
+                          width: dotSize,
+                          decoration: BoxDecoration(
+                            color: color,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                               BoxShadow(
+                                 color: color.withOpacity(0.3),
+                                 blurRadius: 10,
+                                 spreadRadius: 1,
+                               ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Icon(
+                              isDeficit ? Icons.check : Icons.priority_high,
+                              size: 12.sp * scale,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDailyBreakdown(BuildContext context, Map<DateTime, Map<String, int>> dailyData) {
+    if (dailyData.isEmpty) return const SizedBox();
+    
+    final sortedDates = dailyData.keys.toList()..sort((a, b) => b.compareTo(a));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 4.w),
+          child: Text(
+            'DAILY BREAKDOWN',
+            style: TextStyle(
+              fontSize: 10.sp,
+              fontWeight: FontWeight.w800,
+              color: Colors.grey[600],
+              letterSpacing: 1.5,
+            ),
+          ),
+        ),
+        SizedBox(height: 12.h),
+        ...sortedDates.map((date) {
+          final data = dailyData[date]!;
+          final net = data['in']! - data['out']!;
+          final isDeficit = net <= 0;
+          
+          return Container(
+            margin: EdgeInsets.only(bottom: 8.h),
+            padding: EdgeInsets.all(12.w),
+            decoration: ModernSurfaceTheme.glassCard(context),
+            child: Row(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      DateFormat('EEEE, MMM d').format(date),
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        _SmallStat(label: 'In', value: data['in']!, color: AppTheme.appleGreen),
+                        SizedBox(width: 8.w),
+                        _SmallStat(label: 'Out', value: data['out']!, color: Colors.orange),
+                      ],
+                    ),
+                  ],
+                ),
+                const Spacer(),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '${net > 0 ? '+' : ''}$net',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w900,
+                        color: isDeficit ? AppTheme.appleGreen : Colors.orange,
+                      ),
+                    ),
+                    Text(
+                      'NET KCAL',
+                      style: TextStyle(
+                        fontSize: 8.sp,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
     );
   }
 }
 
-class _StatCard extends StatelessWidget {
+class _SmallStat extends StatelessWidget {
   final String label;
-  final String value;
-  final String unit;
+  final int value;
   final Color color;
 
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.unit,
-    required this.color,
-  });
+  const _SmallStat({required this.label, required this.value, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.all(12.w),
-        decoration: ModernSurfaceTheme.glassCard(context),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(fontSize: 12.sp, color: Colors.grey),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            Text(
-              unit,
-              style: TextStyle(fontSize: 10.sp, color: Colors.grey),
-            ),
-          ],
+    return Row(
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-      ),
+        SizedBox(width: 4.w),
+        Text(
+          '$label: $value',
+          style: TextStyle(fontSize: 10.sp, color: Colors.grey[600]),
+        ),
+      ],
     );
   }
 }
@@ -341,56 +406,30 @@ class _PeriodSelector extends StatelessWidget {
         final isSelected = selectedDays == days;
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: 4.w),
-          child: ChoiceChip(
-            label: Text('$days Days'),
-            selected: isSelected,
-            onSelected: (_) => onChanged(days),
-            selectedColor: AppTheme.appleGreen,
-            labelStyle: TextStyle(
-              color: isSelected ? Colors.white : Colors.black,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          child: GestureDetector(
+            onTap: () => onChanged(days),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+              decoration: BoxDecoration(
+                color: isSelected ? AppTheme.appleGreen : Colors.white.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(20.r),
+                border: Border.all(
+                  color: isSelected ? AppTheme.appleGreen : Colors.grey[300]!,
+                  width: 1,
+                ),
+              ),
+              child: Text(
+                '$days Days',
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.grey[700],
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontSize: 12.sp,
+                ),
+              ),
             ),
           ),
         );
       }).toList(),
-    );
-  }
-}
-
-class _ChartLegend extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _LegendItem(color: AppTheme.appleGreen, label: 'In'),
-        SizedBox(width: 16.w),
-        _LegendItem(color: Colors.orange, label: 'Out'),
-        SizedBox(width: 16.w),
-        _LegendItem(color: AppTheme.blueTertiary, label: 'Net'),
-      ],
-    );
-  }
-}
-
-class _LegendItem extends StatelessWidget {
-  final Color color;
-  final String label;
-
-  const _LegendItem({required this.color, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        SizedBox(width: 4.w),
-        Text(label, style: TextStyle(fontSize: 12.sp)),
-      ],
     );
   }
 }

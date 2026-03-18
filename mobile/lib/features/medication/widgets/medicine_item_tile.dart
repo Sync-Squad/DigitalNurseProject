@@ -157,6 +157,11 @@ class MedicineItemTile extends StatelessWidget {
           color: context.theme.colors.mutedForeground,
           icon: FIcons.minus,
         );
+      case IntakeStatus.snoozed:
+        return _StatusChip(
+          color: Colors.blue,
+          icon: FIcons.clock,
+        );
     }
   }
 

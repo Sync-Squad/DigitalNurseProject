@@ -249,24 +249,29 @@ class MedicationMapper {
         case 'skipped':
           status = IntakeStatus.skipped;
           break;
+        case 'snoozed':
+          status = IntakeStatus.snoozed;
+          break;
         default:
           status = IntakeStatus.pending;
       }
     }
 
     DateTime scheduledTime = TimezoneUtil.nowInPakistan();
-    if (json['scheduledTime'] != null) {
+    final scheduledVal = json['scheduledTime'] ?? json['dueAt'];
+    if (scheduledVal != null) {
       try {
-        scheduledTime = TimezoneUtil.toPakistanTime(DateTime.parse(json['scheduledTime'].toString()));
+        scheduledTime = TimezoneUtil.toPakistanTime(DateTime.parse(scheduledVal.toString()));
       } catch (e) {
         scheduledTime = TimezoneUtil.nowInPakistan();
       }
     }
 
     DateTime? takenTime;
-    if (json['takenTime'] != null) {
+    final takenVal = json['takenTime'] ?? json['takenAt'];
+    if (takenVal != null) {
       try {
-        takenTime = TimezoneUtil.toPakistanTime(DateTime.parse(json['takenTime'].toString()));
+        takenTime = TimezoneUtil.toPakistanTime(DateTime.parse(takenVal.toString()));
       } catch (e) {
         takenTime = null;
       }
@@ -274,10 +279,19 @@ class MedicationMapper {
 
     return MedicineIntake(
       id: json['id']?.toString() ?? '',
-      medicineId: json['medicationId']?.toString() ?? '',
+      medicineId: json['medicineId']?.toString() ?? 
+                 json['medicationId']?.toString() ?? 
+                 '',
+      medicineName: json['medicineName']?.toString() ?? 
+                   json['medicationName']?.toString(),
       scheduledTime: scheduledTime,
       takenTime: takenTime,
       status: status,
+      note: json['remarks']?.toString() ?? json['note']?.toString() ?? json['notes']?.toString(),
+      skipReasonCode: json['skipReasonCode']?.toString(),
+      loggedAt: json['createdAt'] != null
+          ? TimezoneUtil.toPakistanTime(DateTime.parse(json['createdAt'].toString()))
+          : null,
     );
   }
 
@@ -297,6 +311,9 @@ class MedicationMapper {
       case IntakeStatus.skipped:
         status = 'skipped';
         break;
+      case IntakeStatus.snoozed:
+        status = 'snoozed';
+        break;
       default:
         status = 'pending';
     }
@@ -307,6 +324,8 @@ class MedicationMapper {
       'status': status,
       if (intake.takenTime != null)
         'takenTime': TimezoneUtil.toPakistanTimeIso8601(intake.takenTime!),
+      if (intake.note != null) 'notes': intake.note,
+      if (intake.skipReasonCode != null) 'skipReasonCode': intake.skipReasonCode,
       if (elderUserId != null) 'elderUserId': elderUserId,
     };
   }

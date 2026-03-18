@@ -362,8 +362,13 @@ export class MedicationsService {
         data: {
           status: logIntakeDto.status,
           takenAt:
-            logIntakeDto.status === IntakeStatus.TAKEN ? getPKTDate() : null,
+            logIntakeDto.status === IntakeStatus.TAKEN
+              ? logIntakeDto.takenTime
+                ? getPKTDate(logIntakeDto.takenTime)
+                : getPKTDate()
+              : null,
           remarks: logIntakeDto.notes,
+          skipReasonCode: logIntakeDto.skipReasonCode,
           updatedAt: getPKTDate(),
         },
       });
@@ -377,8 +382,13 @@ export class MedicationsService {
           dueAt,
           status: logIntakeDto.status,
           takenAt:
-            logIntakeDto.status === IntakeStatus.TAKEN ? getPKTDate() : null,
+            logIntakeDto.status === IntakeStatus.TAKEN
+              ? logIntakeDto.takenTime
+                ? getPKTDate(logIntakeDto.takenTime)
+                : getPKTDate()
+              : null,
           remarks: logIntakeDto.notes,
+          skipReasonCode: logIntakeDto.skipReasonCode,
           createdAt: getPKTDate(),
           updatedAt: getPKTDate(),
         },
@@ -431,10 +441,13 @@ export class MedicationsService {
 
     return intakes.map((intake: any) => ({
       id: intake.medIntakeId.toString(),
+      medicineId: medication.medicationId.toString(),
+      medicineName: medication.medicationName,
       status: intake.status,
-      dueAt: intake.dueAt.toISOString(),
-      takenAt: intake.takenAt?.toISOString(),
+      scheduledTime: intake.dueAt.toISOString(),
+      takenTime: intake.takenAt?.toISOString(),
       remarks: intake.remarks,
+      skipReasonCode: intake.skipReasonCode,
     }));
   }
 
@@ -482,6 +495,7 @@ export class MedicationsService {
       scheduledTime: intake.dueAt.toISOString(),
       takenTime: intake.takenAt?.toISOString(),
       remarks: intake.remarks,
+      skipReasonCode: intake.skipReasonCode,
     }));
   }
 
@@ -578,9 +592,14 @@ export class MedicationsService {
       startDate: latestSchedule?.startDate?.toISOString(),
       endDate: latestSchedule?.endDate?.toISOString(),
       history: todayIntakes.map((intake: any) => ({
+        id: intake.medIntakeId.toString(),
+        medicineId: medication.medicationId.toString(),
+        medicineName: medication.medicationName,
         status: intake.status,
         scheduledTime: intake.dueAt.toISOString(),
         takenTime: intake.takenAt?.toISOString(),
+        remarks: intake.remarks,
+        skipReasonCode: intake.skipReasonCode,
       })),
     };
   }

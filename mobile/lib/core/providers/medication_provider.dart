@@ -24,6 +24,15 @@ class MedicationProvider with ChangeNotifier {
   int get adherenceStreak => _adherenceStreak;
   List<MedicineIntake> get allIntakes => _allIntakes;
   
+  List<MedicineIntake> get dailyIntakes {
+    final now = TimezoneUtil.nowInPakistan();
+    return _allIntakes.where((i) {
+      return i.scheduledTime.year == now.year &&
+             i.scheduledTime.month == now.month &&
+             i.scheduledTime.day == now.day;
+    }).toList();
+  }
+  
   // Get medicines due now (Within last 12h or next 30m, and status is pending)
   List<Map<String, dynamic>> get dueReminders {
     final now = DateTime.now().toUtc();
@@ -276,6 +285,9 @@ class MedicationProvider with ChangeNotifier {
     required DateTime scheduledTime,
     required IntakeStatus status,
     required String userId,
+    DateTime? takenTime,
+    String? note,
+    String? skipReasonCode,
     String? elderUserId,
   }) async {
     try {
@@ -285,11 +297,18 @@ class MedicationProvider with ChangeNotifier {
         medicineId: medicineId,
         scheduledTime: scheduledTime,
         status: status,
+        takenTime: takenTime,
+        note: note,
+        skipReasonCode: skipReasonCode,
         elderUserId:
             elderUserId, // Don't default to userId - let backend handle it for patients
       );
       // Refresh reminders to sync dashboard
       await _refreshReminders(userId, elderUserId: elderUserId);
+      
+      // Also refresh the intake history if we're in a screen like Daily Review
+      await loadAllIntakeHistory(elderUserId: elderUserId);
+      
       _adherencePercentage = await _medicationService.getAdherencePercentage(
         userId,
         elderUserId: elderUserId ?? userId,

@@ -6,6 +6,7 @@ export enum IntakeStatus {
   TAKEN = 'taken',
   MISSED = 'missed',
   SKIPPED = 'skipped',
+  SNOOZED = 'snoozed',
 }
 
 export class LogIntakeDto {
@@ -34,5 +35,10 @@ export class LogIntakeDto {
   @IsString()
   @IsOptional()
   notes?: string;
+
+  @ApiPropertyOptional({ example: 'forgot', description: 'Reason code for skipping or missing' })
+  @IsString()
+  @IsOptional()
+  skipReasonCode?: string;
 }
 

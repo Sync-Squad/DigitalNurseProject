@@ -21,8 +21,15 @@ class PatientActionShortcuts extends StatelessWidget {
         icon: Icons.medication,
         label: 'patient.logMedication'.tr(),
         caption: 'patient.logMedicationCaption'.tr(),
-        accent: CaregiverDashboardTheme.primaryTeal,
+        accent: const Color(0xFF148074), // Darker Teal
         onTap: () => context.push('/medications'),
+      ),
+      _ActionShortcut(
+        icon: Icons.assignment_turned_in_rounded,
+        label: 'Daily Review',
+        caption: 'Review today\'s doses',
+        accent: CaregiverDashboardTheme.primaryTeal,
+        onTap: () => context.push('/medication/review'),
       ),
       _ActionShortcut(
         icon: Icons.favorite,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/medication_provider.dart';
 import '../../../../core/providers/auth_provider.dart';
@@ -9,6 +10,8 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/timezone_util.dart';
 import '../../../../core/theme/modern_surface_theme.dart';
 import '../../../../core/models/medicine_model.dart';
+import '../../../medication/widgets/intake_log_bottom_sheet.dart';
+import '../../../medication/widgets/missed_remarks_bottom_sheet.dart';
 
 class QuickLogCard extends StatefulWidget {
   final Map<String, dynamic> reminder;
@@ -30,37 +33,78 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
   Future<void> _handleStatus(BuildContext context, IntakeStatus status) async {
     if (_isLogging) return;
 
+    final authProvider = context.read<AuthProvider>();
+    final medProvider = context.read<MedicationProvider>();
+    final careContext = context.read<CareContextProvider>();
+    final user = authProvider.currentUser;
+    if (user == null) return;
+
+    final medicine = widget.reminder['medicine'] as MedicineModel?;
+    final scheduledTime = widget.reminder['reminderTime'] as DateTime?;
+    if (medicine == null || scheduledTime == null) return;
+
+    Map<String, dynamic>? result;
+
+    if (status == IntakeStatus.taken) {
+      result = await showModalBottomSheet<Map<String, dynamic>>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => IntakeLogBottomSheet(
+          medicine: medicine,
+          scheduledTime: scheduledTime,
+        ),
+      );
+    } else if (status == IntakeStatus.missed) {
+      result = await showModalBottomSheet<Map<String, dynamic>>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => MissedRemarksBottomSheet(
+          medicine: medicine,
+        ),
+      );
+    }
+
+    if (result == null) return;
+
     setState(() => _isLogging = true);
     HapticFeedback.mediumImpact();
 
     try {
-      final authProvider = context.read<AuthProvider>();
-      final medProvider = context.read<MedicationProvider>();
-      final careContext = context.read<CareContextProvider>();
-      
-      final user = authProvider.currentUser;
-      if (user == null) return;
-
-      final String? medicineId = (widget.reminder['medicine'] as MedicineModel?)?.id;
-      final DateTime? scheduledTime = widget.reminder['reminderTime'] as DateTime?;
-      
-      if (medicineId == null || scheduledTime == null) return;
-      
-      // Always optimistically hide once action is taken
-      widget.onLogged(status);
+      // Optimistically hide from dashboard
+      widget.onLogged(result['status']);
 
       final success = await medProvider.logIntake(
-        medicineId: medicineId,
+        medicineId: medicine.id,
         scheduledTime: scheduledTime,
-        status: status,
+        status: result['status'],
+        takenTime: result['takenTime'],
+        note: result['note'],
         userId: user.id,
         elderUserId: careContext.selectedElderId,
       );
 
-      // If it failed and we optimistically hid it, we might want to refresh, 
-      // but for now let's just show the error.
-
-      if (!success && mounted) {
+      if (success && mounted) {
+        final timeStr = result['takenTime'] != null 
+            ? TimezoneUtil.formatInPakistan(result['takenTime'], format: 'h:mm a')
+            : 'Scheduled Time';
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result['status'] == IntakeStatus.taken 
+                  ? 'Marked taken at $timeStr'
+                  : 'Marked as missed',
+            ),
+            backgroundColor: result['status'] == IntakeStatus.taken 
+                ? AppTheme.appleGreen 
+                : Colors.red[600],
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+          ),
+        );
+      } else if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Failed to update medication status.')),
         );
@@ -158,6 +202,20 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                                 fontSize: 8.sp,
                                 fontWeight: FontWeight.w800,
                                 color: accentColor,
+                              ),
+                            ),
+                            SizedBox(width: 4.w),
+                            Text(
+                              () {
+                                final hour = time.hour;
+                                if (hour >= 5 && hour < 12) return 'medication.timeOfDay.morning'.tr();
+                                if (hour >= 12 && hour < 17) return 'medication.timeOfDay.afternoon'.tr();
+                                return 'medication.timeOfDay.evening'.tr();
+                              }(),
+                              style: TextStyle(
+                                fontSize: 8.sp,
+                                fontWeight: FontWeight.w800,
+                                color: accentColor.withOpacity(0.8),
                               ),
                             ),
                           ],

@@ -126,6 +126,9 @@ class MedicineIntake {
   final DateTime scheduledTime;
   final DateTime? takenTime;
   final IntakeStatus status;
+  final DateTime? loggedAt;
+  final String? note;
+  final String? skipReasonCode;
   final String? medicineName;
 
   MedicineIntake({
@@ -134,6 +137,9 @@ class MedicineIntake {
     required this.scheduledTime,
     this.takenTime,
     required this.status,
+    this.loggedAt,
+    this.note,
+    this.skipReasonCode,
     this.medicineName,
   });
 
@@ -143,6 +149,9 @@ class MedicineIntake {
     DateTime? scheduledTime,
     DateTime? takenTime,
     IntakeStatus? status,
+    DateTime? loggedAt,
+    String? note,
+    String? skipReasonCode,
     String? medicineName,
   }) {
     return MedicineIntake(
@@ -151,6 +160,9 @@ class MedicineIntake {
       scheduledTime: scheduledTime ?? this.scheduledTime,
       takenTime: takenTime ?? this.takenTime,
       status: status ?? this.status,
+      loggedAt: loggedAt ?? this.loggedAt,
+      note: note ?? this.note,
+      skipReasonCode: skipReasonCode ?? this.skipReasonCode,
       medicineName: medicineName ?? this.medicineName,
     );
   }
@@ -167,4 +179,4 @@ enum MedicineFrequency {
   afterMeal,
 }
 
-enum IntakeStatus { pending, taken, missed, skipped }
+enum IntakeStatus { pending, taken, missed, skipped, snoozed }

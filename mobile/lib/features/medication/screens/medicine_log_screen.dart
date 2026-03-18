@@ -158,6 +158,13 @@ class _MedicineLogScreenState extends State<MedicineLogScreen> {
     );
   }
 
+  String _getTimeOfDayTag(DateTime time) {
+    final hour = time.hour;
+    if (hour >= 5 && hour < 12) return 'medication.timeOfDay.morning'.tr();
+    if (hour >= 12 && hour < 17) return 'medication.timeOfDay.afternoon'.tr();
+    return 'medication.timeOfDay.evening'.tr();
+  }
+
   Widget _buildDateGroup(DateTime date, List<MedicineIntake> intakes) {
     final now = TimezoneUtil.nowInPakistan();
     final isToday = now.year == date.year &&
@@ -212,7 +219,7 @@ class _MedicineLogScreenState extends State<MedicineLogScreen> {
           ),
         ),
         subtitle: Text(
-          'Scheduled for $timeStr',
+          'Scheduled for $timeStr (${_getTimeOfDayTag(log.scheduledTime)})',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),

@@ -15,6 +15,7 @@ import '../features/medication/screens/add_medicine_screen.dart';
 import '../features/medication/screens/medicine_detail_screen.dart';
 import '../features/medication/screens/medicine_log_screen.dart';
 import '../features/medication/screens/medicine_alarm_screen.dart';
+import '../features/medication/screens/daily_medication_review_screen.dart';
 import '../features/health/screens/add_vital_screen.dart';
 import '../features/health/screens/health_trends_screen.dart';
 import '../features/health/screens/abnormal_vitals_screen.dart';
@@ -213,6 +214,10 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/medicine/log',
       builder: (context, state) => const MedicineLogScreen(),
+    ),
+    GoRoute(
+      path: '/medication/review',
+      builder: (context, state) => const DailyMedicationReviewScreen(),
     ),
     // Health/Vitals routes
     GoRoute(

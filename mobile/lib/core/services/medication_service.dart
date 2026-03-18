@@ -227,18 +227,23 @@ class MedicationService {
     required String medicineId,
     required DateTime scheduledTime,
     required IntakeStatus status,
+    DateTime? takenTime,
+    String? note,
+    String? skipReasonCode,
     String? elderUserId,
   }) async {
     _log(
-      '📝 Logging intake for medication: $medicineId, status: $status, elderUserId: $elderUserId',
+      '📝 Logging intake for medication: $medicineId, status: $status, takenTime: $takenTime, note: $note, skipReasonCode: $skipReasonCode, elderUserId: $elderUserId',
     );
     try {
       final intake = MedicineIntake(
         id: '', // Will be set by backend
         medicineId: medicineId,
         scheduledTime: scheduledTime,
-        takenTime: status == IntakeStatus.taken ? TimezoneUtil.nowInPakistan() : null,
+        takenTime: takenTime ?? (status == IntakeStatus.taken ? TimezoneUtil.nowInPakistan() : null),
         status: status,
+        note: note,
+        skipReasonCode: skipReasonCode,
       );
 
       final requestData = MedicationMapper.intakeToApiRequest(

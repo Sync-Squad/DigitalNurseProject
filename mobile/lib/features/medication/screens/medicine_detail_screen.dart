@@ -13,6 +13,8 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
 import '../../../core/utils/timezone_util.dart';
+import '../widgets/intake_log_bottom_sheet.dart';
+import '../widgets/missed_remarks_bottom_sheet.dart';
 
 class MedicineDetailScreen extends StatefulWidget {
   final String medicineId;
@@ -64,23 +66,19 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         });
       }
     } catch (e) {
-      // Handle errors gracefully, especially during logout
       if (mounted) {
         setState(() {
-          _intakeHistory = []; // Set empty list on error
+          _intakeHistory = [];
         });
       }
     }
   }
 
-  /// Checks if there's an existing intake record for the specified scheduled time
-  /// Returns the existing intake if found, null otherwise
   MedicineIntake? _hasExistingIntakeForTime(DateTime scheduledTime) {
     if (_intakeHistory == null || _intakeHistory!.isEmpty) {
       return null;
     }
 
-    // Check for existing intake with same date and time (hour, minute)
     final targetDate = DateTime(
       scheduledTime.year,
       scheduledTime.month,
@@ -98,10 +96,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       final intakeHour = intake.scheduledTime.hour;
       final intakeMinute = intake.scheduledTime.minute;
 
-      // Check if same date and time, and status is taken or missed (not pending)
-      if (intakeDate.year == targetDate.year &&
-          intakeDate.month == targetDate.month &&
-          intakeDate.day == targetDate.day &&
+      if (intakeDate.isAtSameMomentAs(targetDate) &&
           intakeHour == targetHour &&
           intakeMinute == targetMinute &&
           (intake.status == IntakeStatus.taken ||
@@ -109,36 +104,14 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         return intake;
       }
     }
-
     return null;
   }
 
-  /// Gets the time of day label (Morning, Afternoon, Evening) from a time string
-  String _getTimeOfDayLabel(String timeStr) {
-    final parts = timeStr.split(':');
-    if (parts.length != 2) return timeStr;
-
-    final hour = int.tryParse(parts[0]);
-    if (hour == null) return timeStr;
-
-    if (hour < 12) {
-      return 'medication.timeOfDay.morning'.tr();
-    } else if (hour < 17) {
-      return 'medication.timeOfDay.afternoon'.tr();
-    } else {
-      return 'medication.timeOfDay.evening'.tr();
-    }
-  }
-
   Future<void> _handleLogIntake(IntakeStatus status) async {
-    if (_loggingStatus != null) return; // Already logging
-
-    print(
-      '🔵 [MEDICINE_DETAIL] Starting _handleLogIntake with status: $status',
-    );
+    if (_loggingStatus != null) return;
 
     setState(() {
-      _loggingStatus = status; // Track which status is being logged
+      _loggingStatus = status;
     });
 
     try {
@@ -146,10 +119,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
       final medicationProvider = context.read<MedicationProvider>();
       final user = authProvider.currentUser;
 
-      print('🔵 [MEDICINE_DETAIL] User: ${user?.id}, Role: ${user?.role}');
-
       if (user == null) {
-        print('❌ [MEDICINE_DETAIL] User is null');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -161,179 +131,117 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         return;
       }
 
-      // Clear any existing error in the provider to prevent it from showing on list screen
       medicationProvider.clearError();
 
       final medicine = medicationProvider.medicines.firstWhere(
         (m) => m.id == widget.medicineId,
       );
 
-      print(
-        '🔵 [MEDICINE_DETAIL] Medicine found: ${medicine.name}, ID: ${medicine.id}',
-      );
-      print('🔵 [MEDICINE_DETAIL] Selected date: ${widget.selectedDate}');
-      print('🔵 [MEDICINE_DETAIL] Reminder time: ${widget.reminderTime}');
-
-      // Use the selected date from calendar, or default to today
       final targetDate = widget.selectedDate ?? DateTime.now();
-      final targetDay = DateTime(
-        targetDate.year,
-        targetDate.month,
-        targetDate.day,
-      );
-
-      print('🔵 [MEDICINE_DETAIL] Target date: $targetDay');
-
-      // Find the scheduled time for the selected date
-      // Use the specific reminder time if provided, otherwise use the first one
-      DateTime? scheduledTime;
+      final targetDay = DateTime(targetDate.year, targetDate.month, targetDate.day);
 
       String? timeToUse = widget.reminderTime;
       if (timeToUse == null && medicine.reminderTimes.isNotEmpty) {
-        // Fallback to first reminder time if no specific time provided
         timeToUse = medicine.reminderTimes.first;
       }
 
+      DateTime? scheduledTime;
       if (timeToUse != null) {
         final parts = timeToUse.split(':');
         if (parts.length == 2) {
           final hour = int.tryParse(parts[0]);
           final minute = int.tryParse(parts[1]);
           if (hour != null && minute != null) {
-            scheduledTime = DateTime(
-              targetDay.year,
-              targetDay.month,
-              targetDay.day,
-              hour,
-              minute,
-            );
-            print(
-              '🔵 [MEDICINE_DETAIL] Using reminder time: $timeToUse for date: $targetDay',
-            );
-            print(
-              '🔵 [MEDICINE_DETAIL] Calculated scheduledTime: $scheduledTime',
-            );
-            print(
-              '🔵 [MEDICINE_DETAIL] Scheduled time (UTC): ${scheduledTime.toUtc()}',
-            );
+            scheduledTime = DateTime(targetDay.year, targetDay.month, targetDay.day, hour, minute);
           }
         }
       }
-
-      // Fallback to current time if no valid time found
       scheduledTime ??= TimezoneUtil.nowInPakistan();
 
-      print('🔵 [MEDICINE_DETAIL] Final scheduled time: $scheduledTime');
-      print(
-        '🔵 [MEDICINE_DETAIL] Final scheduled time (UTC): ${scheduledTime.toUtc()}',
-      );
+      Map<String, dynamic>? result;
+      if (status == IntakeStatus.taken) {
+        result = await showModalBottomSheet<Map<String, dynamic>>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => IntakeLogBottomSheet(
+            medicine: medicine,
+            scheduledTime: scheduledTime!,
+          ),
+        );
+      } else if (status == IntakeStatus.missed) {
+        result = await showModalBottomSheet<Map<String, dynamic>>(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (context) => MissedRemarksBottomSheet(
+            medicine: medicine,
+          ),
+        );
+      }
 
-      // Determine time of day label
-      final timeLabel = timeToUse != null
-          ? _getTimeOfDayLabel(timeToUse)
-          : 'medication.detail.atThisTime'.tr();
-
-      // Check for existing intake record for this specific timing
-      // We no longer block updating, but we can log that we are updating
-      final existingIntake = _hasExistingIntakeForTime(scheduledTime);
-      if (existingIntake != null && existingIntake.status == status) {
-        // If same status, just return early (no need to update to same thing)
-        if (mounted) {
-          setState(() {
-            _loggingStatus = null;
-          });
-        }
+      if (result == null) {
+        if (mounted) setState(() => _loggingStatus = null);
         return;
       }
 
-      // Handle caregiver context - get elderUserId if user is a caregiver
       String? elderUserId;
       if (user.role == UserRole.caregiver) {
-        print('🔵 [MEDICINE_DETAIL] User is caregiver, getting elderUserId');
         final careContext = context.read<CareContextProvider>();
         await careContext.ensureLoaded();
         elderUserId = careContext.selectedElderId ?? medicine.userId;
-        print('🔵 [MEDICINE_DETAIL] ElderUserId: $elderUserId');
-      } else {
-        print('🔵 [MEDICINE_DETAIL] User is patient, elderUserId will be null');
       }
-
-      print(
-        '🔵 [MEDICINE_DETAIL] Calling logIntake with: medicineId=${widget.medicineId}, status=$status, elderUserId=$elderUserId',
-      );
 
       final success = await medicationProvider.logIntake(
         medicineId: widget.medicineId,
-        scheduledTime: scheduledTime, // Use actual scheduled time
-        status: status,
+        scheduledTime: scheduledTime,
+        status: result['status'],
+        takenTime: result['takenTime'],
+        note: result['note'],
         userId: user.id,
         elderUserId: elderUserId,
       );
 
-      print('🔵 [MEDICINE_DETAIL] logIntake returned: $success');
-
       if (mounted) {
         if (success) {
+          final finalStatus = result['status'] as IntakeStatus;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                status == IntakeStatus.taken
+                finalStatus == IntakeStatus.taken
                     ? 'medication.detail.marked'.tr(namedArgs: {'status': 'medication.status.taken'.tr()})
                     : 'medication.detail.marked'.tr(namedArgs: {'status': 'medication.status.missed'.tr()}),
               ),
-              backgroundColor: status == IntakeStatus.taken
+              backgroundColor: finalStatus == IntakeStatus.taken
                   ? AppTheme.getSuccessColor(context)
                   : AppTheme.getWarningColor(context),
             ),
           );
           _loadIntakeHistory();
         } else {
-          // If logIntake returned false, show error from provider
-          final errorMessage =
-              medicationProvider.error ??
-              'medication.detail.logFail'.tr(); // Added logFail to en.json/ur.json below
+          final errorMessage = medicationProvider.error ?? 'medication.detail.logFail'.tr();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
               backgroundColor: AppTheme.getErrorColor(context),
-              duration: const Duration(seconds: 4),
             ),
           );
-          // Clear the error after displaying it
           medicationProvider.clearError();
         }
       }
-    } catch (e, stackTrace) {
-      // Catch any exceptions and display them locally
-      print('❌ [MEDICINE_DETAIL] Exception in _handleLogIntake: $e');
-      print('❌ [MEDICINE_DETAIL] Stack trace: $stackTrace');
-
+    } catch (e) {
       if (mounted) {
-        String errorMessage = 'An error occurred. Please try again later.';
-        final errorString = e.toString();
-
-        if (errorString.contains('Exception: ')) {
-          errorMessage = errorString.replaceAll('Exception: ', '');
-        } else if (errorString.isNotEmpty) {
-          errorMessage = errorString;
-        }
-
-        print('❌ [MEDICINE_DETAIL] Displaying error: $errorMessage');
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMessage),
+            content: Text(e.toString()),
             backgroundColor: AppTheme.getErrorColor(context),
-            duration: const Duration(seconds: 5),
           ),
         );
-        // Clear provider error to prevent it from showing on list screen
-        context.read<MedicationProvider>().clearError();
       }
     } finally {
       if (mounted) {
         setState(() {
-          _loggingStatus = null; // Clear the logging status
+          _loggingStatus = null;
         });
       }
     }
@@ -372,21 +280,13 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
         final authProvider = context.read<AuthProvider>();
         final user = authProvider.currentUser;
 
-        if (user == null) {
-          return;
-        }
+        if (user == null) return;
 
-        // Handle caregiver context - get elderUserId if user is a caregiver
         String? elderUserId;
         if (user.role == UserRole.caregiver) {
-          final medicationProvider = context.read<MedicationProvider>();
-          final medicine = medicationProvider.medicines.firstWhere(
-            (m) => m.id == widget.medicineId,
-            orElse: () => throw Exception('Medicine not found'),
-          );
           final careContext = context.read<CareContextProvider>();
           await careContext.ensureLoaded();
-          elderUserId = careContext.selectedElderId ?? medicine.userId;
+          elderUserId = careContext.selectedElderId;
         }
 
         final success = await context.read<MedicationProvider>().deleteMedicine(
@@ -399,9 +299,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
           if (success) {
             context.pop();
           } else {
-            final errorMessage =
-                context.read<MedicationProvider>().error ??
-                'medication.detail.deleteFail'.tr();
+            final errorMessage = context.read<MedicationProvider>().error ?? 'medication.detail.deleteFail'.tr();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(errorMessage),
@@ -425,6 +323,15 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
     final medicationProvider = context.watch<MedicationProvider>();
     final medicine = medicationProvider.medicines.firstWhere(
       (m) => m.id == widget.medicineId,
+      orElse: () => MedicineModel(
+        id: widget.medicineId,
+        name: 'Medicine',
+        dosage: '',
+        frequency: MedicineFrequency.daily,
+        startDate: DateTime.now(),
+        reminderTimes: [],
+        userId: '',
+      ),
     );
 
     return ModernScaffold(
@@ -444,10 +351,7 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
             onPressed: () {
               context.push('/medicine/add', extra: medicine);
             },
-            icon: Icon(
-              Icons.edit_outlined,
-              color: Colors.white,
-            ),
+            icon: const Icon(Icons.edit_outlined),
           ),
           _isDeleting
               ? const Padding(
@@ -455,18 +359,12 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                   child: SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                   ),
                 )
               : IconButton(
-                  onPressed: _isDeleting ? null : _handleDelete,
-                  icon: Icon(
-                    Icons.delete_outline,
-                    color: AppTheme.getErrorColor(context),
-                  ),
+                  onPressed: _handleDelete,
+                  icon: Icon(Icons.delete_outline, color: AppTheme.getErrorColor(context)),
                 ),
         ],
       ),
@@ -537,10 +435,10 @@ class _MedicineDetailScreenState extends State<MedicineDetailScreen> {
                             children: [
                               Icon(
                                 intake.status == IntakeStatus.taken
-                                    ? FIcons.check
+                                    ? Icons.check_circle_outline
                                     : intake.status == IntakeStatus.missed
-                                    ? FIcons.x
-                                    : FIcons.circle,
+                                    ? Icons.cancel_outlined
+                                    : Icons.circle_outlined,
                                 color: intake.status == IntakeStatus.taken
                                     ? AppTheme.getSuccessColor(context)
                                     : intake.status == IntakeStatus.missed
@@ -634,23 +532,6 @@ class _MedicineInfoCard extends StatelessWidget {
 
   const _MedicineInfoCard({required this.medicine, this.reminderTime});
 
-  /// Gets the time of day label (Morning, Afternoon, Evening) from a time string
-  String _getTimeOfDayLabel(String timeStr) {
-    final parts = timeStr.split(':');
-    if (parts.length != 2) return timeStr;
-
-    final hour = int.tryParse(parts[0]);
-    if (hour == null) return timeStr;
-
-    if (hour < 12) {
-      return 'medication.timeOfDay.morning'.tr();
-    } else if (hour < 17) {
-      return 'medication.timeOfDay.afternoon'.tr();
-    } else {
-      return 'medication.timeOfDay.evening'.tr();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -670,7 +551,7 @@ class _MedicineInfoCard extends StatelessWidget {
                   context,
                   ModernSurfaceTheme.primaryTeal,
                 ),
-                child: const Icon(FIcons.pill, color: Colors.white, size: 28),
+                child: const Icon(Icons.medication, color: Colors.white, size: 28),
               ),
               SizedBox(width: 16.w),
               Expanded(
@@ -754,7 +635,7 @@ class _MedicineInfoCard extends StatelessWidget {
                                 if (medicine.priority == MedicinePriority.high)
                                   SizedBox(width: 4.w),
                                 Text(
-                                  '${medicine.priority.name.toLowerCase()}'.tr(),
+                                  'medication.priority.${medicine.priority.name.toLowerCase()}'.tr(),
                                   style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: medicine.priority == MedicinePriority.high 
@@ -792,7 +673,7 @@ class _MedicineInfoCard extends StatelessWidget {
           if (medicine.endDate != null) ...[
             SizedBox(height: 8.h),
             _InfoRow(
-              label: 'medication.add.steps.endDate'.tr(), // Added to en.json/ur.json if missing (I'll add it)
+              label: 'medication.add.steps.endDate'.tr(),
               value: DateFormat('MMM d, yyyy').format(medicine.endDate!),
             ),
           ],
@@ -801,9 +682,9 @@ class _MedicineInfoCard extends StatelessWidget {
             label: 'medication.add.steps.reminders'.tr(),
             value: medicine.reminderTimes.join(', '),
           ),
-          if (medicine.notes != null) ...[
+          if (medicine.notes != null && medicine.notes!.isNotEmpty) ...[
             SizedBox(height: 8.h),
-            _InfoRow(label: 'medication.add.steps.notes'.tr(), value: medicine.notes!), // Added to en.json/ur.json if missing (I'll add it)
+            _InfoRow(label: 'medication.add.steps.notes'.tr(), value: medicine.notes!),
           ],
         ],
       ),
@@ -832,7 +713,7 @@ class _QuickActions extends StatelessWidget {
         children: [
           _ActionButton(
             label: 'medication.status.missed'.tr(),
-            icon: FIcons.x,
+            icon: Icons.close,
             color: AppTheme.getErrorColor(context),
             isLoading: loggingStatus == IntakeStatus.missed,
             isSelected: currentStatus == IntakeStatus.missed,
@@ -840,7 +721,7 @@ class _QuickActions extends StatelessWidget {
           ),
           _ActionButton(
             label: 'medication.status.taken'.tr(),
-            icon: FIcons.check,
+            icon: Icons.check,
             color: AppTheme.getSuccessColor(context),
             isLoading: loggingStatus == IntakeStatus.taken,
             isSelected: currentStatus == IntakeStatus.taken,
@@ -948,5 +829,23 @@ String _statusName(IntakeStatus status) {
       return 'Skipped';
     case IntakeStatus.pending:
       return 'Pending';
+    case IntakeStatus.snoozed:
+      return 'Snoozed';
+  }
+}
+
+String _getTimeOfDayLabel(String timeStr) {
+  final parts = timeStr.split(':');
+  if (parts.length != 2) return timeStr;
+
+  final hour = int.tryParse(parts[0]);
+  if (hour == null) return timeStr;
+
+  if (hour >= 5 && hour < 12) {
+    return 'medication.timeOfDay.morning'.tr();
+  } else if (hour >= 12 && hour < 17) {
+    return 'medication.timeOfDay.afternoon'.tr();
+  } else {
+    return 'medication.timeOfDay.evening'.tr();
   }
 }

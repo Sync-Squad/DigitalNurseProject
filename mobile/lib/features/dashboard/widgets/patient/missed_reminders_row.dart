@@ -40,7 +40,7 @@ class _MissedRemindersRowState extends State<MissedRemindersRow> {
               Icon(Icons.warning_amber_rounded, color: Colors.red[700], size: 20.sp),
               SizedBox(width: 8.w),
               Text(
-                'patient.recentlyMissed'.tr(),
+                'RecentlyMissed'.tr(),
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: Colors.red[900],
