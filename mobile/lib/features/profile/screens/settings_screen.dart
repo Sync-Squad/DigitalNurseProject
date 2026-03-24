@@ -231,7 +231,7 @@ class SettingsScreen extends StatelessWidget {
                     ),
                   ),
                   trailing: Text(
-                    '3.0.0',
+                    '3.1.0',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.6),
                     ),
