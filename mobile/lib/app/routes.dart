@@ -11,6 +11,9 @@ import '../features/onboarding/screens/welcome_screen.dart';
 import '../features/onboarding/screens/profile_setup_screen.dart';
 import '../features/onboarding/screens/subscription_plans_screen.dart';
 import '../features/dashboard/screens/main_navigation_screen.dart';
+import '../features/dashboard/screens/medication_hub_screen.dart';
+import '../features/dashboard/screens/vitals_hub_screen.dart';
+import '../features/dashboard/screens/lifestyle_hub_screen.dart';
 import '../features/medication/screens/add_medicine_screen.dart';
 import '../features/medication/screens/medicine_detail_screen.dart';
 import '../features/medication/screens/medicine_log_screen.dart';
@@ -180,6 +183,18 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/profile',
       builder: (context, state) => const MainNavigationScreen(initialIndex: 4),
+    ),
+    GoRoute(
+      path: '/medication-hub',
+      builder: (context, state) => const MedicationHubScreen(),
+    ),
+    GoRoute(
+      path: '/vitals-hub',
+      builder: (context, state) => const VitalsHubScreen(),
+    ),
+    GoRoute(
+      path: '/lifestyle-hub',
+      builder: (context, state) => const LifestyleHubScreen(),
     ),
 
     // Medicine routes

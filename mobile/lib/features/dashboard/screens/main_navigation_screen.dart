@@ -54,20 +54,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
     return PopScope(
       canPop: false, // Always intercept back button
-      onPopInvoked: (didPop) async {
-        if (!didPop) {
-          if (_currentIndex == 0) {
-            // Show exit confirmation dialog when on Home tab
-            final shouldExit = await _showExitDialog(context);
-            if (shouldExit == true) {
-              exit(0); // Exit the app
-            }
-          } else {
-            // Navigate back to Home tab from other tabs
-            setState(() {
-              _currentIndex = 0;
-            });
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        // If the screen can be popped (i.e., it was pushed), pop it instead of tab switching
+        if (Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+          return;
+        }
+
+        if (_currentIndex == 0) {
+          // Show exit confirmation dialog when on Home tab
+          final shouldExit = await _showExitDialog(context);
+          if (shouldExit == true) {
+            exit(0); // Exit the app
           }
+        } else {
+          // Navigate back to Home tab from other tabs
+          setState(() {
+            _currentIndex = 0;
+          });
         }
       },
       child: Scaffold(
