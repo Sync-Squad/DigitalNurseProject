@@ -63,7 +63,7 @@ class MedicationProvider with ChangeNotifier {
 
   // Get medicines missed today
   List<Map<String, dynamic>> get recentlyMissedReminders {
-    final now = DateTime.now();
+    final now = TimezoneUtil.nowInPakistan();
     final startOfToday = DateTime(now.year, now.month, now.day);
     
     // 1. Get items from server that are already marked missed

@@ -981,6 +981,7 @@ export class MedicationsService {
 
     const reminders: any[] = [];
     const now = getPKTDate();
+    const baseDate = getPKTDateOnly();
 
     for (const medication of medications) {
       if ((medication as any).schedules.length === 0) continue;
@@ -996,11 +997,9 @@ export class MedicationsService {
       for (let timeVal of times) {
         const timeStr = typeof timeVal === 'object' && timeVal !== null && 'time' in timeVal ? (timeVal as any).time : timeVal;
         if (typeof timeStr !== 'string') continue;
-        const [hours, minutes] = timeStr.split(':').map(Number);
         
-        // Check today's dose
-        const todayReminder = new Date(now.getTime());
-        todayReminder.setHours(hours, minutes, 0, 0);
+        // Use proper utility to get correct UTC point-in-time for today's dose
+        const todayReminder = getUTCFromPKT(baseDate, timeStr);
 
         // Check if today's dose is already logged
         const intake = await this.prisma.medIntake.findFirst({
@@ -1031,7 +1030,11 @@ export class MedicationsService {
           medicine: mappedMedicine,
           time: timeStr,
           reminderTime: finalReminderTime.toISOString(),
-          status: intake ? intake.status.toLowerCase() : 'pending',
+          // Correct: Status is only inherited if the reminder is for the SAME time as the intake
+          // If we shifted to tomorrow, the status for tomorrow's dose is 'pending'
+          status: (intake && finalReminderTime.getTime() === todayReminder.getTime()) 
+            ? intake.status.toLowerCase() 
+            : 'pending',
         });
       }
     }

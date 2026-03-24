@@ -456,16 +456,17 @@ class MedicationService {
           final hour = int.tryParse(parts[0]) ?? 9;
           final minute = int.tryParse(parts[1]) ?? 0;
           
-          final DateTime baseDate = DateTime.parse(
+          final DateTime utcTime = DateTime.parse(
             map['reminderTime']?.toString() ??
                 TimezoneUtil.nowInPakistan().toIso8601String(),
-          );
-          
+          ).toUtc();
+          final pktBase = TimezoneUtil.toPakistanTime(utcTime);
+
           final tz.TZDateTime correctPktTime = tz.TZDateTime(
             tz.getLocation('Asia/Karachi'),
-            baseDate.year,
-            baseDate.month,
-            baseDate.day,
+            pktBase.year,
+            pktBase.month,
+            pktBase.day,
             hour,
             minute,
           );

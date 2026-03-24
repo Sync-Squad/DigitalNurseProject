@@ -32,7 +32,8 @@ class PatientUpcomingMedicationsCard extends StatelessWidget {
     final now = TimezoneUtil.nowInPakistan();
     final nextReminders = upcoming.where((reminder) {
       final time = reminder['reminderTime'] as DateTime;
-      return !time.isBefore(now);
+      final status = reminder['status']?.toString() ?? 'pending';
+      return !time.isBefore(now) && status == 'pending';
     }).toList();
 
     final visibleReminders = nextReminders.take(4).toList();
