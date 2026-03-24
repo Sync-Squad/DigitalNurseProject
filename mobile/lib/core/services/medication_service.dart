@@ -446,21 +446,26 @@ class MedicationService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data is List ? response.data : [];
+        _log('📥 Raw reminders from API: ${data.length} items');
+        
         final reminders = data.map((item) {
           final map = item is Map<String, dynamic>
               ? item
               : Map<String, dynamic>.from(item);
 
           final String timeStr = map['time']?.toString() ?? '09:00';
+          final String reminderTimeStr = map['reminderTime']?.toString() ?? '';
+          final status = map['status']?.toString() ?? 'pending';
+          
+          final DateTime utcTime = DateTime.parse(
+            reminderTimeStr.isNotEmpty ? reminderTimeStr : TimezoneUtil.nowInPakistan().toIso8601String(),
+          ).toUtc();
+          
+          final pktBase = TimezoneUtil.toPakistanTime(utcTime);
+
           final parts = timeStr.split(':');
           final hour = int.tryParse(parts[0]) ?? 9;
           final minute = int.tryParse(parts[1]) ?? 0;
-          
-          final DateTime utcTime = DateTime.parse(
-            map['reminderTime']?.toString() ??
-                TimezoneUtil.nowInPakistan().toIso8601String(),
-          ).toUtc();
-          final pktBase = TimezoneUtil.toPakistanTime(utcTime);
 
           final tz.TZDateTime correctPktTime = tz.TZDateTime(
             tz.getLocation('Asia/Karachi'),
@@ -471,11 +476,13 @@ class MedicationService {
             minute,
           );
 
+          _log('⏰ Processed reminder: ${map['medicine']?['name']} at $correctPktTime (Status: $status)');
+
           return {
             'timeStr': timeStr,
             'medicine': MedicationMapper.fromApiResponse(map['medicine'] ?? {}),
             'reminderTime': correctPktTime,
-            'status': map['status']?.toString() ?? 'pending',
+            'status': status,
           };
         }).toList();
         _log('✅ Fetched ${reminders.length} upcoming reminders');

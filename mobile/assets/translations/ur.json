@@ -258,7 +258,8 @@
       "missed": "رہ گئی",
       "upcoming": "آنے والی",
       "noMedicines": "کوئی دوا نہیں",
-      "partialTaken": "{total} میں سے {taken} لے لیں"
+      "partialTaken": "{total} میں سے {taken} لے لیں",
+      "loading": "جاچ ہو رہی ہے..."
     },
     "timeOfDay": {
       "morning": "صبح",

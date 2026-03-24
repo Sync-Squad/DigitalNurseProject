@@ -82,6 +82,11 @@ class _MedicineListScreenState extends State<MedicineListScreen>
       targetUserId,
       elderUserId: elderUserId,
     );
+
+    // Populate the intake history cache to optimize status lookups in cards
+    await medicationProvider.loadAllIntakeHistory(
+      elderUserId: elderUserId,
+    );
   }
 
   void _ensureContextSync({

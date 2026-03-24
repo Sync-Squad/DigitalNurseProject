@@ -37,10 +37,11 @@ export function getUTCFromPKT(date: Date, timeStr: string): Date {
   const d = new Date(date);
   const [hours, minutes] = timeStr.split(':').map(Number);
   
-  // Format as YYYY-MM-DDTHH:mm:00 in Karachi time
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+  // Use UTC methods to ensure we use components of the specific point-in-time
+  // regardless of the server's local timezone.
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
   const isoStr = `${year}-${month}-${day}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`;
   
   // Create a localized string with offset for parsing

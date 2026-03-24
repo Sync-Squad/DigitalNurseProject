@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:firebase_core/firebase_core.dart';
@@ -92,7 +93,7 @@ class FCMService {
     );
 
     // Setup notification channels for Android
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       await _setupNotificationChannels();
     }
   }
@@ -160,6 +161,8 @@ class FCMService {
 
   /// Request notification permissions
   Future<void> _requestPermission() async {
+    if (kIsWeb) return;
+
     if (Platform.isIOS) {
       final settings = await _messaging.requestPermission(
         alert: true,
@@ -315,7 +318,7 @@ class FCMService {
       // Enable sound and vibration for medicine reminders
       playSound: true,
       enableVibration: true,
-      vibrationPattern: isMedicineReminder
+      vibrationPattern: (isMedicineReminder && !kIsWeb)
           ? Int64List.fromList([0, 250, 250, 250])
           : null,
       channelShowBadge: true,
@@ -483,7 +486,7 @@ class FCMService {
         icon: '@mipmap/ic_launcher',
         playSound: true,
         enableVibration: true,
-        vibrationPattern: isMedicineReminder
+        vibrationPattern: (isMedicineReminder && !kIsWeb)
             ? Int64List.fromList([0, 500, 250, 500, 250, 500])
             : null,
         channelShowBadge: true,
@@ -564,7 +567,7 @@ class FCMService {
 
   /// Check if exact alarm notifications can be scheduled
   Future<bool?> canScheduleExactNotifications() async {
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       try {
         final androidPlugin = _localNotifications
             .resolvePlatformSpecificImplementation<
@@ -584,7 +587,7 @@ class FCMService {
 
   /// Request exact alarm permission manually
   Future<bool> requestExactAlarmPermission() async {
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       try {
         final androidPlugin = _localNotifications
             .resolvePlatformSpecificImplementation<
@@ -629,7 +632,7 @@ class FCMService {
       'exactAlarmPermission': _exactAlarmPermission,
     };
 
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       try {
         final androidPlugin = _localNotifications
             .resolvePlatformSpecificImplementation<
@@ -653,7 +656,7 @@ class FCMService {
 
   /// Check if full-screen intent permission is granted (Android 11+)
   Future<bool> checkFullScreenIntentPermission() async {
-    if (!Platform.isAndroid) return true;
+    if (kIsWeb || !Platform.isAndroid) return true;
 
     try {
       // On Android 11+ (API 30+), we need to check this permission
@@ -670,7 +673,7 @@ class FCMService {
   /// Request full-screen intent permission
   /// Returns true if permission is granted or user was directed to settings
   Future<bool> requestFullScreenIntentPermission() async {
-    if (!Platform.isAndroid) return true;
+    if (kIsWeb || !Platform.isAndroid) return true;
 
     try {
       final status = await Permission.systemAlertWindow.status;

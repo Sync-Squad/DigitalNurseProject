@@ -33,32 +33,51 @@ class MedicationProvider with ChangeNotifier {
     }).toList();
   }
   
-  // Get medicines due now (Within last 12h or next 30m, and status is pending)
+  // Get medicines due now (Within last 12h or next 30m, and status is pending or missed)
   List<Map<String, dynamic>> get dueReminders {
-    final now = DateTime.now().toUtc();
-    return _upcomingReminders.where((r) {
+    final now = TimezoneUtil.nowInPakistan().toUtc();
+    final results = _upcomingReminders.where((r) {
       final medicine = r['medicine'] as MedicineModel?;
-      final scheduled = (r['reminderTime'] as DateTime).toUtc();
+      final DateTime scheduledRaw = r['reminderTime'] as DateTime;
+      final scheduled = scheduledRaw.toUtc();
       if (medicine == null) return false;
 
-      // Create unique ID for this reminder instance using date components to avoid precision issues
       final String reminderId = "${medicine.id}_${scheduled.year}_${scheduled.month}_${scheduled.day}_${scheduled.hour}_${scheduled.minute}";
+      final status = r['status']?.toString() ?? 'pending';
       
-      // 0. Filter out if any action was taken locally (Taken OR Missed)
+      // 0. Filter out if any action was taken locally
       if (_pendingActions.containsKey(reminderId)) {
-        print('🚫 DueReminders DEBUG: Filtering out $reminderId (Status marked as ${_pendingActions[reminderId]})');
         return false;
       }
 
-      final status = r['status']?.toString() ?? 'pending';
+      // 1. Must be pending OR missed on server
+      if (status != 'pending' && status != 'missed') {
+        return false;
+      }
 
-      // 1. Must be pending on server
-      if (status != 'pending') return false;
+      // 2. Same Day Constraint (Pakistan Time)
+      final scheduledPkt = TimezoneUtil.toPakistanTime(scheduled);
+      final nowPkt = TimezoneUtil.nowInPakistan();
+      final isSameDay = scheduledPkt.year == nowPkt.year && 
+                        scheduledPkt.month == nowPkt.month && 
+                        scheduledPkt.day == nowPkt.day;
+      
+      if (!isSameDay) {
+        return false;
+      }
 
-      // 2. Window: -12h to +30m
-      return scheduled.isAfter(now.subtract(const Duration(hours: 12))) && 
+      // 3. Window: -12h to +30m
+      final isDue = scheduled.isAfter(now.subtract(const Duration(hours: 12))) && 
              scheduled.isBefore(now.add(const Duration(minutes: 30)));
+             
+      if (isDue) {
+        print('✅ DueReminders DEBUG: Found due reminder: ${medicine.name} at scheduled: $scheduled (Local: $scheduledPkt). Now: $now (Local: $nowPkt)');
+      }
+      
+      return isDue;
     }).toList();
+    
+    return results;
   }
 
   // Get medicines missed today
@@ -69,7 +88,7 @@ class MedicationProvider with ChangeNotifier {
     // 1. Get items from server that are already marked missed
     final List<Map<String, dynamic>> missed = _upcomingReminders.where((r) {
       final medicine = r['medicine'] as MedicineModel?;
-      final scheduledRaw = r['reminderTime'] as DateTime;
+      final DateTime scheduledRaw = r['reminderTime'] as DateTime;
       final scheduled = scheduledRaw.toUtc();
       if (medicine == null) return false;
 
@@ -144,6 +163,11 @@ class MedicationProvider with ChangeNotifier {
         elderUserId: elderUserId,
       );
       
+      print('🔍 [MEDICATION] ✅ Loaded ${_upcomingReminders.length} upcoming reminders');
+      for (var r in _upcomingReminders) {
+        print('   -> ${r['medicine'].name} at ${r['reminderTime']} (Status: ${r['status']})');
+      }
+
       // Clear pending actions after successful refresh to sync with server state
       _clearPendingActions();
       _adherencePercentage = await _medicationService.getAdherencePercentage(
@@ -472,13 +496,16 @@ class MedicationProvider with ChangeNotifier {
     String reminderTime,
     DateTime date,
   ) async {
+    // 0. Check local pending actions first (optimistic UI)
+    final reminderId = "${medicine.id}_$reminderTime";
+    if (_pendingActions.containsKey(reminderId)) {
+      return _pendingActions[reminderId]!;
+    }
+
     final parts = reminderTime.split(':');
     if (parts.length != 2) return IntakeStatus.pending;
-
-    final hour = int.tryParse(parts[0]);
-    final minute = int.tryParse(parts[1]);
-    if (hour == null || minute == null) return IntakeStatus.pending;
-
+    final hour = int.tryParse(parts[0]) ?? 0;
+    final minute = int.tryParse(parts[1]) ?? 0;
     final scheduledDateTime = DateTime(
       date.year,
       date.month,
@@ -487,15 +514,22 @@ class MedicationProvider with ChangeNotifier {
       minute,
     );
 
-    // Get intake history for this specific medicine and time
-    final intakeHistory = await getIntakeHistory(
-      medicine.id,
-      elderUserId: medicine.userId,
-    );
+    // 1. Try to find in the already loaded _allIntakes cache first
+    // This is much more efficient than individual API calls
+    Iterable<MedicineIntake> sourceList = _allIntakes;
+    
+    // If _allIntakes is empty, we fall back to a specific API call
+    if (sourceList.isEmpty) {
+      sourceList = await getIntakeHistory(
+        medicine.id,
+        elderUserId: medicine.userId,
+      );
+    }
 
     // Check if there's an intake record for this specific scheduled time
-    final intake = intakeHistory.firstWhere(
+    final intake = sourceList.firstWhere(
       (i) =>
+          i.medicineId == medicine.id &&
           i.scheduledTime.year == scheduledDateTime.year &&
           i.scheduledTime.month == scheduledDateTime.month &&
           i.scheduledTime.day == scheduledDateTime.day &&
@@ -515,11 +549,12 @@ class MedicationProvider with ChangeNotifier {
     }
 
     // If no record and time has passed, it's missed
+    // For today, if it's in the past and no intake, it's missed
     if (scheduledDateTime.isBefore(TimezoneUtil.nowInPakistan())) {
       return IntakeStatus.missed;
     }
 
-    // If time hasn't passed yet, it's upcoming
+    // If time hasn't passed yet, it's pending/upcoming
     return IntakeStatus.pending;
   }
 

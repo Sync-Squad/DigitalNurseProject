@@ -5,7 +5,7 @@ import { CreateMedicationDto, MedicineFrequency } from './dto/create-medication.
 import { UpdateMedicationDto } from './dto/update-medication.dto';
 import { LogIntakeDto, IntakeStatus } from './dto/log-intake.dto';
 import { ActorContext } from '../common/services/access-control.service';
-import { getPKTDate, getUTCFromPKT } from '../common/utils/date-utils';
+import { getPKTDate, getUTCFromPKT, getPKTDateOnly } from '../common/utils/date-utils';
 
 @Injectable()
 export class MedicationsService {
@@ -1002,10 +1002,19 @@ export class MedicationsService {
         const todayReminder = getUTCFromPKT(baseDate, timeStr);
 
         // Check if today's dose is already logged
+        // Use a 1-minute window around todayReminder to be precision-resilient
+        const startTime = new Date(todayReminder.getTime() - 30000);
+        const endTime = new Date(todayReminder.getTime() + 30000);
+
         const intake = await this.prisma.medIntake.findFirst({
           where: {
-            medScheduleId: (schedule as any).medScheduleId,
-            dueAt: todayReminder,
+            schedule: {
+              medicationId: medication.medicationId,
+            },
+            dueAt: {
+              gte: startTime,
+              lte: endTime,
+            },
           },
         } as any);
 
@@ -1016,14 +1025,14 @@ export class MedicationsService {
         if (hasIntakeRecord && todayReminder < now && !isMissedHighPriority) {
           // If already logged and in the past, shift to tomorrow
           // EXCEPT if it's a high-priority missed dose (stay on today so user can correct it)
-          finalReminderTime.setDate(todayReminder.getDate() + 1);
+          finalReminderTime.setUTCDate(todayReminder.getUTCDate() + 1);
         } else if (!hasIntakeRecord) {
           // If NOT logged, keep it as today's dose (even if overdue)
           finalReminderTime = todayReminder;
         } else if (hasIntakeRecord && todayReminder >= now) {
           // Already logged but in the future? (e.g. user logged ahead of time)
           // Shift to tomorrow to show next dose
-          finalReminderTime.setDate(todayReminder.getDate() + 1);
+          finalReminderTime.setUTCDate(todayReminder.getUTCDate() + 1);
         }
 
         reminders.push({

@@ -32,6 +32,7 @@ class MedicineScheduleCard extends StatefulWidget {
 
 class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
   bool _isExpanded = false;
+  bool _isLoading = true;
   Map<String, IntakeStatus> _medicineStatuses = {};
 
   @override
@@ -80,11 +81,20 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
   }
 
   Future<void> _loadStatuses() async {
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
+
     final medicationProvider = context.read<MedicationProvider>();
     final statuses = <String, IntakeStatus>{};
 
     for (final medicine in widget.medicines) {
       for (final reminderTime in medicine.reminderTimes) {
+        // Only consider reminder times that belong to this time of day category
+        if (!_isRelevantTimeOfDay(reminderTime)) continue;
+
         final key = '${medicine.id}_$reminderTime';
         final status = await medicationProvider.getMedicineStatus(
           medicine,
@@ -98,6 +108,7 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
     if (mounted) {
       setState(() {
         _medicineStatuses = statuses;
+        _isLoading = false;
       });
     }
   }
@@ -248,6 +259,16 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
   }
 
   Widget _buildStatusIcon(BuildContext context) {
+    if (_isLoading) {
+      return SizedBox(
+        width: 14.w,
+        height: 14.w,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: context.theme.colors.mutedForeground,
+        ),
+      );
+    }
     if (_medicineStatuses.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -333,9 +354,10 @@ class _MedicineScheduleCardState extends State<MedicineScheduleCard> {
   }
 
   String _getStatusText(BuildContext context) {
+    if (_isLoading) {
+      return 'medication.status.loading'.tr(); // E.g. "Checking..."
+    }
     if (_medicineStatuses.isEmpty) {
-      // If we have medicines but haven't loaded statuses yet, default to 'Upcoming'
-      // instead of showing 'No medicines' which is misleading.
       return widget.medicines.isNotEmpty 
           ? 'medication.status.upcoming'.tr() 
           : 'medication.status.noMedicines'.tr();
@@ -454,7 +476,7 @@ class _StatusBadge extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
+        color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Icon(icon, color: color, size: 18),

@@ -198,7 +198,8 @@
       "missed": "Missed",
       "upcoming": "Upcoming",
       "noMedicines": "No medicines",
-      "partialTaken": "{taken} of {total} taken"
+      "partialTaken": "{taken} of {total} taken",
+      "loading": "Checking..."
     },
     "timeOfDay": {
       "morning": "Morning",

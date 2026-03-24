@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/widgets/modern_scaffold.dart';
+import '../../../core/theme/modern_surface_theme.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -13,6 +16,12 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
   
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
   Future<void> _handleSubmit() async {
     final email = _emailController.text.trim();
     if (email.isEmpty) {
@@ -38,99 +47,125 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthProvider>().isLoading;
 
-    return Scaffold(
+    return ModernScaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Forgot Password'),
+        title: const Text(
+          'Forgot Password',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        foregroundColor: Colors.teal,
+        foregroundColor: Colors.white,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => context.go('/login'),
         ),
       ),
-      body: SafeArea(
+      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(
-                Icons.lock_reset,
-                size: 80,
-                color: Colors.teal,
+              SizedBox(height: 100.h),
+              Icon(
+                Icons.lock_reset_rounded,
+                size: 100.sp,
+                color: ModernSurfaceTheme.primaryTeal,
               ),
-              const SizedBox(height: 32),
-              const Text(
+              SizedBox(height: 40.h),
+              Text(
                 'Reset Password',
                 style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.teal,
+                  fontSize: 28.sp,
+                  fontWeight: FontWeight.w800,
+                  color: ModernSurfaceTheme.deepTeal,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-              const Text(
+              SizedBox(height: 16.h),
+              Text(
                 'Enter your email address and we will send you a 6-digit code to reset your password.',
                 style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey,
+                  fontSize: 16.sp,
+                  color: Colors.black87,
+                  height: 1.5,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 32),
-              TextField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email Address',
-                  hintText: 'Enter your email',
-                  prefixIcon: const Icon(Icons.email_outlined),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.teal, width: 2),
-                  ),
-                ),
-                keyboardType: TextInputType.emailAddress,
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: isLoading ? null : _handleSubmit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+              SizedBox(height: 48.h),
+              Container(
+                decoration: ModernSurfaceTheme.glassCard(context, highlighted: true),
+                padding: EdgeInsets.all(20.w),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _emailController,
+                      style: const TextStyle(color: Colors.black),
+                      decoration: InputDecoration(
+                        labelText: 'Email Address',
+                        labelStyle: const TextStyle(color: Colors.black54),
+                        hintText: 'Enter your email',
+                        hintStyle: const TextStyle(color: Colors.black26),
+                        prefixIcon: const Icon(Icons.email_outlined, color: ModernSurfaceTheme.primaryTeal),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
                         ),
-                      )
-                    : const Text(
-                        'Send Code',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: ModernSurfaceTheme.primaryTeal, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white.withOpacity(0.5),
                       ),
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 40.h),
+              Container(
+                height: 56.h,
+                decoration: ModernSurfaceTheme.pillButton(context, ModernSurfaceTheme.primaryTeal),
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : _handleSubmit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'Send Code',
+                          style: TextStyle(
+                            fontSize: 18.sp, 
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                ),
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    super.dispose();
   }
 }
