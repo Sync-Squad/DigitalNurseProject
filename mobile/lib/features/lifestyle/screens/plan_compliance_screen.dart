@@ -98,8 +98,9 @@ class _PlanComplianceScreenState extends State<PlanComplianceScreen> {
         title: Text(
           'Plan Compliance',
           style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: onPrimary,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+            letterSpacing: -0.5,
           ),
         ),
       ),
@@ -145,9 +146,10 @@ class _PlanComplianceScreenState extends State<PlanComplianceScreen> {
                       children: [
                         Text(
                           widget.planName,
-                          style: textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
+                          style: textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
                             color: Colors.white,
+                            letterSpacing: -0.8,
                           ),
                         ),
                         SizedBox(height: 16.h),
@@ -167,8 +169,9 @@ class _PlanComplianceScreenState extends State<PlanComplianceScreen> {
                                 Text(
                                   '${(_complianceData!['overallCompliance'] as num).toStringAsFixed(1)}%',
                                   style: textTheme.headlineMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
+                                    fontWeight: FontWeight.w900,
                                     color: Colors.white,
+                                    letterSpacing: -1,
                                   ),
                                 ),
                               ],
@@ -181,13 +184,13 @@ class _PlanComplianceScreenState extends State<PlanComplianceScreen> {
                                 color: Colors.white.withValues(alpha: 0.2),
                               ),
                               child: Center(
-                                child: Text(
-                                  '${(_complianceData!['overallCompliance'] as num).toStringAsFixed(0)}%',
-                                  style: textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                  child: Text(
+                                    '${(_complianceData!['overallCompliance'] as num).toStringAsFixed(0)}%',
+                                    style: textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
                               ),
                             ),
                           ],
@@ -333,9 +336,10 @@ class _DateRangeButton extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isSelected ? Colors.white : ModernSurfaceTheme.primaryTeal,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            ),
+                  color: isSelected ? Colors.white : ModernSurfaceTheme.primaryTeal,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  letterSpacing: -0.3,
+                ),
           ),
         ),
       ),
@@ -374,11 +378,12 @@ class _ViewTab extends StatelessWidget {
           child: Text(
             label,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: isSelected
-                  ? ModernSurfaceTheme.primaryTeal
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-            ),
+                  color: isSelected
+                      ? ModernSurfaceTheme.primaryTeal
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  letterSpacing: -0.3,
+                ),
           ),
         ),
       ),
@@ -430,7 +435,9 @@ class _CalendarView extends StatelessWidget {
             Text(
               DateFormat('MMMM yyyy').format(month),
               style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
+                color: Colors.black87,
+                letterSpacing: -0.5,
               ),
             ),
             SizedBox(height: 16.h),
@@ -463,8 +470,9 @@ class _CalendarView extends StatelessWidget {
                     children: [
                       Text(
                         '${date.day}',
-                        style: textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
+                        style: textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
                         ),
                       ),
                       SizedBox(height: 4.h),
@@ -549,7 +557,9 @@ class _DailyBreakdownViewState extends State<_DailyBreakdownView> {
                           Text(
                             DateFormat('EEEE, MMMM d').format(date),
                             style: textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                              letterSpacing: -0.3,
                             ),
                           ),
                           SizedBox(height: 4.h),
@@ -577,7 +587,7 @@ class _DailyBreakdownViewState extends State<_DailyBreakdownView> {
                         '${compliance.toStringAsFixed(0)}%',
                         style: textTheme.bodyMedium?.copyWith(
                           color: _getComplianceColor(compliance.toDouble()),
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),

@@ -1,4 +1,12 @@
 {
+  "hub_medication": "Medication",
+  "hub_medicationSubtitle": "Upcoming & Overdue",
+  "hub_vitals": "Health Vitals",
+  "hub_vitalsSubtitle": "Trends & Logging",
+  "hub_lifestyle": "Lifestyle",
+  "hub_lifestyleSubtitle": "Exercise & Diet",
+  "hub_documents": "Documents",
+  "hub_documentsSubtitle": "Reports & Records",
   "app": {
     "name": "My Digital Nurse",
     "tagline": "Your Health Care Nurse",
@@ -158,8 +166,8 @@
     }
   },
   "medication": {
-    "title": "Medication",
     "dueNow": "Medication Due Now",
+    "title": "Medication",
     "months": {
       "jan": "Jan",
       "feb": "Feb",
@@ -334,6 +342,7 @@
     "review": "Review",
     "quickActions": "Quick Actions",
     "quickActionsDescription": "Log medications, record vitals, or review your schedule without leaving the dashboard.",
+    "quickActionsCaption": "Log medications, record vitals, or review your schedule.",
     "logMedication": "Log Medication",
     "logMedicationCaption": "Record when you take your doses.",
     "recordVital": "Record Vital",

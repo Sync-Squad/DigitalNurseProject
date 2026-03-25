@@ -35,13 +35,14 @@ class MedicationHubScreen extends StatelessWidget {
                   'Manage your prescriptions, track upcoming doses, and stay on top of your health plan.'
                       .tr(),
               imagePath: 'assets/images/medicine.png',
+              accentColor: ModernSurfaceTheme.primaryTeal,
               child: Row(
                 children: [
                   Container(
                     padding:
                         EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                     decoration: BoxDecoration(
-                      color: AppTheme.appleGreen,
+                      color: ModernSurfaceTheme.primaryTeal,
                       borderRadius: BorderRadius.circular(22),
                     ),
                     child: Text(
@@ -73,7 +74,7 @@ class MedicationHubScreen extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 16.w,
               crossAxisSpacing: 16.w,
-              childAspectRatio: 1.1,
+              childAspectRatio: 1.35,
               children: [
                 HubMenuTile(
                   label: 'Upcoming Medications',
@@ -84,19 +85,19 @@ class MedicationHubScreen extends StatelessWidget {
                 HubMenuTile(
                   label: 'Overdue Medications',
                   icon: Icons.notification_important_rounded,
-                  accentColor: ModernSurfaceTheme.accentCoral,
+                  accentColor: ModernSurfaceTheme.primaryTeal,
                   onTap: () => context.push('/medications'),
                 ),
                 HubMenuTile(
                   label: 'Log Medication',
                   icon: Icons.add_circle_outline_rounded,
-                  accentColor: ModernSurfaceTheme.accentBlue,
+                  accentColor: ModernSurfaceTheme.primaryTeal,
                   onTap: () => context.push('/medications'),
                 ),
                 HubMenuTile(
                   label: 'Daily Review',
                   icon: Icons.assignment_turned_in_rounded,
-                  accentColor: Colors.amber[700]!,
+                  accentColor: ModernSurfaceTheme.primaryTeal,
                   onTap: () => context.push('/medication/review'),
                 ),
               ],

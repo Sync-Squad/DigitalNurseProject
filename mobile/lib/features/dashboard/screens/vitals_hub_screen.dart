@@ -28,6 +28,7 @@ class VitalsHubScreen extends StatelessWidget {
                   'Monitor your vital signs, track trends over time, and keep your healthcare providers informed.'
                       .tr(),
               imagePath: 'assets/images/health.png',
+              accentColor: ModernSurfaceTheme.accentPurple,
             ),
             SizedBox(height: 24.h),
             // Grid of Action Tiles
@@ -37,24 +38,24 @@ class VitalsHubScreen extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 16.w,
               crossAxisSpacing: 16.w,
-              childAspectRatio: 1.1,
+              childAspectRatio: 1.35,
               children: [
                 HubMenuTile(
                   label: 'Log Vitals',
                   icon: Icons.add_circle_outline_rounded,
-                  accentColor: ModernSurfaceTheme.accentCoral,
+                  accentColor: ModernSurfaceTheme.accentPurple,
                   onTap: () => context.push('/vitals/add'),
                 ),
                 HubMenuTile(
                   label: 'View Vitals',
                   icon: Icons.list_alt_rounded,
-                  accentColor: ModernSurfaceTheme.primaryTeal,
+                  accentColor: ModernSurfaceTheme.accentPurple,
                   onTap: () => context.push('/health'),
                 ),
                 HubMenuTile(
                   label: 'Vitals Trends',
                   icon: Icons.trending_up_rounded,
-                  accentColor: ModernSurfaceTheme.accentBlue,
+                  accentColor: ModernSurfaceTheme.accentPurple,
                   onTap: () => context.push('/health/trends'),
                 ),
               ],

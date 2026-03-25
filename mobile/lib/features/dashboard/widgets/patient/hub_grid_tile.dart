@@ -27,12 +27,12 @@ class HubGridTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         child: Ink(
-          padding: EdgeInsets.all(16.w),
-          decoration: ModernSurfaceTheme.glassCard(
+          padding: EdgeInsets.all(12.w),
+          decoration: ModernSurfaceTheme.hubCard(
             context,
-            accent: accentColor,
+            accentColor,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -41,40 +41,40 @@ class HubGridTile extends StatelessWidget {
                 children: [
                   // Modern Icon Badge
                   Container(
-                    width: 36.w,
-                    height: 36.w,
+                    width: 30.w,
+                    height: 30.w,
                     decoration:
                         ModernSurfaceTheme.iconBadge(context, accentColor),
                     child: Icon(
                       icon,
                       color: Colors.white,
-                      size: 20.w,
+                      size: 16.w,
                     ),
                   ),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: 6.w),
                   Expanded(
                     child: Text(
                       title,
                       style: textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w800,
                         color: const Color(0xFF1E1E1E),
-                        fontSize: 13.sp,
-                        letterSpacing: -0.2,
+                        fontSize: 15.sp,
+                        letterSpacing: -0.5,
                       ),
-                      maxLines: 2, // Allow 2 lines for longer titles in grid
+                      maxLines: 1, // Force 1 line now
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 12.h),
+              SizedBox(height: 14.h),
               if (subtitle != null) ...[
                 Text(
                   subtitle!,
                   style: textTheme.bodySmall?.copyWith(
                     color: const Color(0xFF757575),
                     fontWeight: FontWeight.w500,
-                    fontSize: 10.sp,
+                    fontSize: 11.sp,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,

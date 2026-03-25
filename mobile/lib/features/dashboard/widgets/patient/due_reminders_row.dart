@@ -52,22 +52,25 @@ class _DueRemindersRowState extends State<DueRemindersRow> {
     }
 
     return Container(
+      height: 150.h,
       decoration: BoxDecoration(
-        color: const Color(0xFF1FB9AA).withValues(alpha: 0.6),
+        color: const Color(0xFF4CC7BB).withValues(alpha: 0.8), // 20% Lighter than Health Overview (0xFF1FB9AA)
         borderRadius: BorderRadius.circular(20.r),
       ),
       clipBehavior: Clip.antiAlias, // Ensures cards don't show outside the box
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               Text(
-                'Medication Due Now'.tr(),
+                'medication.dueNow'.tr(),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: Colors.white,
+                  fontSize: 15.sp,
+                  letterSpacing: -0.5,
                 ),
               ),
               const Spacer(),
@@ -82,17 +85,17 @@ class _DueRemindersRowState extends State<DueRemindersRow> {
                   style: TextStyle(
                     fontSize: 10.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: const Color(0xFF071D1C),
                   ),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 8.h),
           Stack(
             children: [
               SizedBox(
-                height: 110.h,
+                height: 98.h,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: dueReminders.length,
@@ -126,15 +129,15 @@ class _DueRemindersRowState extends State<DueRemindersRow> {
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                         colors: [
-                          const Color(0xFF1FB9AA).withValues(alpha: 0.0),
-                          const Color(0xFF1FB9AA).withValues(alpha: 0.35),
+                          Theme.of(context).colorScheme.surface.withValues(alpha: 0.0),
+                          Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
                         ],
                       ),
                     ),
                     child: Center(
                       child: Icon(
                         Icons.arrow_forward_ios_rounded,
-                        color: Colors.white,
+                        color: const Color(0xFF071D1C), // Dark and readable
                         size: 14.sp,
                       ),
                     ),

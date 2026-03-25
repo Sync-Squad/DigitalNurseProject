@@ -6,6 +6,7 @@ class HubHeroHeader extends StatelessWidget {
   final String title;
   final String description;
   final String imagePath;
+  final Color? accentColor;
   final double? imageWidth;
   final Widget? child;
 
@@ -14,6 +15,7 @@ class HubHeroHeader extends StatelessWidget {
     required this.title,
     required this.description,
     required this.imagePath,
+    this.accentColor,
     this.imageWidth,
     this.child,
   });
@@ -27,7 +29,7 @@ class HubHeroHeader extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      decoration: ModernSurfaceTheme.heroDecoration(context),
+      decoration: ModernSurfaceTheme.heroDecoration(context, accent: accentColor),
       clipBehavior: Clip.antiAlias,
       child: Stack(
         children: [
@@ -42,7 +44,7 @@ class HubHeroHeader extends StatelessWidget {
               child: Image.asset(
                 imagePath,
                 fit: BoxFit.contain,
-                alignment: Alignment.centerRight,
+                alignment: Alignment.bottomRight,
               ),
             ),
           ),

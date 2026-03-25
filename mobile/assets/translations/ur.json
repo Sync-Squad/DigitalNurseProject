@@ -1,4 +1,12 @@
 {
+  "hub_medication": "دوائیاں",
+  "hub_medicationSubtitle": "آنے والی اور واجب",
+  "hub_vitals": "صحت کی حیاتیات",
+  "hub_vitalsSubtitle": "رجحانات اور اندراج",
+  "hub_lifestyle": "طرز زندگی",
+  "hub_lifestyleSubtitle": "ورزش اور غذا",
+  "hub_documents": "دستاویزات",
+  "hub_documentsSubtitle": "رپورٹس اور ریکارڈز",
   "app": {
     "name": "میرا ڈیجیٹل نرس",
     "tagline": "آپ کا ذاتی صحت کا ساتھی",
@@ -232,8 +240,8 @@
     }
   },
   "medication": {
+    "dueNow": "دوائیاں اب واجب الادا ہیں",
     "title": "دوائیاں",
-    "dueNow": "ابھی دوا کی ضرورت ہے",
     "forPatient": "{name} کے لیے",
     "noPatientsAssigned": "ابھی تک کوئی مریض مقرر نہیں ہوا",
     "noPatientsDesc": "جب کوئی مریض آپ کو اپنے نگہبان کے طور پر شامل کرے گا، تو ان کی دوائیاں یہاں ظاہر ہوں گی۔",
@@ -391,9 +399,9 @@
     "quickActions": "فوری اقدامات",
     "quickActionsDescription": "ڈیش بورڈ چھوڑے بغیر دوائیاں لاگ کریں، حیاتیات ریکارڈ کریں، یا اپنا شیڈول دیکھیں۔",
     "logMedication": "دوائی لاگ کریں",
-    "logMedicationCaption": "جب آپ خوراک لیں تو ریکارڈ کریں۔",
+    "logMedicationCaption": "Record when you take your doses.",
     "recordVital": "حیاتی ریکارڈ کریں",
-    "recordVitalCaption": "اپنی صحت کی پیمائشیں لاگ کریں۔",
+    "recordVitalCaption": "آپ کی صحت کی پیمائشیں لاگ کریں۔",
     "lifestyle": "طرز زندگی",
     "lifestyleCaption": "غذا اور ورزش ٹریک کریں۔",
     "viewSchedule": "شیڈول دیکھیں",

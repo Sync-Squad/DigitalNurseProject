@@ -69,30 +69,32 @@ class _AlertsCard extends StatelessWidget {
             ],
           ),
           child: Padding(
-            padding: EdgeInsets.all(16.w),
+            padding: EdgeInsets.all(12.w),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
                     Container(
-                      width: 32.w,
-                      height: 32.w,
+                      width: 30.w,
+                      height: 30.w,
                       decoration: BoxDecoration(
                         color: const Color(0xFFFFB84D).withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Icon(Icons.warning_amber_rounded, color: Color(0xFFFFB84D), size: 18),
+                      child: const Icon(Icons.warning_amber_rounded, color: Color(0xFFFFB84D), size: 16),
                     ),
-                    SizedBox(width: 8.w),
+                    SizedBox(width: 6.w),
                     Flexible(
                       child: Text(
                         'patient.alertsTitle'.tr(),
                         style: textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                           color: const Color(0xFF1A1A1A),
-                          fontSize: 12.sp,
+                          fontSize: 15.sp,
+                          letterSpacing: -0.5,
                         ),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -106,7 +108,7 @@ class _AlertsCard extends StatelessWidget {
                   style: textTheme.bodySmall?.copyWith(
                     color: const Color(0xFF666666),
                     fontWeight: FontWeight.w600,
-                    fontSize: 11.sp,
+                    fontSize: 12.sp,
                   ),
                 ),
               ],
@@ -145,7 +147,7 @@ class _BloodPressureCard extends StatelessWidget {
         onTap: hasData ? () => context.push('/health') : null,
         borderRadius: BorderRadius.circular(20),
         child: Ink(
-          padding: EdgeInsets.all(16.w),
+          padding: EdgeInsets.all(12.w),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             color: Colors.white,
@@ -163,44 +165,45 @@ class _BloodPressureCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    width: 32.w,
-                    height: 32.w,
+                    width: 30.w,
+                    height: 30.w,
                     decoration: BoxDecoration(
                       color: CaregiverDashboardTheme.accentCoral.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(Icons.favorite, color: CaregiverDashboardTheme.accentCoral, size: 18),
+                    child: Icon(Icons.favorite, color: CaregiverDashboardTheme.accentCoral, size: 16),
                   ),
-                  SizedBox(width: 8.w),
+                  SizedBox(width: 6.w),
                   Flexible(
                     child: Text(
                       'patient.bloodPressureTitle'.tr(),
                       style: textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
                         color: const Color(0xFF1A1A1A),
-                        fontSize: 12.sp,
+                        fontSize: 15.sp,
+                        letterSpacing: -0.5,
                       ),
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 8.h),
               Text(
                 '$systolicStr / $diastolicStr',
                 style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: hasData ? const Color(0xFF1A1A1A) : const Color(0xFFCCCCCC),
-                  fontSize: 16.sp,
+                  fontSize: 13.sp,
                 ),
               ),
-              SizedBox(height: 4.h),
+              SizedBox(height: 6.h),
               Text(
                 status,
                 style: textTheme.bodySmall?.copyWith(
                   color: statusColor,
                   fontWeight: FontWeight.w600,
-                  fontSize: 10.sp,
+                  fontSize: 11.sp,
                 ),
               ),
             ],

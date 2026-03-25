@@ -107,8 +107,8 @@ class _ExpandablePatientCardState extends State<ExpandablePatientCard>
                         child: Row(
                           children: [
                             Container(
-                              width: 40,
-                              height: 40,
+                              width: 32.w,
+                              height: 32.w,
                               decoration: CaregiverDashboardTheme.iconBadge(
                                 context,
                                 widget.accentColor,

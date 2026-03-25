@@ -54,7 +54,7 @@ void main() async {
       supportedLocales: const [Locale('en'), Locale('ur')],
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
-      startLocale: savedLocale,
+      useOnlyLangCode: true,
       child: const DigitalNurseApp(),
     ),
   );
@@ -111,6 +111,8 @@ class DigitalNurseApp extends StatelessWidget {
             AppTheme.darkTheme,
             isDark: true,
           );
+
+
 
           return ScaffoldMessenger(
             child: MaterialApp.router(

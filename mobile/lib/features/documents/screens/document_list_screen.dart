@@ -14,6 +14,7 @@ import '../../../core/models/user_model.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import 'package:digital_nurse/core/widgets/modern_scaffold.dart';
 import 'package:digital_nurse/features/dashboard/widgets/patient/hub_hero_header.dart';
+import 'package:digital_nurse/features/documents/widgets/document_thumbnail.dart';
 import '../../../core/utils/timezone_util.dart';
 
 class DocumentListScreen extends StatefulWidget {
@@ -216,6 +217,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
           title: 'documents.title'.tr(),
           description: 'patient.documentsSubtitle'.tr(),
           imagePath: 'assets/images/documentread.png',
+          accentColor: ModernSurfaceTheme.accentGreen,
           child: Row(
             children: [
               Container(
@@ -225,7 +227,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                 ),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(22),
-                  color: AppTheme.appleGreen,
+                  color: ModernSurfaceTheme.accentGreen,
                 ),
                 child: Text(
                   '${documents.length}',
@@ -288,7 +290,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                     crossAxisCount: ScreenUtil().screenWidth > 600 ? 3 : 2,
                     crossAxisSpacing: 10.w,
                     mainAxisSpacing: 12.h,
-                    childAspectRatio: 1.15,
+                    childAspectRatio: 1.4,
                   ),
                   itemCount: filteredDocuments.length,
                   itemBuilder: (context, index) {
@@ -300,7 +302,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                     return Container(
                       decoration: ModernSurfaceTheme.glassCard(
                         context,
-                        accent: accent,
+                        accent: ModernSurfaceTheme.accentGreen,
                       ),
                       padding: EdgeInsets.all(10.w),
                       child: InkWell(
@@ -309,21 +311,10 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                              width: double.infinity,
+                            DocumentThumbnail(
+                              document: document,
                               height: 40.h,
-                              decoration:
-                                  ModernSurfaceTheme.tintedCard(
-                                    context,
-                                    accent,
-                                  ).copyWith(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                              child: Icon(
-                                _getDocumentIcon(document.type),
-                                size: 24.r,
-                                color: accent,
-                              ),
+                              iconSize: 24.r,
                             ),
                             SizedBox(height: 6.h),
                             Text(

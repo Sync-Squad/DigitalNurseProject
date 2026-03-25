@@ -138,7 +138,7 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
     final Color textColor = isHighPriority ? Colors.red[900]! : Colors.brown[900]!;
 
     return Container(
-      width: 135.w,
+      width: 149.w,
       margin: EdgeInsets.only(right: 12.w),
       decoration: BoxDecoration(
         color: cardColor,
@@ -178,7 +178,7 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
               ),
             ),
             Padding(
-              padding: EdgeInsets.fromLTRB(12.w, 8.h, 8.w, 8.h),
+              padding: EdgeInsets.fromLTRB(8.w, 6.h, 6.w, 6.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -199,7 +199,7 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                             Text(
                               timeStr,
                               style: TextStyle(
-                                fontSize: 8.sp,
+                                fontSize: 7.sp,
                                 fontWeight: FontWeight.w800,
                                 color: accentColor,
                               ),
@@ -213,9 +213,9 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                                 return 'medication.timeOfDay.evening'.tr();
                               }(),
                               style: TextStyle(
-                                fontSize: 8.sp,
+                                fontSize: 7.sp,
                                 fontWeight: FontWeight.w800,
-                                color: accentColor.withOpacity(0.8),
+                                color: accentColor.withValues(alpha: 0.8),
                               ),
                             ),
                           ],
@@ -235,7 +235,7 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 13.sp,
+                      fontSize: 12.sp,
                       fontWeight: FontWeight.w800,
                       color: textColor,
                       height: 1.1,
@@ -245,8 +245,8 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                   if (_isLogging)
                     Center(
                       child: SizedBox(
-                        height: 20.h,
-                        width: 20.h,
+                        height: 16.h,
+                        width: 16.h,
                         child: CircularProgressIndicator(
                           strokeWidth: 2, 
                           color: accentColor,
@@ -273,7 +273,7 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
                                     return '${diff.inMinutes}m overdue';
                                   }(),
                                   style: TextStyle(
-                                    fontSize: 9.sp,
+                                    fontSize: 8.sp,
                                     fontWeight: FontWeight.w700,
                                     color: Colors.red[700],
                                   ),
@@ -345,7 +345,7 @@ class _ActionButton extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          size: 16.sp,
+          size: 14.sp,
           color: isSelected ? Colors.white : color,
         ),
       ),

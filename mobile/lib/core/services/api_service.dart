@@ -125,8 +125,15 @@ class ApiService {
         },
         onError: (error, handler) async {
           _logError(error);
+          
+          // DO NOT attempt token refresh for login or refresh-token endpoints
+          // as a 401 there means invalid credentials or invalid refresh token.
+          final path = error.requestOptions.path;
+          final isAuthPath = path.contains('/auth/login') || 
+                            path.contains('/auth/refresh-token');
+
           // Handle 401 Unauthorized - Token expired
-          if (error.response?.statusCode == 401) {
+          if (error.response?.statusCode == 401 && !isAuthPath) {
             _log('🔄 [API] Token expired, attempting refresh...');
             return _handleTokenRefresh(error, handler);
           }

@@ -27,7 +27,8 @@ class LifestyleHubScreen extends StatelessWidget {
               description:
                   'Track your diet, log exercises, and stay committed to your wellness journey.'
                       .tr(),
-              imagePath: 'assets/images/health.png',
+              imagePath: 'assets/images/dietexe.png',
+              accentColor: ModernSurfaceTheme.accentBlue,
             ),
             SizedBox(height: 24.h),
             // Grid of Action Tiles
@@ -37,7 +38,7 @@ class LifestyleHubScreen extends StatelessWidget {
               crossAxisCount: 2,
               mainAxisSpacing: 16.w,
               crossAxisSpacing: 16.w,
-              childAspectRatio: 1.1,
+              childAspectRatio: 1.35,
               children: [
                 HubMenuTile(
                   label: 'Log Exercise',
@@ -48,19 +49,19 @@ class LifestyleHubScreen extends StatelessWidget {
                 HubMenuTile(
                   label: 'Log Diet',
                   icon: Icons.restaurant_rounded,
-                  accentColor: ModernSurfaceTheme.accentCoral,
+                  accentColor: ModernSurfaceTheme.accentBlue,
                   onTap: () => context.push('/lifestyle/meal/add'),
                 ),
                 HubMenuTile(
                   label: 'View Plans',
                   icon: Icons.assignment_rounded,
-                  accentColor: ModernSurfaceTheme.primaryTeal,
+                  accentColor: ModernSurfaceTheme.accentBlue,
                   onTap: () => context.push('/lifestyle/plans'),
                 ),
                 HubMenuTile(
                   label: 'Health Trends',
                   icon: Icons.trending_up_rounded,
-                  accentColor: ModernSurfaceTheme.primaryTeal,
+                  accentColor: ModernSurfaceTheme.accentBlue,
                   onTap: () => context.push('/lifestyle/trends'),
                 ),
               ],

@@ -95,7 +95,7 @@ class _DietExerciseLogScreenState extends State<DietExerciseLogScreen>
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.bar_chart_rounded, color: Colors.white),
+            icon: const Icon(FIcons.trendingUp, color: Colors.white),
             tooltip: 'Trends',
             onPressed: () => context.push('/lifestyle/trends'),
           ),

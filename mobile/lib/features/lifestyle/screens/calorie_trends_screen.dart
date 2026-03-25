@@ -52,15 +52,13 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => context.pop(),
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           'Lifestyle Analytics',
           style: textTheme.titleLarge?.copyWith(
             color: Colors.white,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
           ),
         ),
       ),
@@ -100,7 +98,7 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
     final net = totalIn - totalOut;
     final isDeficit = net <= 0;
     final netAbs = net.abs();
-    final accentColor = isDeficit ? AppTheme.appleGreen : Colors.orange;
+    final accentColor = isDeficit ? AppTheme.appleGreen : ModernSurfaceTheme.accentBlue;
 
     return Container(
       padding: EdgeInsets.all(24.w),
@@ -109,11 +107,9 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
         children: [
           Text(
             'PERIODIC BALANCE',
-            style: TextStyle(
-              fontSize: 10.sp,
-              fontWeight: FontWeight.w800,
-              color: Colors.grey[600],
-              letterSpacing: 2,
+            style: ModernSurfaceTheme.sectionTitleStyle(context).copyWith(
+              color: ModernSurfaceTheme.deepTeal,
+              fontSize: 14.sp,
             ),
           ),
           SizedBox(height: 16.h),
@@ -136,14 +132,19 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
                   Text(
                     netAbs.toString(),
                     style: TextStyle(
-                      fontSize: 32.sp,
+                      fontSize: 36.sp,
                       fontWeight: FontWeight.w900,
                       color: accentColor,
+                      letterSpacing: -1,
                     ),
                   ),
                   Text(
                     'kcal',
-                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 13.sp, 
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black54,
+                    ),
                   ),
                 ],
               ),
@@ -191,11 +192,9 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
           padding: EdgeInsets.symmetric(horizontal: 4.w),
           child: Text(
             'DAILY HEALTH PULSE',
-            style: TextStyle(
-              fontSize: 10.sp,
-              fontWeight: FontWeight.w800,
-              color: Colors.grey[400],
-              letterSpacing: 1.5,
+            style: ModernSurfaceTheme.sectionTitleStyle(context).copyWith(
+              color: ModernSurfaceTheme.deepTeal,
+              fontSize: 14.sp,
             ),
           ),
         ),
@@ -203,8 +202,20 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
         Container(
           height: 100.h,
           padding: EdgeInsets.symmetric(vertical: 10.h),
-          decoration: ModernSurfaceTheme.glassCard(context).copyWith(
-            color: Colors.white.withOpacity(0.02),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: ModernSurfaceTheme.cardRadius(),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+            border: Border.all(
+              color: Colors.grey.withOpacity(0.1),
+              width: 1.2,
+            ),
           ),
           child: Stack(
             alignment: Alignment.center,
@@ -228,7 +239,7 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
                   final intensity = (data['in']! + data['out']!).toDouble();
                   final net = data['in']! - data['out']!;
                   final isDeficit = net <= 0;
-                  final color = isDeficit ? successColor : warningColor;
+                  final color = isDeficit ? successColor : ModernSurfaceTheme.accentBlue.withOpacity(0.7);
                   
                   // Scale based on intensity (min 0.5, max 1.0)
                   final scale = 0.5 + (0.5 * (intensity / maxIntensity));
@@ -243,9 +254,9 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
                         Text(
                           DateFormat('E').format(date).toUpperCase(),
                           style: TextStyle(
-                            fontSize: 9.sp,
+                            fontSize: 11.sp,
                             fontWeight: FontWeight.w800,
-                            color: Colors.grey[500],
+                            color: Colors.black54,
                           ),
                         ),
                         SizedBox(height: 12.h),
@@ -295,11 +306,9 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
           padding: EdgeInsets.symmetric(horizontal: 4.w),
           child: Text(
             'DAILY BREAKDOWN',
-            style: TextStyle(
-              fontSize: 10.sp,
-              fontWeight: FontWeight.w800,
-              color: Colors.grey[600],
-              letterSpacing: 1.5,
+            style: ModernSurfaceTheme.sectionTitleStyle(context).copyWith(
+              color: ModernSurfaceTheme.deepTeal,
+              fontSize: 14.sp,
             ),
           ),
         ),
@@ -321,16 +330,18 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
                     Text(
                       DateFormat('EEEE, MMM d').format(date),
                       style: TextStyle(
-                        fontSize: 13.sp,
+                        fontSize: 14.sp,
                         fontWeight: FontWeight.w700,
                         color: Colors.black87,
+                        letterSpacing: -0.3,
                       ),
                     ),
+                    SizedBox(height: 4.h),
                     Row(
                       children: [
                         _SmallStat(label: 'In', value: data['in']!, color: AppTheme.appleGreen),
                         SizedBox(width: 8.w),
-                        _SmallStat(label: 'Out', value: data['out']!, color: Colors.orange),
+                        _SmallStat(label: 'Out', value: data['out']!, color: ModernSurfaceTheme.accentBlue.withOpacity(0.6)),
                       ],
                     ),
                   ],
@@ -344,7 +355,7 @@ class _CalorieTrendsScreenState extends State<CalorieTrendsScreen> {
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.w900,
-                        color: isDeficit ? AppTheme.appleGreen : Colors.orange,
+                        color: isDeficit ? AppTheme.appleGreen : ModernSurfaceTheme.accentBlue.withOpacity(0.8),
                       ),
                     ),
                     Text(
@@ -422,8 +433,9 @@ class _PeriodSelector extends StatelessWidget {
                 '$days Days',
                 style: TextStyle(
                   color: isSelected ? Colors.white : Colors.grey[700],
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                   fontSize: 12.sp,
+                  letterSpacing: -0.3,
                 ),
               ),
             ),

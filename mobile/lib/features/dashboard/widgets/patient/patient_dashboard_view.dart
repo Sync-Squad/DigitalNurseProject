@@ -16,6 +16,7 @@ import '../../../../features/ai/widgets/ai_insights_dashboard_widget.dart';
 
 import 'alerts_bp_grid.dart';
 import 'dashboard_hub_grid.dart';
+import 'due_reminders_row.dart';
 
 class PatientDashboardView extends StatelessWidget {
   const PatientDashboardView({super.key});
@@ -49,6 +50,8 @@ class PatientDashboardView extends StatelessWidget {
               const _WelcomeHeroCard(),
               SizedBox(height: cardSpacing),
               const _HealthOverviewCard(),
+              SizedBox(height: cardSpacing),
+              const DueRemindersRow(),
               SizedBox(height: cardSpacing),
               const AlertsBPGrid(),
               SizedBox(height: cardSpacing),
@@ -215,6 +218,7 @@ class _HealthOverviewCard extends StatelessWidget {
         onTap: () => context.push('/medications'),
         borderRadius: BorderRadius.circular(20),
         child: Ink(
+          height: 150.h,
           decoration: BoxDecoration(
             color: const Color(0xFF1FB9AA).withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(20),
@@ -226,8 +230,10 @@ class _HealthOverviewCard extends StatelessWidget {
               Text(
                 'patient.healthOverview'.tr(),
                 style: textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   color: Colors.white,
+                  fontSize: 15.sp,
+                  letterSpacing: -0.5,
                 ),
               ),
               SizedBox(height: 12.h),
@@ -294,7 +300,7 @@ class _HealthOverviewCard extends StatelessWidget {
                   // Right side - Circular progress
                   _CircularProgressWidget(
                     percentage: adherencePercentage,
-                    size: 75.w,
+                    size: 60.w,
                   ),
                 ],
               ),

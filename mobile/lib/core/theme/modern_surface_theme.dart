@@ -15,6 +15,8 @@ class ModernSurfaceTheme {
   static const Color accentYellow = Color(0xFFFFD166);
   static const Color accentBlue = Color(0xFF64C7FF);
   static const Color accentCoral = Color(0xFFFF8FA3);
+  static const Color accentGreen = Color(0xFF4CAF50);
+  static const Color accentPurple = Color(0xFFA594F9);
 
   static ColorScheme _scheme(BuildContext context) =>
       Theme.of(context).colorScheme;
@@ -63,24 +65,26 @@ class ModernSurfaceTheme {
   }
 
   /// Primary hero section gradient.
-  static LinearGradient heroGradient(BuildContext context) {
+  static LinearGradient heroGradient(BuildContext context, {Color? accent}) {
     final scheme = _scheme(context);
     final isDark = _isDark(context);
+    final Color basePrimary = accent ?? primaryTeal;
 
     final start = isDark
         ? _blendOnSurface(
-            base: primaryTeal,
+            base: basePrimary,
             overlay: Colors.white,
             overlayOpacity: 0.08,
           )
-        : primaryTeal;
+        : basePrimary;
+    // For the end color, we blend the primary with black to create depth
     final end = isDark
         ? _blendOnSurface(
-            base: scheme.primary,
+            base: basePrimary,
             overlay: Colors.black,
             overlayOpacity: 0.25,
           )
-        : const Color(0xFF118074);
+        : Color.alphaBlend(Colors.black.withValues(alpha: 0.15), basePrimary);
 
     return LinearGradient(
       begin: Alignment.topLeft,
@@ -97,10 +101,10 @@ class ModernSurfaceTheme {
 
   static double heroSpacing() => 18.h;
 
-  static BoxDecoration heroDecoration(BuildContext context) {
+  static BoxDecoration heroDecoration(BuildContext context, {Color? accent}) {
     return BoxDecoration(
       borderRadius: BorderRadius.circular(28),
-      gradient: heroGradient(context),
+      gradient: heroGradient(context, accent: accent),
     );
   }
 
@@ -139,6 +143,45 @@ class ModernSurfaceTheme {
         color: baseAccent.withValues(alpha: isDark ? 0.25 : 0.12),
         width: 1.2,
       ),
+    );
+  }
+
+  /// Specialized decoration for hub grid tiles with category-aware tints.
+  static BoxDecoration hubCard(BuildContext context, Color accent) {
+    final scheme = _scheme(context);
+    final isDark = _isDark(context);
+
+    // Subtle category tint (18% top for more color, 8% bottom for depth)
+    final Color blendedTop = _blendOnSurface(
+      base: isDark ? scheme.surfaceVariant : Colors.white,
+      overlay: accent,
+      overlayOpacity: isDark ? 0.32 : 0.18,
+    );
+    final Color blendedBottom = _blendOnSurface(
+      base: scheme.surface,
+      overlay: accent,
+      overlayOpacity: isDark ? 0.18 : 0.08,
+    );
+
+    return BoxDecoration(
+      borderRadius: cardRadius(),
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [blendedTop, blendedBottom],
+      ),
+      border: Border.all(
+        color: accent.withValues(alpha: isDark ? 0.3 : 0.15),
+        width: 1.2,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: accent.withValues(alpha: isDark ? 0.12 : 0.08),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+          spreadRadius: -2,
+        ),
+      ],
     );
   }
 
@@ -274,9 +317,10 @@ class ModernSurfaceTheme {
 
   static TextStyle sectionTitleStyle(BuildContext context) {
     return Theme.of(context).textTheme.titleMedium!.copyWith(
-      fontWeight: FontWeight.w700,
+      fontWeight: FontWeight.w800,
       color: Theme.of(context).colorScheme.onSurface,
-      letterSpacing: 0.2,
+      fontSize: 15.sp,
+      letterSpacing: -0.5,
     );
   }
 
