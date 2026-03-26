@@ -3,7 +3,9 @@ import { Injectable, NotFoundException, ConflictException } from '@nestjs/common
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { getPKTDate } from '../common/utils/date-utils';
+import * as bcrypt from 'bcrypt';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -204,5 +206,38 @@ export class UsersService {
     });
 
     return this.getProfile(userId, baseUrl);
+  }
+
+  async changePassword(userId: bigint, changePasswordDto: ChangePasswordDto) {
+    const { oldPassword, newPassword, confirmPassword } = changePasswordDto;
+
+    if (newPassword !== confirmPassword) {
+      throw new ConflictException('New passwords do not match');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+    });
+
+    if (!user || !user.passwordHash) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new ConflictException('Invalid current password');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.user.update({
+      where: { userId },
+      data: {
+        passwordHash: hashedPassword,
+        updatedAt: getPKTDate(),
+      },
+    });
+
+    return { message: 'Password changed successfully' };
   }
 }

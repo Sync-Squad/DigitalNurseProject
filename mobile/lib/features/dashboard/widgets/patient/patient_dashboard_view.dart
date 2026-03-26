@@ -17,6 +17,7 @@ import '../../../../features/ai/widgets/ai_insights_dashboard_widget.dart';
 import 'alerts_bp_grid.dart';
 import 'dashboard_hub_grid.dart';
 import 'due_reminders_row.dart';
+import 'adherence_streak_card.dart';
 
 class PatientDashboardView extends StatelessWidget {
   const PatientDashboardView({super.key});
@@ -48,6 +49,13 @@ class PatientDashboardView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const _WelcomeHeroCard(),
+              SizedBox(height: cardSpacing),
+              Consumer<MedicationProvider>(
+                builder: (context, provider, _) => AdherenceStreakCard(
+                  streakDays: provider.adherenceStreak,
+                  adherencePercentage: provider.adherencePercentage.toDouble(),
+                ),
+              ),
               SizedBox(height: cardSpacing),
               const _HealthOverviewCard(),
               SizedBox(height: cardSpacing),

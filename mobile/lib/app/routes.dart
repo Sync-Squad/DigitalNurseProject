@@ -40,6 +40,10 @@ import '../features/lifestyle/screens/plan_compliance_screen.dart';
 import '../features/documents/screens/upload_document_screen.dart';
 import '../features/documents/screens/document_viewer_screen.dart';
 import '../features/profile/screens/settings_screen.dart';
+import '../features/profile/screens/privacy_policy_screen.dart';
+import '../features/profile/screens/terms_of_service_screen.dart';
+import '../features/profile/screens/change_password_screen.dart';
+
 import '../core/services/notification_test.dart';
 import '../features/notifications/screens/notifications_screen.dart';
 import '../features/ai/screens/ai_assistant_screen.dart';
@@ -411,6 +415,18 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/privacy-policy',
+      builder: (context, state) => const PrivacyPolicyScreen(),
+    ),
+    GoRoute(
+      path: '/terms-of-service',
+      builder: (context, state) => const TermsOfServiceScreen(),
+    ),
+    GoRoute(
+      path: '/change-password',
+      builder: (context, state) => const ChangePasswordScreen(),
     ),
 
     // Notifications

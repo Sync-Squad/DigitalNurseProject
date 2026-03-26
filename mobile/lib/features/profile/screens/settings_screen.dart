@@ -185,23 +185,19 @@ class SettingsScreen extends StatelessWidget {
                 _ModernListTile(
                   icon: FIcons.lock,
                   title: 'settings.privacy.changePassword'.tr(),
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Password change (mock)')),
-                    );
-                  },
+                  onTap: () => context.push('/change-password'),
                 ),
                 const Divider(height: 1),
                 _ModernListTile(
                   icon: FIcons.shield,
                   title: 'settings.privacy.privacyPolicy'.tr(),
-                  onTap: () {},
+                  onTap: () => context.push('/privacy-policy'),
                 ),
                 const Divider(height: 1),
                 _ModernListTile(
                   icon: FIcons.fileText,
                   title: 'settings.privacy.termsOfService'.tr(),
-                  onTap: () {},
+                  onTap: () => context.push('/terms-of-service'),
                 ),
               ],
             ),

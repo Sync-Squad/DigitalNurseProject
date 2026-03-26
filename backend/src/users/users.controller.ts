@@ -16,6 +16,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { User } from '@prisma/client';
@@ -100,5 +101,18 @@ export class UsersController {
     const userId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
     const baseUrl = `${req.protocol}://${req.get('host')}`;
     return this.usersService.uploadAvatar(userId, file, baseUrl);
+  }
+
+  @Patch('change-password')
+  @ApiOperation({ summary: 'Change user password' })
+  @ApiResponse({ status: 200, description: 'Password changed successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 400, description: 'Invalid old password or mismatching new passwords' })
+  async changePassword(
+    @CurrentUser() user: any,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
+    const userId = typeof user.userId === 'bigint' ? user.userId : BigInt(user.userId);
+    return this.usersService.changePassword(userId, changePasswordDto);
   }
 }

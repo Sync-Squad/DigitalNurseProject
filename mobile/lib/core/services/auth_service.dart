@@ -795,4 +795,34 @@ class AuthService {
       return [];
     }
   }
+
+  // Change password for logged in user
+  Future<bool> changePassword({
+    required String oldPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    _log('🔑 [AUTH] Attempting to change password');
+    try {
+      final response = await _apiService.patch(
+        '/users/change-password',
+        data: {
+          'oldPassword': oldPassword,
+          'newPassword': newPassword,
+          'confirmPassword': confirmPassword,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _log('✅ [AUTH] Password changed successfully');
+        return true;
+      } else {
+        _log('❌ [AUTH] Password change failed: ${response.statusMessage}');
+        throw Exception(response.data['message'] ?? 'Password change failed');
+      }
+    } catch (e) {
+      _log('❌ [AUTH] Error changing password: $e');
+      rethrow;
+    }
+  }
 }

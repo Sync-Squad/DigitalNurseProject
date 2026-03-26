@@ -45,20 +45,13 @@ class CaregiverOverviewCard extends StatelessWidget {
         icon: Icons.monitor_heart,
         accent: adherenceAccent,
       ),
-      // _OverviewMetric(
-      //   label: 'Streak',
-      //   value: '$adherenceStreak days',
-      //   description: 'Continuous adherence streak.',
-      //   icon: Icons.local_fire_department,
-      //   accent: CaregiverDashboardTheme.accentYellow,
-      // ),
-      // _OverviewMetric(
-      //   label: 'Upcoming doses',
-      //   value: '$upcomingToday today',
-      //   description: 'Scheduled after right now.',
-      //   icon: Icons.schedule,
-      //   accent: CaregiverDashboardTheme.accentBlue,
-      // ),
+      _OverviewMetric(
+        label: 'Streak',
+        value: '${medicationProvider.adherenceStreak} days',
+        description: 'Continuous adherence streak.',
+        icon: Icons.local_fire_department,
+        accent: CaregiverDashboardTheme.accentYellow,
+      ),
       _OverviewMetric(
         label: 'Alerts',
         value: '${abnormalVitals.length}',
