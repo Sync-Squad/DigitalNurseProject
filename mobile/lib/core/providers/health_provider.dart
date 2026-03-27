@@ -9,6 +9,11 @@ class HealthProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Cache tracking for "Smart Loading"
+  DateTime? _lastFetchTime;
+  String? _lastFetchedUserId;
+  String? _lastFetchedElderId;
+
   List<VitalMeasurementModel> get vitals => _vitals;
   bool get isLoading => _isLoading;
   String? get error => _error;
@@ -20,7 +25,24 @@ class HealthProvider with ChangeNotifier {
     String? elderUserId,
     DateTime? startDate,
     DateTime? endDate,
+    int? limit,
   }) async {
+    // 0. Concurrency Lock: Skip if already loading to prevent triple API calls
+    if (_isLoading) {
+      print('⏭️ [HEALTH] Skipping redundant loadVitals (Already loading...)');
+      return;
+    }
+
+    // Smart Loading Check: Skip if data is fresh (within 5 seconds) for same user context
+    final now = DateTime.now();
+    if (_lastFetchTime != null && 
+        _lastFetchedUserId == userId && 
+        _lastFetchedElderId == elderUserId &&
+        now.difference(_lastFetchTime!) < const Duration(seconds: 5)) {
+      print('⏭️ [HEALTH] Smart Loading: Skipping redundant fetch (data is fresh)');
+      return;
+    }
+
     _isLoading = true;
     notifyListeners();
     try {
@@ -29,12 +51,17 @@ class HealthProvider with ChangeNotifier {
         elderUserId: elderUserId,
         startDate: startDate,
         endDate: endDate,
+        limit: limit,
       );
+
       print('🔍 [HEALTH_PROVIDER] Loaded ${_vitals.length} vitals from API');
       for (var v in _vitals) {
         print('   - Vital ${v.id}: ${v.timestamp.toIso8601String()} (PKT: ${TimezoneUtil.toPakistanTime(v.timestamp).toIso8601String()})');
       }
       _error = null;
+      _lastFetchTime = DateTime.now();
+      _lastFetchedUserId = userId;
+      _lastFetchedElderId = elderUserId;
     } catch (e) {
       _error = e.toString();
     } finally {

@@ -57,7 +57,11 @@ export class UsersService {
         planId: u.subscriptions[0].planId,
         status: u.subscriptions[0].status,
         expiresAt: u.subscriptions[0].expiresAt
-      } : null
+      } : null,
+      medicineRemindersEnabled: u.medicineRemindersEnabled,
+      healthAlertsEnabled: u.healthAlertsEnabled,
+      caregiverUpdatesEnabled: u.caregiverUpdatesEnabled,
+      biometricEnabled: u.biometricEnabled,
     };
   }
 
@@ -65,6 +69,21 @@ export class UsersService {
     const data: any = {};
     if (updateDto.fullName) data.full_name = updateDto.fullName;
     if (updateDto.profilePicture) data.avatarUrl = updateDto.profilePicture;
+    
+    // Add new settings fields
+    if (updateDto.medicineRemindersEnabled !== undefined) {
+      data.medicineRemindersEnabled = updateDto.medicineRemindersEnabled;
+    }
+    if (updateDto.healthAlertsEnabled !== undefined) {
+      data.healthAlertsEnabled = updateDto.healthAlertsEnabled;
+    }
+    if (updateDto.caregiverUpdatesEnabled !== undefined) {
+      data.caregiverUpdatesEnabled = updateDto.caregiverUpdatesEnabled;
+    }
+    if (updateDto.biometricEnabled !== undefined) {
+      data.biometricEnabled = updateDto.biometricEnabled;
+    }
+
     data.updatedAt = getPKTDate();
 
     const user = await this.prisma.user.update({
@@ -94,7 +113,11 @@ export class UsersService {
       subscription: u.subscriptions?.[0] ? {
         planId: u.subscriptions[0].planId,
         status: u.subscriptions[0].status
-      } : null
+      } : null,
+      medicineRemindersEnabled: u.medicineRemindersEnabled,
+      healthAlertsEnabled: u.healthAlertsEnabled,
+      caregiverUpdatesEnabled: u.caregiverUpdatesEnabled,
+      biometricEnabled: u.biometricEnabled,
     };
   }
 

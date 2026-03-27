@@ -18,6 +18,11 @@ class LifestyleProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Cache tracking for "Smart Loading"
+  DateTime? _lastFetchTime;
+  String? _lastFetchedUserId;
+  String? _lastFetchedElderId;
+
   List<DietLogModel> get dietLogs => _dietLogs;
   List<ExerciseLogModel> get exerciseLogs => _exerciseLogs;
   List<DietLogModel> get trendDietLogs => _trendDietLogs;
@@ -82,6 +87,16 @@ class LifestyleProvider with ChangeNotifier {
     DateTime? date,
     String? elderUserId,
   }) async {
+    // Smart Loading Check: Skip if data is fresh (within 5 seconds) for same user context
+    final now = DateTime.now();
+    if (_lastFetchTime != null && 
+        _lastFetchedUserId == userId && 
+        _lastFetchedElderId == elderUserId &&
+        now.difference(_lastFetchTime!) < const Duration(seconds: 5)) {
+      print('⏭️ [LIFESTYLE] Smart Loading: Skipping redundant fetch (data is fresh)');
+      return;
+    }
+
     _isLoading = true;
     notifyListeners();
 
@@ -102,6 +117,9 @@ class LifestyleProvider with ChangeNotifier {
         elderUserId: elderUserId,
       );
       _error = null;
+      _lastFetchTime = DateTime.now();
+      _lastFetchedUserId = userId;
+      _lastFetchedElderId = elderUserId;
     } catch (e) {
       _error = e.toString();
     } finally {

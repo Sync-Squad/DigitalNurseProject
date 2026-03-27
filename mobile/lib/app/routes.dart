@@ -15,6 +15,7 @@ import '../features/dashboard/screens/medication_hub_screen.dart';
 import '../features/dashboard/screens/vitals_hub_screen.dart';
 import '../features/dashboard/screens/lifestyle_hub_screen.dart';
 import '../features/medication/screens/add_medicine_screen.dart';
+import '../features/medication/screens/medication_history_screen.dart';
 import '../features/medication/screens/medicine_detail_screen.dart';
 import '../features/medication/screens/medicine_log_screen.dart';
 import '../features/medication/screens/medicine_alarm_screen.dart';
@@ -39,6 +40,7 @@ import '../features/lifestyle/screens/create_weekly_plan_screen.dart';
 import '../features/lifestyle/screens/plan_compliance_screen.dart';
 import '../features/documents/screens/upload_document_screen.dart';
 import '../features/documents/screens/document_viewer_screen.dart';
+import '../features/profile/screens/profile_view_screen.dart';
 import '../features/profile/screens/settings_screen.dart';
 import '../features/profile/screens/privacy_policy_screen.dart';
 import '../features/profile/screens/terms_of_service_screen.dart';
@@ -185,8 +187,12 @@ final goRouter = GoRouter(
       builder: (context, state) => const MainNavigationScreen(initialIndex: 3),
     ),
     GoRoute(
-      path: '/profile',
+      path: '/lifestyle',
       builder: (context, state) => const MainNavigationScreen(initialIndex: 4),
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const ProfileViewScreen(),
     ),
     GoRoute(
       path: '/medication-hub',
@@ -202,6 +208,14 @@ final goRouter = GoRouter(
     ),
 
     // Medicine routes
+    GoRoute(
+      path: '/medicine/log',
+      builder: (context, state) => const MedicationHistoryScreen(),
+    ),
+    GoRoute(
+      path: '/medication/review',
+      builder: (context, state) => const DailyMedicationReviewScreen(),
+    ),
     GoRoute(
       path: '/medicine/add',
       builder: (context, state) {
@@ -229,14 +243,6 @@ final goRouter = GoRouter(
           reminderTime: reminderTimeStr,
         );
       },
-    ),
-    GoRoute(
-      path: '/medicine/log',
-      builder: (context, state) => const MedicineLogScreen(),
-    ),
-    GoRoute(
-      path: '/medication/review',
-      builder: (context, state) => const DailyMedicationReviewScreen(),
     ),
     // Health/Vitals routes
     GoRoute(

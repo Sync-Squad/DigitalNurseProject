@@ -15,11 +15,12 @@ import { VitalsService } from './vitals.service';
 import { CreateVitalDto, VitalType } from './dto/create-vital.dto';
 import { UpdateVitalDto } from './dto/update-vital.dto';
 import { GetVitalsTrendsDto } from './dto/get-vitals-trends.dto';
-import { GetVitalsDto } from './dto/get-vitals.dto';
+import { GetVitalsDto, GetRecentVitalsDto } from './dto/get-vitals.dto';
 import { BaseQueryDto } from '../common/dto/base-query.dto';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { AccessControlService } from '../common/services/access-control.service';
+
 
 @ApiTags('Vitals')
 @ApiBearerAuth()
@@ -71,8 +72,23 @@ export class VitalsController {
       query.endDate ? new Date(query.endDate) : undefined,
     );
   }
+  
+  @Get('recent')
+  @ApiOperation({ summary: 'Get recent vital measurements with dynamic limit' })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'type', enum: VitalType, required: false })
+  @ApiQuery({ name: 'elderUserId', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'List of recent vital measurements' })
+  async getRecent(
+    @CurrentUser() user: any,
+    @Query() query: GetRecentVitalsDto,
+  ) {
+    const context = await this.resolveContext(user, query.elderUserId);
+    return this.vitalsService.getRecent(context, query.limit, query.type);
+  }
 
   @Get('latest')
+
   @ApiOperation({ summary: 'Get latest vital measurements per kind' })
   @ApiResponse({ status: 200, description: 'Latest vital measurements' })
   async getLatest(

@@ -38,7 +38,7 @@
       "fullName": "Full Name",
       "nameHint": "Enter your name",
       "email": "Email",
-      "emailHint": "Enter your email (optional)",
+      "emailHint": "Enter your email address",
       "phone": "Phone Number",
       "phoneHint": "Enter your phone number (+92XXXXXXXXXX)",
       "accountType": "Select account type",
@@ -90,6 +90,7 @@
     "medicines": "Medicines",
     "health": "Health",
     "documents": "Documents",
+    "lifestyle": "Lifestyle",
     "profile": "Profile"
   },
   "dashboard": {

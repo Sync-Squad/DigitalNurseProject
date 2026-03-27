@@ -166,7 +166,35 @@ export class VitalsService {
   }
 
   /**
+   * Get recent vitals with a limit
+   */
+  async getRecent(
+    context: ActorContext,
+    limit: number = 10,
+    type?: VitalType,
+  ) {
+    const where: any = {
+      elderUserId: context.elderUserId,
+    };
+
+    if (type) {
+      where.kindCode = this.typeToKindCode(type);
+    }
+
+    const measurements = await this.prisma.vitalMeasurement.findMany({
+      where,
+      orderBy: {
+        recordedAt: 'desc',
+      },
+      take: limit,
+    });
+
+    return measurements.map((m) => this.mapToResponse(m));
+  }
+
+  /**
    * Find one vital by ID
+
    */
   async findOne(context: ActorContext, vitalId: bigint) {
     const measurement = await this.prisma.vitalMeasurement.findFirst({

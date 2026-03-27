@@ -68,25 +68,35 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
     );
   }
 
+  bool _wasVisible = false;
+
   void _ensureContextSync({
     required bool isCaregiver,
     required String? selectedElderId,
     required String? userId,
+    required bool isVisible,
   }) {
     final key = isCaregiver
         ? 'caregiver-${selectedElderId ?? 'none'}'
         : 'patient-${userId ?? 'unknown'}';
 
-    if (_lastContextKey == key) {
+    final contextChanged = _lastContextKey != key;
+    final visibilityChanged = !_wasVisible && isVisible;
+
+    if (!contextChanged && !visibilityChanged) {
       return;
     }
 
     _lastContextKey = key;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _reloadVitals();
-      }
-    });
+    _wasVisible = isVisible;
+
+    if (isVisible) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _reloadVitals();
+        }
+      });
+    }
   }
 
   Future<void> _handleDeleteVital(
@@ -174,10 +184,14 @@ class _VitalsListScreenState extends State<VitalsListScreen> {
     final isCareContextLoading = careContext?.isLoading ?? false;
     final careContextError = careContext?.error;
 
+    final currentTabIndex = context.watch<int>();
+    final isVisible = currentTabIndex == 2;
+
     _ensureContextSync(
       isCaregiver: isCaregiver,
       selectedElderId: selectedElderId,
       userId: currentUser?.id,
+      isVisible: isVisible,
     );
 
     final colorScheme = Theme.of(context).colorScheme;

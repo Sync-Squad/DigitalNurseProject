@@ -12,6 +12,9 @@ import '../models/notification_model.dart';
 import '../models/medicine_model.dart';
 import '../../firebase_options.dart';
 import '../utils/timezone_util.dart';
+import '../../main.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 /// Callback type for navigating to alarm screen
 typedef AlarmNavigationCallback = void Function(String? payload);
@@ -254,6 +257,13 @@ class FCMService {
 
     // Show local notification for foreground messages
     await _showLocalNotification(message);
+
+    // If it's a high priority medicine reminder, trigger the alarm screen immediately
+    final type = message.data['type'] ?? 'general';
+    final priority = message.data['priority'];
+    if (type == 'medicine_reminder' && priority == 'high') {
+      onAlarmTap?.call(jsonEncode(message.data));
+    }
   }
 
   /// Handle message opened app (background/terminated)
@@ -303,6 +313,28 @@ class FCMService {
   Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     if (notification == null) return;
+
+    // Check user preferences from AuthProvider (using global key context)
+    try {
+      final context = navigatorKey.currentContext;
+      if (context != null) {
+        final auth = Provider.of<AuthProvider>(context, listen: false);
+        final user = auth.currentUser;
+        if (user != null) {
+          final type = message.data['type'] ?? 'general';
+          if (type == 'medicine_reminder' && !user.medicineRemindersEnabled) {
+            print('Skipping medicine reminder - user disabled them');
+            return;
+          }
+          if (type == 'health_alert' && !user.healthAlertsEnabled) {
+            print('Skipping health alert - user disabled them');
+            return;
+          }
+        }
+      }
+    } catch (e) {
+      print('Error checking user preferences: $e');
+    }
 
     final type = message.data['type'] ?? 'general';
     final isMedicineReminder =
@@ -451,6 +483,23 @@ class FCMService {
     MedicinePriority priority = MedicinePriority.medium,
   }) async {
     try {
+      // Check user preferences
+      try {
+        final context = navigatorKey.currentContext;
+        if (context != null) {
+          final auth = Provider.of<AuthProvider>(context, listen: false);
+          final user = auth.currentUser;
+          if (user != null) {
+            if (type == NotificationType.medicineReminder &&
+                !user.medicineRemindersEnabled) {
+              return;
+            }
+          }
+        }
+      } catch (e) {
+        print('Error checking preferences for local notification: $e');
+      }
+
       // Check if FCM service is initialized
       if (!_isInitialized) {
         print('FCM service not initialized, attempting to initialize...');

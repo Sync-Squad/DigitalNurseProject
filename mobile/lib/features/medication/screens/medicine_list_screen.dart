@@ -35,7 +35,12 @@ class _MedicineListScreenState extends State<MedicineListScreen>
     WidgetsBinding.instance.addObserver(this);
     // Defer data loading until after the build phase
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadMedicines();
+      if (mounted) {
+        final currentTabIndex = context.read<int>();
+        if (currentTabIndex == 1) {
+          _loadMedicines();
+        }
+      }
     });
   }
 
@@ -81,33 +86,41 @@ class _MedicineListScreenState extends State<MedicineListScreen>
     await medicationProvider.loadMedicines(
       targetUserId,
       elderUserId: elderUserId,
+      includeExtras: false,
     );
 
-    // Populate the intake history cache to optimize status lookups in cards
-    await medicationProvider.loadAllIntakeHistory(
-      elderUserId: elderUserId,
-    );
+    // Intake history call removed as requested by user to optimize performance
   }
+
+  bool _wasVisible = false;
 
   void _ensureContextSync({
     required bool isCaregiver,
     required String? selectedElderId,
     required String? userId,
+    required bool isVisible,
   }) {
     final key = isCaregiver
         ? 'caregiver-${selectedElderId ?? 'none'}'
         : 'patient-${userId ?? 'unknown'}';
 
-    if (_lastContextKey == key) {
+    final contextChanged = _lastContextKey != key;
+    final visibilityChanged = !_wasVisible && isVisible;
+
+    if (!contextChanged && !visibilityChanged) {
       return;
     }
 
     _lastContextKey = key;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _loadMedicines();
-      }
-    });
+    _wasVisible = isVisible;
+
+    if (isVisible) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _loadMedicines();
+        }
+      });
+    }
   }
 
   @override
@@ -124,10 +137,14 @@ class _MedicineListScreenState extends State<MedicineListScreen>
     final isCareContextLoading = careContext?.isLoading ?? false;
     final careContextError = careContext?.error;
 
+    final currentTabIndex = context.watch<int>();
+    final isVisible = currentTabIndex == 1;
+
     _ensureContextSync(
       isCaregiver: isCaregiver,
       selectedElderId: selectedElderId,
       userId: currentUser?.id,
+      isVisible: isVisible,
     );
 
     final medicationProvider = context.watch<MedicationProvider>();

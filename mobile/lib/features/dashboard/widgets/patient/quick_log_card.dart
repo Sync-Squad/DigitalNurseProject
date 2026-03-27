@@ -138,8 +138,7 @@ class _QuickLogCardState extends State<QuickLogCard> with SingleTickerProviderSt
     final Color textColor = isHighPriority ? Colors.red[900]! : Colors.brown[900]!;
 
     return Container(
-      width: 149.w,
-      margin: EdgeInsets.only(right: 12.w),
+      margin: EdgeInsets.only(right: 8.w),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(16.r),

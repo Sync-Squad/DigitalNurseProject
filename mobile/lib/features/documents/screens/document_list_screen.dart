@@ -33,7 +33,12 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
     super.initState();
     // Defer data loading until after the build phase
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
+      if (mounted) {
+        final currentTabIndex = context.read<int>();
+        if (currentTabIndex == 3) {
+          _loadData();
+        }
+      }
     });
   }
 
@@ -66,25 +71,35 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
     );
   }
 
+  bool _wasVisible = false;
+
   void _ensureContextSync({
     required bool isCaregiver,
     required String? selectedElderId,
     required String? userId,
+    required bool isVisible,
   }) {
     final key = isCaregiver
         ? 'caregiver-${selectedElderId ?? 'none'}'
         : 'patient-${userId ?? 'unknown'}';
 
-    if (_lastContextKey == key) {
+    final contextChanged = _lastContextKey != key;
+    final visibilityChanged = !_wasVisible && isVisible;
+
+    if (!contextChanged && !visibilityChanged) {
       return;
     }
 
     _lastContextKey = key;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _loadData();
-      }
-    });
+    _wasVisible = isVisible;
+
+    if (isVisible) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _loadData();
+        }
+      });
+    }
   }
 
   @override
@@ -101,10 +116,14 @@ class _DocumentListScreenState extends State<DocumentListScreen> {
     final isCareContextLoading = careContext?.isLoading ?? false;
     final careContextError = careContext?.error;
 
+    final currentTabIndex = context.watch<int>();
+    final isVisible = currentTabIndex == 3;
+
     _ensureContextSync(
       isCaregiver: isCaregiver,
       selectedElderId: selectedElderId,
       userId: currentUser?.id,
+      isVisible: isVisible,
     );
 
     final documentProvider = context.watch<DocumentProvider>();

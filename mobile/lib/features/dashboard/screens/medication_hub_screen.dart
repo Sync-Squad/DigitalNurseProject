@@ -77,16 +77,16 @@ class MedicationHubScreen extends StatelessWidget {
               childAspectRatio: 1.35,
               children: [
                 HubMenuTile(
-                  label: 'Upcoming Medications',
-                  icon: Icons.schedule_rounded,
+                  label: 'Create Medication',
+                  icon: Icons.add_business_rounded,
                   accentColor: ModernSurfaceTheme.primaryTeal,
-                  onTap: () => context.push('/medications'),
+                  onTap: () => context.push('/medicine/add'),
                 ),
                 HubMenuTile(
-                  label: 'Overdue Medications',
-                  icon: Icons.notification_important_rounded,
+                  label: 'Medicine History',
+                  icon: Icons.history_rounded,
                   accentColor: ModernSurfaceTheme.primaryTeal,
-                  onTap: () => context.push('/medications'),
+                  onTap: () => context.push('/medicine/log'),
                 ),
                 HubMenuTile(
                   label: 'Log Medication',

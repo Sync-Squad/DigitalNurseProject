@@ -10,18 +10,32 @@ class NotificationProvider with ChangeNotifier {
   int _unreadCount = 0;
   bool _isLoading = false;
 
+  // Cache tracking for "Smart Loading"
+  DateTime? _lastFetchTime;
+
+
   List<NotificationModel> get notifications => _notifications;
   int get unreadCount => _unreadCount;
   bool get isLoading => _isLoading;
 
   // Load notifications
   Future<void> loadNotifications() async {
+    // Smart Loading Check: Skip if data is fresh (within 5 seconds)
+    final now = DateTime.now();
+    if (_lastFetchTime != null && 
+        now.difference(_lastFetchTime!) < const Duration(seconds: 5)) {
+      print('⏭️ [NOTIFICATION] Smart Loading: Skipping redundant fetch (data is fresh)');
+      return;
+    }
+
     _isLoading = true;
     notifyListeners();
 
     try {
       _notifications = await _notificationService.getNotifications();
       _unreadCount = await _notificationService.getUnreadCount();
+      _lastFetchTime = DateTime.now();
+
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -126,5 +140,10 @@ class NotificationProvider with ChangeNotifier {
   // Request full-screen intent permission
   Future<bool> requestFullScreenIntentPermission() async {
     return await _fcmService.requestFullScreenIntentPermission();
+  }
+
+  // Cancel all scheduled notifications
+  Future<void> cancelAllNotifications() async {
+    await _fcmService.cancelAllNotifications();
   }
 }

@@ -16,6 +16,12 @@ class MedicationProvider with ChangeNotifier {
   // Track reminder IDs and their intended status locally
   final Map<String, IntakeStatus> _pendingActions = {};
 
+  // Cache tracking for "Smart Loading"
+  DateTime? _lastFetchTime;
+  String? _lastFetchedUserId;
+  String? _lastFetchedElderId;
+  bool _lastFetchedWasFull = false;
+
   List<MedicineModel> get medicines => _medicines;
   List<Map<String, dynamic>> get upcomingReminders => _upcomingReminders;
   bool get isLoading => _isLoading;
@@ -149,7 +155,27 @@ class MedicationProvider with ChangeNotifier {
   }
 
   // Load medicines
-  Future<void> loadMedicines(String userId, {String? elderUserId}) async {
+  Future<void> loadMedicines(
+    String userId, {
+    String? elderUserId,
+    bool includeExtras = true,
+  }) async {
+    // Smart Loading Check: Skip if data is fresh (within 5 seconds) for same user context
+    final now = DateTime.now();
+    if (_lastFetchTime != null &&
+        _lastFetchedUserId == userId &&
+        _lastFetchedElderId == elderUserId &&
+        now.difference(_lastFetchTime!) < const Duration(seconds: 5)) {
+      // If we already have the "extras" but this call doesn't need them, OR
+      // if this call DOES need them and we already have them, we can skip.
+      if (!includeExtras || _lastFetchedWasFull) {
+        print(
+          '⏭️ [MEDICATION] Smart Loading: Skipping redundant fetch (data is fresh, extras status: $_lastFetchedWasFull)',
+        );
+        return;
+      }
+    }
+
     _isLoading = true;
     notifyListeners();
 
@@ -158,26 +184,33 @@ class MedicationProvider with ChangeNotifier {
         userId,
         elderUserId: elderUserId,
       );
-      _upcomingReminders = await _medicationService.getUpcomingReminders(
-        userId,
-        elderUserId: elderUserId,
-      );
-      
-      print('🔍 [MEDICATION] ✅ Loaded ${_upcomingReminders.length} upcoming reminders');
-      for (var r in _upcomingReminders) {
-        print('   -> ${r['medicine'].name} at ${r['reminderTime']} (Status: ${r['status']})');
-      }
 
-      // Clear pending actions after successful refresh to sync with server state
-      _clearPendingActions();
-      _adherencePercentage = await _medicationService.getAdherencePercentage(
-        userId,
-        elderUserId: elderUserId ?? userId,
-      );
-      _adherenceStreak = await _medicationService.getAdherenceStreak(
-        userId,
-        elderUserId: elderUserId ?? userId,
-      );
+      if (includeExtras) {
+        _upcomingReminders = await _medicationService.getUpcomingReminders(
+          userId,
+          elderUserId: elderUserId,
+        );
+
+        print(
+          '🔍 [MEDICATION] ✅ Loaded ${_upcomingReminders.length} upcoming reminders',
+        );
+        for (var r in _upcomingReminders) {
+          print(
+            '   -> ${r['medicine'].name} at ${r['reminderTime']} (Status: ${r['status']})',
+          );
+        }
+
+        // Clear pending actions after successful refresh to sync with server state
+        _clearPendingActions();
+        _adherencePercentage = await _medicationService.getAdherencePercentage(
+          userId,
+          elderUserId: elderUserId ?? userId,
+        );
+        _adherenceStreak = await _medicationService.getAdherenceStreak(
+          userId,
+          elderUserId: elderUserId ?? userId,
+        );
+      }
 
       // Reschedule all medicine reminders after loading
       // Only reschedule if medicines were loaded successfully
@@ -192,6 +225,10 @@ class MedicationProvider with ChangeNotifier {
       }
 
       _error = null;
+      _lastFetchTime = DateTime.now();
+      _lastFetchedUserId = userId;
+      _lastFetchedElderId = elderUserId;
+      _lastFetchedWasFull = includeExtras;
     } catch (e) {
       _error = e.toString();
     } finally {
@@ -517,14 +554,6 @@ class MedicationProvider with ChangeNotifier {
     // 1. Try to find in the already loaded _allIntakes cache first
     // This is much more efficient than individual API calls
     Iterable<MedicineIntake> sourceList = _allIntakes;
-    
-    // If _allIntakes is empty, we fall back to a specific API call
-    if (sourceList.isEmpty) {
-      sourceList = await getIntakeHistory(
-        medicine.id,
-        elderUserId: medicine.userId,
-      );
-    }
 
     // Check if there's an intake record for this specific scheduled time
     final intake = sourceList.firstWhere(

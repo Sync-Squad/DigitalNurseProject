@@ -9,7 +9,10 @@ class UserModel {
   final String? emergencyContact;
   final String? phone;
   final String? avatarUrl;
-
+  final bool medicineRemindersEnabled;
+  final bool healthAlertsEnabled;
+  final bool caregiverUpdatesEnabled;
+  final bool biometricEnabled;
   UserModel({
     required this.id,
     required this.email,
@@ -21,6 +24,10 @@ class UserModel {
     this.emergencyContact,
     this.phone,
     this.avatarUrl,
+    this.medicineRemindersEnabled = true,
+    this.healthAlertsEnabled = true,
+    this.caregiverUpdatesEnabled = true,
+    this.biometricEnabled = false,
   });
 
   UserModel copyWith({
@@ -34,6 +41,10 @@ class UserModel {
     String? emergencyContact,
     String? phone,
     String? avatarUrl,
+    bool? medicineRemindersEnabled,
+    bool? healthAlertsEnabled,
+    bool? caregiverUpdatesEnabled,
+    bool? biometricEnabled,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -46,6 +57,12 @@ class UserModel {
       emergencyContact: emergencyContact ?? this.emergencyContact,
       phone: phone ?? this.phone,
       avatarUrl: avatarUrl ?? this.avatarUrl,
+      medicineRemindersEnabled:
+          medicineRemindersEnabled ?? this.medicineRemindersEnabled,
+      healthAlertsEnabled: healthAlertsEnabled ?? this.healthAlertsEnabled,
+      caregiverUpdatesEnabled:
+          caregiverUpdatesEnabled ?? this.caregiverUpdatesEnabled,
+      biometricEnabled: biometricEnabled ?? this.biometricEnabled,
     );
   }
 
@@ -61,6 +78,10 @@ class UserModel {
       'emergencyContact': emergencyContact,
       'phone': phone,
       'avatarUrl': avatarUrl,
+      'medicineRemindersEnabled': medicineRemindersEnabled,
+      'healthAlertsEnabled': healthAlertsEnabled,
+      'caregiverUpdatesEnabled': caregiverUpdatesEnabled,
+      'biometricEnabled': biometricEnabled,
     };
   }
 
@@ -80,8 +101,12 @@ class UserModel {
       age: json['age'],
       medicalConditions: json['medicalConditions'],
       emergencyContact: json['emergencyContact'],
-      phone: json['phone'],
+      phone: json['phone'] ?? json['phoneNumber'],
       avatarUrl: json['avatarUrl']?.toString().trim(),
+      medicineRemindersEnabled: json['medicineRemindersEnabled'] ?? true,
+      healthAlertsEnabled: json['healthAlertsEnabled'] ?? true,
+      caregiverUpdatesEnabled: json['caregiverUpdatesEnabled'] ?? true,
+      biometricEnabled: json['biometricEnabled'] ?? false,
     );
   }
 }

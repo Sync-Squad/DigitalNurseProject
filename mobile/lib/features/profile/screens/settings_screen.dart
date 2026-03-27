@@ -12,9 +12,14 @@ import '../../../core/providers/notification_provider.dart';
 import '../../../core/providers/medication_provider.dart';
 import '../../../core/providers/auth_provider.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return ModernScaffold(
@@ -33,274 +38,265 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView(
-        padding: ModernSurfaceTheme.screenPadding(),
-        children: [
-          // Notifications section
-          Text(
-            'settings.notifications.title'.tr(),
-            style: ModernSurfaceTheme.sectionTitleStyle(context),
-          ),
-          SizedBox(height: 12.h),
+      body: Consumer<AuthProvider>(
+        builder: (context, auth, _) {
+          final user = auth.currentUser;
+          return ListView(
+            padding: ModernSurfaceTheme.screenPadding(),
+            children: [
+              // Notifications section
+              Text(
+                'settings.notifications.title'.tr(),
+                style: ModernSurfaceTheme.sectionTitleStyle(context),
+              ),
+              SizedBox(height: 12.h),
 
-          Container(
-            decoration: ModernSurfaceTheme.glassCard(context),
-            child: Column(
-              children: [
-                _ModernSwitchTile(
-                  title: 'settings.notifications.medicineReminders.title'.tr(),
-                  subtitle:
-                      'settings.notifications.medicineReminders.description'
-                          .tr(),
-                  value: true,
-                  onChanged: (_) {},
-                ),
-                const Divider(height: 1),
-                _ModernSwitchTile(
-                  title: 'settings.notifications.healthAlerts.title'.tr(),
-                  subtitle: 'settings.notifications.healthAlerts.description'
-                      .tr(),
-                  value: true,
-                  onChanged: (_) {},
-                ),
-                const Divider(height: 1),
-                _ModernSwitchTile(
-                  title: 'settings.notifications.caregiverUpdates.title'.tr(),
-                  subtitle:
-                      'settings.notifications.caregiverUpdates.description'
-                          .tr(),
-                  value: false,
-                  onChanged: (_) {},
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 24.h),
-
-          // Language section
-          Text(
-            'settings.language.title'.tr(),
-            style: ModernSurfaceTheme.sectionTitleStyle(context),
-          ),
-          SizedBox(height: 12.h),
-
-          Container(
-            decoration: ModernSurfaceTheme.glassCard(context),
-            child: Consumer<LocaleProvider>(
-              builder: (context, localeProvider, child) {
-                return Column(
-                  children: localeProvider.localeOptions.map((option) {
-                    final isSelected = localeProvider.locale == option.locale;
-                    return Column(
-                      children: [
-                        ListTile(
-                          leading: Icon(
-                            FIcons.languages,
-                            color: ModernSurfaceTheme.deepTeal.withValues(
-                              alpha: 0.7,
-                            ),
-                          ),
-                          title: Text(
-                            option.name,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: ModernSurfaceTheme.deepTeal,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.w500,
-                                ),
-                          ),
-                          trailing: isSelected
-                              ? Icon(
-                                  FIcons.check,
-                                  color: ModernSurfaceTheme.primaryTeal,
-                                )
-                              : null,
-                          onTap: () async {
-                            // Update EasyLocalization FIRST to ensure .tr() returns correct translations
-                            // before widgets rebuild
-                            await context.setLocale(option.locale);
-                            // Then persist to LocaleProvider (for app restart)
-                            await localeProvider.setLocale(option.locale);
-                          },
-                        ),
-                        if (option != localeProvider.localeOptions.last)
-                          const Divider(height: 1),
-                      ],
-                    );
-                  }).toList(),
-                );
-              },
-            ),
-          ),
-          SizedBox(height: 24.h),
-
-          // Security section
-          Text(
-            'Security',
-            style: ModernSurfaceTheme.sectionTitleStyle(context),
-          ),
-          SizedBox(height: 12.h),
-
-          Container(
-            decoration: ModernSurfaceTheme.glassCard(context),
-            child: Consumer<AuthProvider>(
-              builder: (context, auth, _) {
-                return FutureBuilder<bool>(
-                  future: auth.isBiometricLoginAvailable(auth.currentUser?.id ?? ''),
-                  builder: (context, snapshot) {
-                    final isEnabled = snapshot.data ?? false;
-                    return _ModernSwitchTile(
-                      title: 'Biometric Login',
-                      subtitle: 'Use fingerprint or face recognition to log in',
-                      value: isEnabled,
+              Container(
+                decoration: ModernSurfaceTheme.glassCard(context),
+                child: Column(
+                  children: [
+                    _ModernSwitchTile(
+                      title: 'settings.notifications.medicineReminders.title'.tr(),
+                      subtitle:
+                          'settings.notifications.medicineReminders.description'
+                              .tr(),
+                      value: user?.medicineRemindersEnabled ?? true,
+                      loading: auth.isLoading,
                       onChanged: (value) async {
-                        if (value) {
-                          // To enable, we need the password. 
-                          // Since we don't have it here, we should prompt for it.
-                          await _showEnableBiometricDialog(context, auth);
-                        } else {
-                          await auth.enableBiometric(auth.currentUser?.id ?? '', false);
+                        final success = await auth.updateProfile(
+                          medicineRemindersEnabled: value,
+                        );
+                        if (success && mounted) {
+                          if (!value) {
+                            context.read<NotificationProvider>().cancelAllNotifications();
+                          } else {
+                            context.read<MedicationProvider>().rescheduleAllReminders(auth.currentUser!.id);
+                          }
                         }
                       },
+                    ),
+                    const Divider(height: 1),
+                    _ModernSwitchTile(
+                      title: 'settings.notifications.healthAlerts.title'.tr(),
+                      subtitle: 'settings.notifications.healthAlerts.description'
+                          .tr(),
+                      value: user?.healthAlertsEnabled ?? true,
+                      loading: auth.isLoading,
+                      onChanged: (value) async {
+                        final success = await auth.updateProfile(
+                          healthAlertsEnabled: value,
+                        );
+                        if (success && !value && mounted) {
+                          context.read<NotificationProvider>().cancelAllNotifications();
+                        }
+                      },
+                    ),
+                    const Divider(height: 1),
+                    _ModernSwitchTile(
+                      title: 'settings.notifications.caregiverUpdates.title'.tr(),
+                      subtitle:
+                          'settings.notifications.caregiverUpdates.description'
+                              .tr(),
+                      value: user?.caregiverUpdatesEnabled ?? true,
+                      loading: auth.isLoading,
+                      onChanged: (value) => auth.updateProfile(
+                        caregiverUpdatesEnabled: value,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 24.h),
+
+              // Language section
+              Text(
+                'settings.language.title'.tr(),
+                style: ModernSurfaceTheme.sectionTitleStyle(context),
+              ),
+              SizedBox(height: 12.h),
+
+              Container(
+                decoration: ModernSurfaceTheme.glassCard(context),
+                child: Consumer<LocaleProvider>(
+                  builder: (context, localeProvider, child) {
+                    return Column(
+                      children: localeProvider.localeOptions.map((option) {
+                        final isSelected = localeProvider.locale == option.locale;
+                        return Column(
+                          children: [
+                            ListTile(
+                              leading: Icon(
+                                FIcons.languages,
+                                color: ModernSurfaceTheme.deepTeal.withValues(
+                                  alpha: 0.7,
+                                ),
+                              ),
+                              title: Text(
+                                option.name,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(
+                                      color: ModernSurfaceTheme.deepTeal,
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.w500,
+                                    ),
+                              ),
+                              trailing: isSelected
+                                  ? Icon(
+                                      FIcons.check,
+                                      color: ModernSurfaceTheme.primaryTeal,
+                                    )
+                                  : null,
+                              onTap: () async {
+                                // Update EasyLocalization FIRST to ensure .tr() returns correct translations
+                                // before widgets rebuild
+                                await context.setLocale(option.locale);
+                                // Then persist to LocaleProvider (for app restart)
+                                await localeProvider.setLocale(option.locale);
+                              },
+                            ),
+                            if (option != localeProvider.localeOptions.last)
+                              const Divider(height: 1),
+                          ],
+                        );
+                      }).toList(),
                     );
                   },
-                );
-              },
-            ),
-          ),
-          SizedBox(height: 24.h),
-
-          // Privacy section
-          Text(
-            'settings.privacy.title'.tr(),
-            style: ModernSurfaceTheme.sectionTitleStyle(context),
-          ),
-          SizedBox(height: 12.h),
-
-          Container(
-            decoration: ModernSurfaceTheme.glassCard(context),
-            child: Column(
-              children: [
-                _ModernListTile(
-                  icon: FIcons.lock,
-                  title: 'settings.privacy.changePassword'.tr(),
-                  onTap: () => context.push('/change-password'),
                 ),
-                const Divider(height: 1),
-                _ModernListTile(
-                  icon: FIcons.shield,
-                  title: 'settings.privacy.privacyPolicy'.tr(),
-                  onTap: () => context.push('/privacy-policy'),
+              ),
+              SizedBox(height: 24.h),
+
+              // Privacy section
+              Text(
+                'settings.privacy.title'.tr(),
+                style: ModernSurfaceTheme.sectionTitleStyle(context),
+              ),
+              SizedBox(height: 12.h),
+
+              Container(
+                decoration: ModernSurfaceTheme.glassCard(context),
+                child: Column(
+                  children: [
+                    _ModernListTile(
+                      icon: FIcons.lock,
+                      title: 'settings.privacy.changePassword'.tr(),
+                      onTap: () => context.push('/change-password'),
+                    ),
+                    const Divider(height: 1),
+                    _ModernListTile(
+                      icon: FIcons.shield,
+                      title: 'settings.privacy.privacyPolicy'.tr(),
+                      onTap: () => context.push('/privacy-policy'),
+                    ),
+                    const Divider(height: 1),
+                    _ModernListTile(
+                      icon: FIcons.fileText,
+                      title: 'settings.privacy.termsOfService'.tr(),
+                      onTap: () => context.push('/terms-of-service'),
+                    ),
+                  ],
                 ),
-                const Divider(height: 1),
-                _ModernListTile(
-                  icon: FIcons.fileText,
-                  title: 'settings.privacy.termsOfService'.tr(),
-                  onTap: () => context.push('/terms-of-service'),
+              ),
+              SizedBox(height: 24.h),
+
+              // App section
+              Text(
+                'settings.about.title'.tr(),
+                style: ModernSurfaceTheme.sectionTitleStyle(context),
+              ),
+              SizedBox(height: 12.h),
+
+              Container(
+                decoration: ModernSurfaceTheme.glassCard(context),
+                child: Column(
+                  children: [
+                    ListTile(
+                      leading: Icon(
+                        FIcons.info,
+                        color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.7),
+                      ),
+                      title: Text(
+                        'settings.about.appVersion'.tr(),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: ModernSurfaceTheme.deepTeal,
+                        ),
+                      ),
+                      trailing: Text(
+                        '3.1.0',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    _ModernListTile(
+                      icon: FIcons.info,
+                      title: 'settings.about.helpSupport'.tr(),
+                      onTap: () {},
+                    ),
+                    const Divider(height: 1),
+                    _ModernListTile(
+                      icon: FIcons.messageCircle,
+                      title: 'settings.about.sendFeedback'.tr(),
+                      onTap: () {},
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 24.h),
+
+              // Medicine Reminders Diagnostic section
+              Text(
+                'Medicine Reminders',
+                style: ModernSurfaceTheme.sectionTitleStyle(context),
+              ),
+              SizedBox(height: 12.h),
+              _MedicineRemindersDiagnostic(),
+
+              // Debug section (only in debug mode)
+              if (const bool.fromEnvironment('dart.vm.product') == false) ...[
+                SizedBox(height: 24.h),
+                Text(
+                  'settings.debug.title'.tr(),
+                  style: ModernSurfaceTheme.sectionTitleStyle(
+                    context,
+                  ).copyWith(color: AppTheme.getWarningColor(context)),
+                ),
+                SizedBox(height: 12.h),
+                Container(
+                  decoration: ModernSurfaceTheme.glassCard(
+                    context,
+                    accent: AppTheme.getWarningColor(context),
+                  ),
+                  child: ListTile(
+                    leading: Icon(
+                      FIcons.bell,
+                      color: AppTheme.getWarningColor(context),
+                    ),
+                    title: Text(
+                      'settings.debug.testNotifications.title'.tr(),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: ModernSurfaceTheme.deepTeal,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'settings.debug.testNotifications.description'.tr(),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.65),
+                      ),
+                    ),
+                    trailing: Icon(
+                      FIcons.chevronsRight,
+                      color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.4),
+                    ),
+                    onTap: () => context.push('/notification-test'),
+                  ),
                 ),
               ],
-            ),
-          ),
-          SizedBox(height: 24.h),
-
-          // App section
-          Text(
-            'settings.about.title'.tr(),
-            style: ModernSurfaceTheme.sectionTitleStyle(context),
-          ),
-          SizedBox(height: 12.h),
-
-          Container(
-            decoration: ModernSurfaceTheme.glassCard(context),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: Icon(
-                    FIcons.info,
-                    color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.7),
-                  ),
-                  title: Text(
-                    'settings.about.appVersion'.tr(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: ModernSurfaceTheme.deepTeal,
-                    ),
-                  ),
-                  trailing: Text(
-                    '3.1.0',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
-                const Divider(height: 1),
-                _ModernListTile(
-                  icon: FIcons.info,
-                  title: 'settings.about.helpSupport'.tr(),
-                  onTap: () {},
-                ),
-                const Divider(height: 1),
-                _ModernListTile(
-                  icon: FIcons.messageCircle,
-                  title: 'settings.about.sendFeedback'.tr(),
-                  onTap: () {},
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 24.h),
-
-          // Medicine Reminders Diagnostic section
-          Text(
-            'Medicine Reminders',
-            style: ModernSurfaceTheme.sectionTitleStyle(context),
-          ),
-          SizedBox(height: 12.h),
-          _MedicineRemindersDiagnostic(),
-
-          // Debug section (only in debug mode)
-          if (const bool.fromEnvironment('dart.vm.product') == false) ...[
-            SizedBox(height: 24.h),
-            Text(
-              'settings.debug.title'.tr(),
-              style: ModernSurfaceTheme.sectionTitleStyle(
-                context,
-              ).copyWith(color: AppTheme.getWarningColor(context)),
-            ),
-            SizedBox(height: 12.h),
-            Container(
-              decoration: ModernSurfaceTheme.glassCard(
-                context,
-                accent: AppTheme.getWarningColor(context),
-              ),
-              child: ListTile(
-                leading: Icon(
-                  FIcons.bell,
-                  color: AppTheme.getWarningColor(context),
-                ),
-                title: Text(
-                  'settings.debug.testNotifications.title'.tr(),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: ModernSurfaceTheme.deepTeal,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                subtitle: Text(
-                  'settings.debug.testNotifications.description'.tr(),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.65),
-                  ),
-                ),
-                trailing: Icon(
-                  FIcons.chevronsRight,
-                  color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.4),
-                ),
-                onTap: () => context.push('/notification-test'),
-              ),
-            ),
-          ],
-        ],
-      ),
+            ],
+          );
+        }),
     );
   }
 
@@ -346,20 +342,20 @@ class SettingsScreen extends StatelessWidget {
               final success = await auth.enableBiometric(
                 auth.currentUser!.id,
                 true,
-                phone: auth.currentUser!.email, // Using email as identifier
+                phone: auth.currentUser!.email,
                 password: password,
               );
-                if (context.mounted) {
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Biometric login enabled successfully')),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(auth.error ?? 'Failed to enable biometric login')),
-                    );
-                  }
+              if (context.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Biometric login enabled successfully')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(auth.error ?? 'Failed to enable biometric login')),
+                  );
                 }
+              }
             },
             child: const Text('Enable'),
           ),
@@ -374,19 +370,20 @@ class _ModernSwitchTile extends StatelessWidget {
   final String subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
+  final bool loading;
 
   const _ModernSwitchTile({
     required this.title,
     required this.subtitle,
     required this.value,
     required this.onChanged,
+    this.loading = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SwitchListTile(
-      activeThumbColor: ModernSurfaceTheme.primaryTeal,
-      activeTrackColor: ModernSurfaceTheme.primaryTeal.withValues(alpha: 0.4),
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       title: Text(
         title,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -400,8 +397,23 @@ class _ModernSwitchTile extends StatelessWidget {
           color: ModernSurfaceTheme.deepTeal.withValues(alpha: 0.65),
         ),
       ),
-      value: value,
-      onChanged: onChanged,
+      trailing: loading
+          ? SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: ModernSurfaceTheme.primaryTeal,
+              ),
+            )
+          : Switch(
+              activeColor: ModernSurfaceTheme.primaryTeal,
+              activeTrackColor: ModernSurfaceTheme.primaryTeal.withValues(alpha: 0.4),
+              inactiveThumbColor: Colors.grey.shade400,
+              inactiveTrackColor: Colors.grey.shade200,
+              value: value,
+              onChanged: onChanged,
+            ),
     );
   }
 }
@@ -466,14 +478,18 @@ class _MedicineRemindersDiagnosticState
     try {
       final notificationProvider = context.read<NotificationProvider>();
       final info = await notificationProvider.getDiagnosticInfo();
-      setState(() {
-        _diagnosticInfo = info;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _diagnosticInfo = info;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -489,25 +505,27 @@ class _MedicineRemindersDiagnosticState
       final user = authProvider.currentUser;
 
       if (user == null) {
-        setState(() {
-          _rescheduleMessage = 'Error: User not logged in';
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _rescheduleMessage = 'Error: User not logged in';
+            _isLoading = false;
+          });
+        }
         return;
       }
 
       final success = await medicationProvider.rescheduleAllReminders(user.id);
-      setState(() {
-        _rescheduleMessage = success
-            ? 'Reminders rescheduled successfully!'
-            : 'Failed to reschedule reminders';
-        _isLoading = false;
-      });
-
-      // Reload diagnostics
-      await _loadDiagnostics();
-
       if (mounted) {
+        setState(() {
+          _rescheduleMessage = success
+              ? 'Reminders rescheduled successfully!'
+              : 'Failed to reschedule reminders';
+          _isLoading = false;
+        });
+
+        // Reload diagnostics
+        await _loadDiagnostics();
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(_rescheduleMessage!),
@@ -516,10 +534,12 @@ class _MedicineRemindersDiagnosticState
         );
       }
     } catch (e) {
-      setState(() {
-        _rescheduleMessage = 'Error: $e';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _rescheduleMessage = 'Error: $e';
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -535,7 +555,6 @@ class _MedicineRemindersDiagnosticState
               child: CircularProgressIndicator(),
             )
           else ...[
-            // Status items
             if (_diagnosticInfo != null) ...[
               _DiagnosticItem(
                 label: 'FCM Initialized',
@@ -552,7 +571,6 @@ class _MedicineRemindersDiagnosticState
               ),
               const Divider(height: 1),
             ],
-            // Reschedule button
             ListTile(
               leading: Icon(
                 FIcons.refreshCw,

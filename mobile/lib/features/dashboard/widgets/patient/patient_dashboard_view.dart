@@ -8,16 +8,18 @@ import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/providers/health_provider.dart';
 import '../../../../core/providers/medication_provider.dart';
 import '../dashboard_theme.dart';
+
+
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/theme/modern_surface_theme.dart';
 
-import 'package:digital_nurse/features/caregiver/widgets/medication_status_card.dart';
 import '../../../../features/ai/widgets/ai_insights_dashboard_widget.dart';
+
 
 import 'alerts_bp_grid.dart';
 import 'dashboard_hub_grid.dart';
 import 'due_reminders_row.dart';
-import 'adherence_streak_card.dart';
+
 
 class PatientDashboardView extends StatelessWidget {
   const PatientDashboardView({super.key});
@@ -25,10 +27,9 @@ class PatientDashboardView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Force rebuild when locale changes
-    // ignore: unused_local_variable
-    final _ = context.locale;
+    final cardSpacing = 12.h;
 
-    final cardSpacing = 16.h;
+
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
@@ -50,16 +51,12 @@ class PatientDashboardView extends StatelessWidget {
             children: [
               const _WelcomeHeroCard(),
               SizedBox(height: cardSpacing),
-              Consumer<MedicationProvider>(
-                builder: (context, provider, _) => AdherenceStreakCard(
-                  streakDays: provider.adherenceStreak,
-                  adherencePercentage: provider.adherencePercentage.toDouble(),
-                ),
-              ),
-              SizedBox(height: cardSpacing),
+
+
               const _HealthOverviewCard(),
               SizedBox(height: cardSpacing),
               const DueRemindersRow(),
+
               SizedBox(height: cardSpacing),
               const AlertsBPGrid(),
               SizedBox(height: cardSpacing),
@@ -223,7 +220,7 @@ class _HealthOverviewCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () => context.push('/medications'),
+        onTap: () => context.go('/medications'),
         borderRadius: BorderRadius.circular(20),
         child: Ink(
           height: 150.h,
@@ -283,21 +280,23 @@ class _HealthOverviewCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        SizedBox(height: 4.h),
+                        SizedBox(height: 10.h),
                         Text(
                           adherencePercentage >= 80
                               ? 'patient.adherenceGreat'.tr()
                               : 'patient.adherenceMissed'.tr(),
-                          style: textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.8),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14.sp,
                           ),
                         ),
-                        SizedBox(height: 2.h),
+                        SizedBox(height: 4.h),
                         Text(
                           'patient.improveTogether'.tr(),
                           style: textTheme.bodySmall?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.6),
-                            fontSize: 10.sp,
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 11.sp,
                             fontStyle: FontStyle.italic,
                           ),
                         ),
@@ -423,7 +422,7 @@ class _BeatingHeartState extends State<_BeatingHeart>
     const Color bottomLineColor = Color(0xFFC70039);
     const Color glowColor = Color(0x40FF304F); 
 
-    final emptyColor = Colors.white.withOpacity(0.15);
+    final emptyColor = Colors.white.withValues(alpha: 0.15);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -494,7 +493,7 @@ class _BeatingHeartState extends State<_BeatingHeart>
                         width: 4.w,
                         height: 2.h,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.all(Radius.elliptical(4.w, 2.h)),
                         ),
                       ),

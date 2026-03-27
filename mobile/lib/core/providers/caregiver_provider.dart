@@ -8,6 +8,10 @@ class CaregiverProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Cache tracking for "Smart Loading"
+  DateTime? _lastFetchTime;
+  String? _lastFetchedUserId;
+
   List<CaregiverModel> get caregivers => _caregivers;
   List<CaregiverModel> get activeCaregivers =>
       _caregivers.where((c) => c.isActive).toList();
@@ -18,6 +22,15 @@ class CaregiverProvider with ChangeNotifier {
 
   // Load caregivers
   Future<void> loadCaregivers(String patientId) async {
+    // Smart Loading Check: Skip if data is fresh (within 5 seconds) for same patient
+    final now = DateTime.now();
+    if (_lastFetchTime != null && 
+        _lastFetchedUserId == patientId && 
+        now.difference(_lastFetchTime!) < const Duration(seconds: 5)) {
+      print('⏭️ [CAREGIVER] Smart Loading: Skipping redundant fetch (data is fresh)');
+      return;
+    }
+
     _isLoading = true;
     notifyListeners();
 
@@ -33,6 +46,8 @@ class CaregiverProvider with ChangeNotifier {
       // Combine both lists
       _caregivers = [...assignments, ...invitations];
       _error = null;
+      _lastFetchTime = DateTime.now();
+      _lastFetchedUserId = patientId;
     } catch (e) {
       _error = e.toString();
     } finally {

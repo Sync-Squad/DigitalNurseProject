@@ -103,6 +103,10 @@ class AuthService {
           emergencyContact: userData['emergencyContact']?.toString(),
           phone: userData['phone']?.toString(),
           avatarUrl: userData['avatarUrl']?.toString().trim(),
+          medicineRemindersEnabled: userData['medicineRemindersEnabled'] ?? true,
+          healthAlertsEnabled: userData['healthAlertsEnabled'] ?? true,
+          caregiverUpdatesEnabled: userData['caregiverUpdatesEnabled'] ?? true,
+          biometricEnabled: userData['biometricEnabled'] ?? false,
         );
 
         // Save user to shared preferences
@@ -419,6 +423,10 @@ class AuthService {
           emergencyContact: userData['emergencyContact']?.toString(),
           phone: userData['phone']?.toString(),
           avatarUrl: userData['avatarUrl']?.toString().trim(),
+          medicineRemindersEnabled: userData['medicineRemindersEnabled'] ?? true,
+          healthAlertsEnabled: userData['healthAlertsEnabled'] ?? true,
+          caregiverUpdatesEnabled: userData['caregiverUpdatesEnabled'] ?? true,
+          biometricEnabled: userData['biometricEnabled'] ?? false,
         );
 
         await _saveUser(user);
@@ -444,6 +452,10 @@ class AuthService {
     String? country,
     String? medicalConditions,
     String? emergencyContact,
+    bool? medicineRemindersEnabled,
+    bool? healthAlertsEnabled,
+    bool? caregiverUpdatesEnabled,
+    bool? biometricEnabled,
   }) async {
     _log('📝 [AUTH] Updating user profile');
     try {
@@ -461,6 +473,19 @@ class AuthService {
         data['medicalConditions'] = medicalConditions;
       if (emergencyContact != null) data['emergencyContact'] = emergencyContact;
       // Note: Backend doesn't accept 'age' field - age is calculated from dateOfBirth if needed
+
+      if (medicineRemindersEnabled != null) {
+        data['medicineRemindersEnabled'] = medicineRemindersEnabled;
+      }
+      if (healthAlertsEnabled != null) {
+        data['healthAlertsEnabled'] = healthAlertsEnabled;
+      }
+      if (caregiverUpdatesEnabled != null) {
+        data['caregiverUpdatesEnabled'] = caregiverUpdatesEnabled;
+      }
+      if (biometricEnabled != null) {
+        data['biometricEnabled'] = biometricEnabled;
+      }
 
       final response = await _apiService.patch('/users/profile', data: data);
 
@@ -497,6 +522,10 @@ class AuthService {
           emergencyContact: userData['emergencyContact']?.toString(),
           phone: userData['phone']?.toString(),
           avatarUrl: userData['avatarUrl']?.toString().trim(),
+          medicineRemindersEnabled: userData['medicineRemindersEnabled'] ?? true,
+          healthAlertsEnabled: userData['healthAlertsEnabled'] ?? true,
+          caregiverUpdatesEnabled: userData['caregiverUpdatesEnabled'] ?? true,
+          biometricEnabled: userData['biometricEnabled'] ?? false,
         );
 
         await _saveUser(updatedUser);

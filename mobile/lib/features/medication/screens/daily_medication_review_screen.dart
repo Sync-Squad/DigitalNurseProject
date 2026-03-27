@@ -99,16 +99,92 @@ class _DailyMedicationReviewScreenState extends State<DailyMedicationReviewScree
   }
 
   Widget _buildIntakeList(List<MedicineIntake> intakes) {
-    return ListView.builder(
-      padding: EdgeInsets.all(16.w),
-      itemCount: intakes.length,
-      itemBuilder: (context, index) {
-        final intake = intakes[index];
-        return _IntakeReviewCard(
-          intake: intake,
-          onUpdate: () => _loadHistory(),
-        );
-      },
+    final morningIntakes = intakes.where((i) {
+      final hour = i.scheduledTime.hour;
+      return hour >= 5 && hour < 12;
+    }).toList();
+    
+    final afternoonIntakes = intakes.where((i) {
+      final hour = i.scheduledTime.hour;
+      return hour >= 12 && hour < 17;
+    }).toList();
+    
+    final eveningIntakes = intakes.where((i) {
+      final hour = i.scheduledTime.hour;
+      return hour >= 17 || hour < 5;
+    }).toList();
+
+    return ListView(
+      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 40.h),
+      children: [
+        if (morningIntakes.isNotEmpty) ...[
+          _buildSectionHeader('medication.timeOfDay.morning'.tr(), Icons.wb_sunny_rounded, ModernSurfaceTheme.accentYellow),
+          ...morningIntakes.map((i) => _IntakeReviewCard(intake: i, onUpdate: _loadHistory)),
+          SizedBox(height: 16.h),
+        ],
+        if (afternoonIntakes.isNotEmpty) ...[
+          _buildSectionHeader('medication.timeOfDay.afternoon'.tr(), Icons.wb_cloudy_rounded, ModernSurfaceTheme.primaryTeal),
+          ...afternoonIntakes.map((i) => _IntakeReviewCard(intake: i, onUpdate: _loadHistory)),
+          SizedBox(height: 16.h),
+        ],
+        if (eveningIntakes.isNotEmpty) ...[
+          _buildSectionHeader('medication.timeOfDay.evening'.tr(), Icons.dark_mode_rounded, ModernSurfaceTheme.accentPurple),
+          ...eveningIntakes.map((i) => _IntakeReviewCard(intake: i, onUpdate: _loadHistory)),
+          SizedBox(height: 16.h),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon, Color color) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 8.w),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8.w),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.12),
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withOpacity(0.2), width: 1.5),
+            ),
+            child: Icon(icon, color: color, size: 20.sp),
+          ),
+          SizedBox(width: 14.w),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title.toUpperCase(),
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w900,
+                  color: color.computeLuminance() > 0.4 ? color.withOpacity(0.9) : color,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              Container(
+                height: 3.h,
+                width: 30.w,
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
+          ),
+          const Spacer(),
+          Container(
+            width: 100.w,
+            height: 1.h,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [color.withOpacity(0.3), Colors.transparent],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

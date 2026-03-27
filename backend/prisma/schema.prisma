@@ -35,6 +35,13 @@ model User {
   verificationTokenExpiresAt  DateTime?          @map("verificationTokenExpiresAt") @db.Timestamptz(6)
   resetPasswordToken          String?            @unique @map("resetPasswordToken")
   resetPasswordTokenExpiresAt DateTime?          @map("resetPasswordTokenExpiresAt") @db.Timestamptz(6)
+  
+  // Notification & Security Settings
+  medicineRemindersEnabled    Boolean            @default(true) @map("medicineRemindersEnabled")
+  healthAlertsEnabled         Boolean            @default(true) @map("healthAlertsEnabled")
+  caregiverUpdatesEnabled     Boolean            @default(true) @map("caregiverUpdatesEnabled")
+  biometricEnabled            Boolean            @default(false) @map("biometricEnabled")
+
   caregiverNotesAsCaregiver   CaregiverNote[]    @relation("CaregiverNotes_Caregiver")
   caregiverNotesAsElder       CaregiverNote[]    @relation("CaregiverNotes_Elder")
   dietLogs                    DietLog[]

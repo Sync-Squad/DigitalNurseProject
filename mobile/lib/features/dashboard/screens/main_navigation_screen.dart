@@ -3,6 +3,7 @@ import 'package:forui/forui.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import 'home_dashboard_screen.dart';
+import 'lifestyle_hub_screen.dart';
 import '../../medication/screens/medicine_list_screen.dart';
 import '../../health/screens/vitals_list_screen.dart';
 import '../../documents/screens/document_list_screen.dart';
@@ -79,9 +80,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       child: Scaffold(
         body: SafeArea(
           bottom: false, // Let the bottom nav bar handle its own safe area
-          child: IndexedStack(
-            index: _currentIndex,
-            children: navigationEntries.map((entry) => entry.page).toList(),
+          child: Provider<int>.value(
+            value: _currentIndex,
+            child: IndexedStack(
+              index: _currentIndex,
+              children: navigationEntries.map((entry) => entry.page).toList(),
+            ),
           ),
         ),
         // Bottom navigation commented out for caregivers
@@ -186,10 +190,10 @@ List<_NavigationEntry> _buildNavigationEntries(
       ),
     ),
     _NavigationEntry(
-      page: const ProfileViewScreen(),
+      page: const LifestyleHubScreen(),
       navigationItem: FBottomNavigationBarItem(
-        icon: const Icon(FIcons.user),
-        label: Text('navigation.profile'.tr()),
+        icon: const Icon(FIcons.heartPulse),
+        label: Text('navigation.lifestyle'.tr()),
       ),
       hideForCaregiver: false,
     ),

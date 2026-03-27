@@ -16,12 +16,39 @@ class DueRemindersRow extends StatefulWidget {
 }
 
 class _DueRemindersRowState extends State<DueRemindersRow> {
+  late ScrollController _scrollController;
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
+  }
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth - 72.w) / 2; // (Screen - 64w padding - 8w gap) / 2
+    
+    final page = (_scrollController.offset / (cardWidth + 8.w)).round();
+    if (page != _currentPage) {
+      setState(() => _currentPage = page);
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final medProvider = context.watch<MedicationProvider>();
     final dueRemindersList = medProvider.dueReminders;
-    print('📦 DueRemindersRow rebuild. Found ${dueRemindersList.length} reminders in provider.');
     
     final dueReminders = [...dueRemindersList];
     
@@ -32,32 +59,25 @@ class _DueRemindersRowState extends State<DueRemindersRow> {
       final timeA = a['reminderTime'] as DateTime;
       final timeB = b['reminderTime'] as DateTime;
 
-      if (medA.priority == MedicinePriority.high && medB.priority != MedicinePriority.high) {
-        return -1;
-      }
-      if (medB.priority == MedicinePriority.high && medA.priority != MedicinePriority.high) {
-        return 1;
-      }
+      if (medA.priority == MedicinePriority.high && medB.priority != MedicinePriority.high) return -1;
+      if (medB.priority == MedicinePriority.high && medA.priority != MedicinePriority.high) return 1;
       return timeA.compareTo(timeB);
     });
 
-    if (medProvider.upcomingReminders.isEmpty) {
-      return const SizedBox.shrink(); // No reminders at all from service
-    }
+    if (medProvider.upcomingReminders.isEmpty) return const SizedBox.shrink();
+    if (dueReminders.isEmpty) return const SizedBox.shrink();
 
-    if (dueReminders.isEmpty) {
-      // Reminders exist but none are "due" in this window
-      // Let's show a small placeholder or nothing as per UX
-      return const SizedBox.shrink(); 
-    }
+    final screenWidth = MediaQuery.of(context).size.width;
+    // contentWidth = screen - dashboardPadding(16*2) - rowPadding(16*2) = screen - 64
+    // We want 2 cards with a gap of 8. (cardWidth * 2) + 8 = contentWidth
+    final double cardWidth = (screenWidth - 72.w) / 2; 
 
     return Container(
-      height: 150.h,
       decoration: BoxDecoration(
-        color: const Color(0xFF4CC7BB).withValues(alpha: 0.8), // 20% Lighter than Health Overview (0xFF1FB9AA)
+        color: const Color(0xFF4CC7BB).withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(20.r),
       ),
-      clipBehavior: Clip.antiAlias, // Ensures cards don't show outside the box
+      clipBehavior: Clip.antiAlias,
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,59 +112,53 @@ class _DueRemindersRowState extends State<DueRemindersRow> {
             ],
           ),
           SizedBox(height: 8.h),
-          Stack(
-            children: [
-              SizedBox(
-                height: 98.h,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: dueReminders.length,
-                  clipBehavior: Clip.none,
-                  itemBuilder: (context, index) {
-                    final reminder = dueReminders[index];
-                    final medicine = reminder['medicine'] as MedicineModel;
-                    final scheduled = reminder['reminderTime'] as DateTime;
-                    final scheduledUtc = scheduled.toUtc();
-                    final String id = "${medicine.id}_${scheduledUtc.year}_${scheduledUtc.month}_${scheduledUtc.day}_${scheduledUtc.hour}_${scheduledUtc.minute}";
+          SizedBox(
+            height: 98.h,
+            child: ListView.builder(
+              controller: _scrollController,
+              scrollDirection: Axis.horizontal,
+              itemCount: dueReminders.length,
+              physics: const BouncingScrollPhysics(),
+              itemBuilder: (context, index) {
+                final reminder = dueReminders[index];
+                final medicine = reminder['medicine'] as MedicineModel;
+                final scheduled = reminder['reminderTime'] as DateTime;
+                final scheduledUtc = scheduled.toUtc();
+                final String id = "${medicine.id}_${scheduledUtc.year}_${scheduledUtc.month}_${scheduledUtc.day}_${scheduledUtc.hour}_${scheduledUtc.minute}";
 
-                    return QuickLogCard(
-                      reminder: reminder,
-                      onLogged: (status) {
-                        print('🖱️ User action on Dashboard: ID=$id, Status=$status');
-                        medProvider.markReminderActioned(id, status);
-                      },
-                    );
-                  },
-                ),
-              ),
-              if (dueReminders.length > 2)
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  bottom: 0,
-                  child: Container(
-                    width: 32.w,
+                return SizedBox(
+                  width: cardWidth,
+                  child: QuickLogCard(
+                    reminder: reminder,
+                    onLogged: (status) {
+                      medProvider.markReminderActioned(id, status);
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+          if (dueReminders.length > 2) ...[
+            SizedBox(height: 8.h),
+            Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(
+                  dueReminders.length,
+                  (index) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: EdgeInsets.symmetric(horizontal: 2.w),
+                    width: index == _currentPage ? 14.w : 6.w,
+                    height: 6.w,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          Theme.of(context).colorScheme.surface.withValues(alpha: 0.0),
-                          Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
-                        ],
-                      ),
-                    ),
-                    child: Center(
-                      child: Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        color: const Color(0xFF071D1C), // Dark and readable
-                        size: 14.sp,
-                      ),
+                      color: Colors.white.withValues(alpha: index == _currentPage ? 1.0 : 0.4),
+                      borderRadius: BorderRadius.circular(3),
                     ),
                   ),
                 ),
-            ],
-          ),
+              ),
+            ),
+          ],
         ],
       ),
     );

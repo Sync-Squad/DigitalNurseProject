@@ -15,12 +15,16 @@ class VitalsService {
     String? elderUserId,
     DateTime? startDate,
     DateTime? endDate,
+    int? limit,
   }) async {
-    _log('📋 Fetching vitals for user: $userId (Range: $startDate to $endDate)');
+    final endpoint = limit != null ? '/vitals/recent' : '/vitals';
+    _log('📋 Fetching vitals from $endpoint for user: $userId (Range: $startDate to $endDate, Limit: $limit)');
     try {
       final Map<String, dynamic> queryParameters = {};
       if (elderUserId != null) queryParameters['elderUserId'] = elderUserId;
+      if (limit != null) queryParameters['limit'] = limit;
       if (startDate != null) {
+
         queryParameters['startDate'] = TimezoneUtil.toPakistanTimeIso8601(startDate);
       }
       if (endDate != null) {
@@ -28,8 +32,8 @@ class VitalsService {
       }
 
       final response = await _apiService.get(
-        '/vitals',
-        queryParameters: queryParameters.isNotEmpty ? queryParameters : null,
+        endpoint,
+        queryParameters: queryParameters,
       );
 
       if (response.statusCode == 200) {

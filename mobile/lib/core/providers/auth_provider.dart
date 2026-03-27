@@ -200,6 +200,10 @@ class AuthProvider with ChangeNotifier {
     String? medicalConditions,
     String? emergencyContact,
     String? phone,
+    bool? medicineRemindersEnabled,
+    bool? healthAlertsEnabled,
+    bool? caregiverUpdatesEnabled,
+    bool? biometricEnabled,
   }) async {
     if (_currentUser == null) return false;
 
@@ -213,6 +217,10 @@ class AuthProvider with ChangeNotifier {
         phoneNumber: phone,
         medicalConditions: medicalConditions,
         emergencyContact: emergencyContact,
+        medicineRemindersEnabled: medicineRemindersEnabled,
+        healthAlertsEnabled: healthAlertsEnabled,
+        caregiverUpdatesEnabled: caregiverUpdatesEnabled,
+        biometricEnabled: biometricEnabled,
       );
       _isLoading = false;
       notifyListeners();
@@ -356,13 +364,20 @@ class AuthProvider with ChangeNotifier {
           _error = 'Credentials are required to enable biometric login';
           return false;
         }
-        return await saveCredentialsForBiometric(
+        final success = await saveCredentialsForBiometric(
           userId: userId,
           phone: phone,
           password: password,
         );
+        if (success) {
+          // Sync to database
+          await updateProfile(biometricEnabled: true);
+        }
+        return success;
       } else {
         await _authService.clearBiometricCredentials(userId);
+        // Sync to database
+        await updateProfile(biometricEnabled: false);
         return true;
       }
     } catch (e) {

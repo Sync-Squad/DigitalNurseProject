@@ -30,14 +30,14 @@ class MedicationCenterHub extends StatelessWidget {
           accentColor: CaregiverDashboardTheme.primaryTeal,
           actions: [
             HubAction(
-              label: 'Upcoming',
-              icon: Icons.schedule_rounded,
-              onTap: () => context.push('/medications'), // Navigation to full list/schedule
+              label: 'Create Medication',
+              icon: Icons.add_business_rounded,
+              onTap: () => context.push('/medicine/add'),
             ),
             HubAction(
-              label: 'Overdue',
-              icon: Icons.notification_important_rounded,
-              onTap: () => context.push('/medications'), // Potential to filter in future
+              label: 'Medicine History',
+              icon: Icons.history_rounded,
+              onTap: () => context.push('/medicine/log'),
             ),
             HubAction(
               label: 'Log Medication',

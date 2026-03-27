@@ -33,7 +33,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     super.initState();
     // Defer data loading until after the build phase
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData(force: true);
+      _loadData();
       // COMMENTED OUT: Alarm permission dialog disabled to fix lock screen issues
       // _checkAlarmPermission();
     });
@@ -92,27 +92,45 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
     _lastLoadedContextKey = contextKey;
 
-    await Future.wait([
-      context.read<MedicationProvider>().loadMedicines(
-        targetUserId,
-        elderUserId: elderUserId,
-      ),
-      context.read<HealthProvider>().loadVitals(
-        targetUserId,
-        elderUserId: elderUserId,
-      ),
-      if (!isCaregiver)
-        context.read<CaregiverProvider>().loadCaregivers(targetUserId),
-      context.read<NotificationProvider>().loadNotifications(),
-      context.read<LifestyleProvider>().loadAll(
-        targetUserId,
-        elderUserId: elderUserId,
-      ),
-      context.read<DocumentProvider>().loadDocuments(
-        targetUserId,
-        elderUserId: elderUserId,
-      ),
-    ]);
+    if (isCaregiver) {
+      await Future.wait([
+        context.read<MedicationProvider>().loadMedicines(
+          targetUserId,
+          elderUserId: elderUserId,
+        ),
+        context.read<HealthProvider>().loadVitals(
+          targetUserId,
+          elderUserId: elderUserId,
+          limit: 10,
+        ),
+
+        context.read<NotificationProvider>().loadNotifications(),
+        context.read<LifestyleProvider>().loadAll(
+          targetUserId,
+          elderUserId: elderUserId,
+        ),
+        context.read<DocumentProvider>().loadDocuments(
+          targetUserId,
+          elderUserId: elderUserId,
+        ),
+      ]);
+    } else {
+      // For Patients: Prune non-essential APIs (Caregivers, Lifestyle, Documents)
+      // Only keep core health and medication tracking
+      await Future.wait([
+        context.read<MedicationProvider>().loadMedicines(
+          targetUserId,
+          elderUserId: elderUserId,
+        ),
+        context.read<HealthProvider>().loadVitals(
+          targetUserId,
+          elderUserId: elderUserId,
+          limit: 10,
+        ),
+
+        context.read<NotificationProvider>().loadNotifications(),
+      ]);
+    }
     if (!mounted) {
       return;
     }
@@ -245,13 +263,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               ],
             ),
           ),
-          // Profile button for caregivers (since bottom navigation is hidden)
-          if (isCaregiver)
-            IconButton(
-              icon: const Icon(FIcons.user),
-              color: Colors.white,
-              onPressed: () => context.push('/profile'),
-            ),
+          IconButton(
+            icon: const Icon(FIcons.user),
+            color: Colors.white,
+            onPressed: () => context.push('/profile'),
+          ),
           const SizedBox(width: 4),
         ],
       ),

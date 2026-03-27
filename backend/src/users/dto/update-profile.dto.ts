@@ -41,4 +41,20 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   emergencyContact?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  medicineRemindersEnabled?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  healthAlertsEnabled?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  caregiverUpdatesEnabled?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  biometricEnabled?: boolean;
 }
