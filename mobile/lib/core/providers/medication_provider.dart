@@ -72,9 +72,9 @@ class MedicationProvider with ChangeNotifier {
         return false;
       }
 
-      // 3. Window: -12h to +30m
+      // 3. Window: -12h to +1m (Reduce from +30m to avoid user confusion)
       final isDue = scheduled.isAfter(now.subtract(const Duration(hours: 12))) && 
-             scheduled.isBefore(now.add(const Duration(minutes: 30)));
+             scheduled.isBefore(now.add(const Duration(minutes: 1)));
              
       if (isDue) {
         print('✅ DueReminders DEBUG: Found due reminder: ${medicine.name} at scheduled: $scheduled (Local: $scheduledPkt). Now: $now (Local: $nowPkt)');

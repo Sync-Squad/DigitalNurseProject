@@ -18,7 +18,7 @@ class VitalsService {
     int? limit,
   }) async {
     final endpoint = limit != null ? '/vitals/recent' : '/vitals';
-    _log('📋 Fetching vitals from $endpoint for user: $userId (Range: $startDate to $endDate, Limit: $limit)');
+    _log('📋 Fetching vitals from $endpoint (Limit: $limit)');
     try {
       final Map<String, dynamic> queryParameters = {};
       if (elderUserId != null) queryParameters['elderUserId'] = elderUserId;

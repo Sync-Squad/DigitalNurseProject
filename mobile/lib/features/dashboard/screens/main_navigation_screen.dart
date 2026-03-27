@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:forui/forui.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -68,7 +69,12 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           // Show exit confirmation dialog when on Home tab
           final shouldExit = await _showExitDialog(context);
           if (shouldExit == true) {
-            exit(0); // Exit the app
+            if (kIsWeb) {
+              // On web, we can't exit the app, so we just show a message or do nothing
+              print('Exit requested but not supported on web');
+            } else {
+              exit(0); // Exit the app
+            }
           }
         } else {
           // Navigate back to Home tab from other tabs
@@ -78,14 +84,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         }
       },
       child: Scaffold(
-        body: SafeArea(
-          bottom: false, // Let the bottom nav bar handle its own safe area
-          child: Provider<int>.value(
-            value: _currentIndex,
-            child: IndexedStack(
-              index: _currentIndex,
-              children: navigationEntries.map((entry) => entry.page).toList(),
-            ),
+        body: Provider<int>.value(
+          value: _currentIndex,
+          child: IndexedStack(
+            index: _currentIndex,
+            children: navigationEntries.map((entry) => entry.page).toList(),
           ),
         ),
         // Bottom navigation commented out for caregivers

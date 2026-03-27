@@ -1,9 +1,12 @@
 // import 'dart:io'; // COMMENTED OUT: Only used in disabled alarm permission check
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:forui/forui.dart';
 import 'package:go_router/go_router.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import '../../../core/services/fcm_service.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/medication_provider.dart';
 import '../../../core/providers/health_provider.dart';
@@ -34,9 +37,37 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     // Defer data loading until after the build phase
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
-      // COMMENTED OUT: Alarm permission dialog disabled to fix lock screen issues
-      // _checkAlarmPermission();
+      _checkPermissions();
     });
+  }
+
+  Future<void> _checkPermissions() async {
+    final fcmService = FCMService();
+    final hasOverlay = await fcmService.hasOverlayPermission();
+
+    if (!hasOverlay && mounted) {
+      // Small delay to let dashboard settle
+      await Future.delayed(const Duration(seconds: 2));
+      if (!mounted) return;
+
+      // We only prompt for overlay if there are medicines scheduled
+      final medProvider = context.read<MedicationProvider>();
+      if (medProvider.medicines.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('settings.notifications.overlayPermission.description'.tr()),
+            action: SnackBarAction(
+              label: 'settings.notifications.overlayPermission.openSettings'.tr(),
+              onPressed: () {
+                fcmService.checkAndRequestOverlayPermission(context);
+              },
+            ),
+            duration: const Duration(seconds: 10),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   /// Check and prompt for full-screen intent permission on Android
@@ -210,10 +241,15 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         : 'app.name'.tr(); // Show app name as header for patients
 
     return ModernScaffold(
-      safeAreaTop: false,
+      safeAreaTop: true,
       safeAreaBottom: false,
       appBar: AppBar(
         backgroundColor: AppTheme.teal, // #008080 teal-primary
+        systemOverlayStyle: const SystemUiOverlayStyle(
+          statusBarColor: AppTheme.teal,
+          statusBarIconBrightness: Brightness.light, // Light icons for teal
+          statusBarBrightness: Brightness.dark, // For iOS
+        ),
         elevation: 0,
         centerTitle: false,
         title: Text(

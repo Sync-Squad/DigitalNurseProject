@@ -27,10 +27,10 @@ class ModernScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
+    final topPadding = MediaQuery.paddingOf(context).top;
     final appBarHeight = appBar != null
         ? appBar!.preferredSize.height + topPadding
-        : 0.0;
+        : topPadding; // Always cover status bar if it exists
 
     final scaffold = Scaffold(
       backgroundColor: Colors.transparent,
@@ -50,15 +50,14 @@ class ModernScaffold extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        // 2. Teal block behind the app bar if it exists
-        if (appBar != null)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: appBarHeight,
-            child: const ColoredBox(color: _kTeal),
-          ),
+        // 2. Teal block behind the status bar and app bar
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: appBarHeight > 0 ? appBarHeight : topPadding,
+          child: const ColoredBox(color: _kTeal),
+        ),
         // 3. The actual content on top
         Positioned.fill(child: scaffold),
       ],

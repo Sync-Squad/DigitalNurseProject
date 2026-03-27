@@ -2,16 +2,19 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import '../utils/timezone_util.dart';
+import 'alarm_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../models/notification_model.dart';
 import '../models/medicine_model.dart';
 import '../../firebase_options.dart';
-import '../utils/timezone_util.dart';
 import '../../main.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -77,7 +80,7 @@ class FCMService {
   /// Initialize local notifications
   Future<void> _initializeLocalNotifications() async {
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      '@mipmap/launcher_icon',
     );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
@@ -167,15 +170,23 @@ class FCMService {
     if (kIsWeb) return;
 
     if (Platform.isIOS) {
-      final settings = await _messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-      );
+      final status = await Permission.notification.status;
+      if (status.isPermanentlyDenied || status.isRestricted) {
+        print('⚠️ Notification permission permanently denied or restricted');
+        return;
+      }
 
-      if (settings.authorizationStatus != AuthorizationStatus.authorized) {
-        throw Exception('Notification permission denied');
+      if (!status.isGranted) {
+        final settings = await _messaging.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+          provisional: false,
+        );
+
+        if (settings.authorizationStatus != AuthorizationStatus.authorized) {
+          print('⚠️ Notification permission denied by user');
+        }
       }
     } else if (Platform.isAndroid) {
       final androidPlugin = _localNotifications
@@ -183,39 +194,81 @@ class FCMService {
             AndroidFlutterLocalNotificationsPlugin
           >();
 
-      final granted = await androidPlugin?.requestNotificationsPermission();
-      if (granted != true) {
-        throw Exception('Notification permission denied');
+      // Check notification permission status first
+      final status = await Permission.notification.status;
+      
+      // Only request if not already granted and not permanently denied
+      if (!status.isGranted && !status.isPermanentlyDenied) {
+        final granted = await androidPlugin?.requestNotificationsPermission();
+        if (granted != true) {
+          print('⚠️ Notification permission denied');
+        }
       }
 
-      // Request exact alarm permission for Android 12+
+      // Request exact alarm permission for Android 12+ (silently check first)
       try {
         final canScheduleExact = await androidPlugin
             ?.canScheduleExactNotifications();
         _exactAlarmPermission = canScheduleExact;
 
         if (canScheduleExact == false) {
-          print('Requesting exact alarm permission...');
-          final exactAlarmGranted = await androidPlugin
-              ?.requestExactAlarmsPermission();
-          _exactAlarmPermission = exactAlarmGranted ?? false;
-
-          if (exactAlarmGranted == true) {
-            print('✅ Exact alarm permission granted!');
-          } else {
-            print(
-              '⚠️ Exact alarm permission denied - using inexact scheduling',
-            );
-            print('⚠️ Notifications may be delayed by 5-15 minutes');
+          // Check if we should even ask (avoid annoying the user every launch)
+          final exactStatus = await Permission.scheduleExactAlarm.status;
+          if (!exactStatus.isPermanentlyDenied) {
+            print('Requesting exact alarm permission...');
+            final exactAlarmGranted = await androidPlugin
+                ?.requestExactAlarmsPermission();
+            _exactAlarmPermission = exactAlarmGranted ?? false;
           }
-        } else {
-          print('✅ Exact alarm permission already granted');
         }
       } catch (e) {
         print('Could not request exact alarm permission: $e');
         _exactAlarmPermission = false;
       }
     }
+  }
+
+  /// Check and request "Display over other apps" (Overlay) permission
+  /// This is required for the full-screen alarm on many Android devices
+  Future<bool> checkAndRequestOverlayPermission(BuildContext context) async {
+    if (!Platform.isAndroid) return true;
+
+    final status = await Permission.systemAlertWindow.status;
+    if (status.isGranted) return true;
+
+    // Show explanation dialog first (Localized)
+    if (!context.mounted) return false;
+    
+    bool? shouldOpen = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('settings.notifications.overlayPermission.dialogTitle'.tr()),
+        content: Text('settings.notifications.overlayPermission.dialogBody'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('common.cancel'.tr()),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('settings.notifications.overlayPermission.openSettings'.tr()),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldOpen == true) {
+      final result = await Permission.systemAlertWindow.request();
+      return result.isGranted;
+    }
+
+    return false;
+  }
+
+  /// Get current overlay permission status
+  Future<bool> hasOverlayPermission() async {
+    if (!Platform.isAndroid) return true;
+    return await Permission.systemAlertWindow.isGranted;
   }
 
   /// Get FCM token
@@ -346,7 +399,7 @@ class FCMService {
       channelDescription: _getChannelDescription(message.data),
       importance: message.data['priority'] == 'high' ? Importance.max : Importance.high,
       priority: message.data['priority'] == 'high' ? Priority.max : Priority.high,
-      icon: '@mipmap/ic_launcher',
+      icon: '@mipmap/launcher_icon',
       // Enable sound and vibration for medicine reminders
       playSound: true,
       enableVibration: true,
@@ -375,7 +428,7 @@ class FCMService {
       notification.title,
       notification.body,
       details,
-      payload: message.data.toString(),
+      payload: jsonEncode(message.data),
     );
   }
 
@@ -558,13 +611,17 @@ class FCMService {
         iOS: iosDetails,
       );
 
+      // Use Pakistan timezone for scheduling
+      final location = tz.getLocation(TimezoneUtil.pakistanTimeZone);
+      final scheduledTZ = tz.TZDateTime.from(scheduledDate, location);
+
       // Try exact scheduling first, fallback to inexact if permission denied
       try {
         await _localNotifications.zonedSchedule(
           id,
           title,
           body,
-          tz.TZDateTime.from(scheduledDate, tz.local),
+          scheduledTZ,
           details,
           payload: payload,
           androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
@@ -585,7 +642,7 @@ class FCMService {
             id,
             title,
             body,
-            tz.TZDateTime.from(scheduledDate, tz.local),
+            scheduledTZ,
             details,
             payload: payload,
             androidScheduleMode: AndroidScheduleMode.inexact,
@@ -754,9 +811,14 @@ class FCMService {
   }
 }
 
-/// Background message handler (must be top-level function)
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   print('Handling background message: ${message.messageId}');
+
+  // Show local notification for background messages
+  // This is critical for data-only messages to appear in the system tray
+  if (message.notification != null || message.data.isNotEmpty) {
+    await FCMService()._showLocalNotification(message);
+  }
 }

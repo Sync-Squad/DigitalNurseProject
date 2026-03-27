@@ -138,6 +138,13 @@
       "caregiverUpdates": {
         "title": "Caregiver Updates",
         "description": "Notifications from caregivers"
+      },
+      "overlayPermission": {
+        "title": "Display Over Other Apps",
+        "description": "Required for full-screen medication alarms",
+        "dialogTitle": "Display Permission Required",
+        "dialogBody": "To show the full-screen alarm when it's time for your medicine, we need your permission to 'Display over other apps'. Please enable this in the settings page that follows.",
+        "openSettings": "Open Settings"
       }
     },
     "privacy": {
