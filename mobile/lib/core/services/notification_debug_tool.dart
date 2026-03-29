@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/fcm_service.dart';
+import '../services/config_service.dart';
 import '../utils/timezone_util.dart';
 import '../models/medicine_model.dart';
 import '../models/notification_model.dart';
@@ -28,5 +29,17 @@ class NotificationDebugTool {
       type: NotificationType.medicineReminder,
       priority: MedicinePriority.high,
     );
+  }
+
+  /// Manually trigger a sync of AI configuration from the database
+  static Future<void> syncAIConfig() async {
+    print('🔍 [DEBUG] Force syncing AI configuration...');
+    final configService = ConfigService();
+    final result = await configService.fetchAndCacheGeminiApiKey();
+    if (result != null) {
+      print('✅ [DEBUG] AI Config sync successful. Key cached.');
+    } else {
+      print('❌ [DEBUG] AI Config sync failed. Check backend/database.');
+    }
   }
 }

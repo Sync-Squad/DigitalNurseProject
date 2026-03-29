@@ -9,13 +9,19 @@ class ConfigService {
     print('🔍 [CONFIG_SERVICE] $message');
   }
 
-  /// Fetch Gemini API key from the database and cache it locally
+  /// Fetch AI API key from the database and cache it locally
   /// Returns the API key if successful, null otherwise
-  /// This should be called after successful login
   Future<String?> fetchAndCacheGeminiApiKey() async {
-    _log('🔑 Fetching Gemini API key from database...');
+    _log('🔑 Fetching AI API key from database...');
     try {
-      final response = await _apiService.get('/config/gemini-api-key');
+      // First try the new consolidated key
+      var response = await _apiService.get('/config/ai-api-key');
+
+      // Fallback to legacy key if not found
+      if (response.statusCode != 200) {
+        _log('⚠️ ai-api-key not found, falling back to gemini-api-key');
+        response = await _apiService.get('/config/gemini-api-key');
+      }
 
       if (response.statusCode == 200) {
         final data = response.data;
@@ -24,20 +30,21 @@ class ConfigService {
 
         if (apiKey != null && apiKey.isNotEmpty) {
           // Cache the API key locally
+          await AppConfig.cacheAiApiKeyFromDatabase(apiKey);
+          // Also cache as gemini key for backup/compatibility
           await AppConfig.cacheGeminiApiKeyFromDatabase(apiKey);
-          _log('✅ Gemini API key fetched and cached successfully');
+          _log('✅ AI API key fetched and cached successfully (length: ${apiKey.length})');
           return apiKey;
         } else {
-          _log('⚠️ API key not found in response');
+          _log('⚠️ AI API key found but is EMPTY in response');
           return null;
         }
       } else {
-        _log('❌ Failed to fetch API key: ${response.statusMessage}');
+        _log('❌ Server returned ${response.statusCode} for AI API key fetch');
         return null;
       }
     } catch (e) {
-      _log('❌ Error fetching Gemini API key: $e');
-      // Don't throw - just return null and let the app use fallback
+      _log('❌ Error fetching AI API key: $e');
       return null;
     }
   }
@@ -75,12 +82,20 @@ class ConfigService {
 
         _log('✅ App configuration fetched: ${config.keys.length} items');
 
-        // Cache Gemini API key if present
-        if (config.containsKey('gemini_api_key')) {
-          await AppConfig.cacheGeminiApiKeyFromDatabase(
-            config['gemini_api_key']!,
-          );
-          _log('✅ Gemini API key cached from config');
+        // Cache AI API key if present
+        if (config.containsKey('ai_api_key')) {
+          await AppConfig.cacheAiApiKeyFromDatabase(config['ai_api_key']!);
+          _log('✅ AI API key cached from config');
+        } else if (config.containsKey('gemini_api_key')) {
+          await AppConfig.cacheAiApiKeyFromDatabase(config['gemini_api_key']!);
+          await AppConfig.cacheGeminiApiKeyFromDatabase(config['gemini_api_key']!);
+          _log('✅ Gemini API key cached as AI key from config');
+        }
+
+        // Cache AI model if present
+        if (config.containsKey('ai_model')) {
+          await AppConfig.cacheAiModelFromDatabase(config['ai_model']!);
+          _log('✅ AI model cached from config: ${config['ai_model']}');
         }
       } else {
         _log('❌ Failed to fetch config: ${response.statusMessage}');
@@ -92,28 +107,27 @@ class ConfigService {
     return config;
   }
 
-  /// Update Gemini API key in the database
-  /// Returns true if successful, false otherwise
+  /// Update AI API key in the database
   Future<bool> updateGeminiApiKey(String apiKey) async {
-    _log('🔑 Updating Gemini API key in database...');
+    _log('🔑 Updating AI API key in database...');
     try {
+      // Update both for safety, but primary is ai-api-key
       final response = await _apiService.put(
-        '/config/gemini-api-key',
-        data: {'apiKey': apiKey},
+        '/config/ai-api-key',
+        data: {'config_value': apiKey},
       );
 
       if (response.statusCode == 200) {
         // Clear old cached key and cache the new one
-        await AppConfig.clearDatabaseCachedGeminiApiKey();
-        await AppConfig.cacheGeminiApiKeyFromDatabase(apiKey);
-        _log('✅ Gemini API key updated and cached successfully');
+        await AppConfig.cacheAiApiKeyFromDatabase(apiKey);
+        _log('✅ AI API key updated and cached successfully');
         return true;
       } else {
         _log('❌ Failed to update API key: ${response.statusMessage}');
         return false;
       }
     } catch (e) {
-      _log('❌ Error updating Gemini API key: $e');
+      _log('❌ Error updating AI API key: $e');
       return false;
     }
   }

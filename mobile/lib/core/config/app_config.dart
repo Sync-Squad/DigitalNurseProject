@@ -6,18 +6,21 @@ import 'platform_check_stub.dart'
 
 class AppConfig {
   static const String _apiBaseUrlKey = 'api_base_url';
-  static const String _geminiApiKeyKey = 'gemini_api_key';
-  static const String _geminiApiKeyFromDbKey = 'gemini_api_key_from_db';
+  static const String _aiApiKeyKey = 'ai_api_key';
+  static const String _aiApiKeyFromDbKey = 'ai_api_key_from_db';
+  static const String _aiModelKey = 'ai_model';
+  static const String _aiModelFromDbKey = 'ai_model_from_db';
+  static const String _geminiApiKeyKey = 'gemini_api_key'; // Legacy
+  static const String _geminiApiKeyFromDbKey = 'gemini_api_key_from_db'; // Legacy
 
   // Default URLs for different environments
- // static const String _defaultLocalhost = 'http://109.199.126.203:3000/api/';
- // static const String _defaultAndroidEmulator = 'http://109.199.126.203:3000/api/';
+  //static const String _defaultLocalhost = 'http://109.199.126.203:3000/api/';
+  //static const String _defaultAndroidEmulator = 'http://109.199.126.203:3000/api/';
   static const String _defaultLocalhost = 'http://localhost:3000/api/';
   static const String _defaultAndroidEmulator = 'http://localhost:3000/api/';
 
-  // Default Gemini API key (fallback if database fetch fails)
-  // NOTE: This should be empty in production. API keys should come from the database.
-  static const String _defaultGeminiApiKey = '';
+  // Default AI API key (fallback if database fetch fails)
+  static const String _defaultAiApiKey = '';
 
   // Convert localhost URLs to Android emulator URL (10.0.2.2)
   // This is needed because Android emulators can't access host machine's localhost directly
@@ -118,53 +121,55 @@ class AppConfig {
     return base;
   }
 
-  // Get Gemini API key with priority:
-  // 1. Database (cached in SharedPreferences after login)
+  // Get AI API key with priority:
+  // 1. Database (cached in SharedPreferences after login/sync)
   // 2. Environment variable
   // 3. User-set preference
-  // 4. Hardcoded default (fallback - should be empty in production)
   static Future<String?> getGeminiApiKey() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // First priority: Database cached key (fetched after login)
+    // First priority: Consolidated AI key from DB
+    final aiKey = prefs.getString(_aiApiKeyFromDbKey);
+    if (aiKey != null && aiKey.isNotEmpty) {
+      print('🔍 [CONFIG] Using consolidated AI API key from database');
+      return aiKey;
+    }
+
+    // Second priority: Legacy Gemini key from DB
     final dbCachedKey = prefs.getString(_geminiApiKeyFromDbKey);
     if (dbCachedKey != null && dbCachedKey.isNotEmpty) {
-      print('🔍 [CONFIG] Using Gemini API key from database (cached)');
+      print('🔍 [CONFIG] Using legacy Gemini API key from database');
       return dbCachedKey;
     }
 
-    // Second priority: Environment variable
+    // Third priority: Environment variables
+    const orKey = String.fromEnvironment('AI_API_KEY', defaultValue: '');
+    if (orKey.isNotEmpty) return orKey;
+
     const envKey = String.fromEnvironment('GEMINI_API_KEY', defaultValue: '');
-    if (envKey.isNotEmpty) {
-      print('🔍 [CONFIG] Using Gemini API key from environment variable');
-      return envKey;
-    }
+    if (envKey.isNotEmpty) return envKey;
 
-    // Third priority: User-saved preference
+    // Check saved preferences
+    final savedAiKey = prefs.getString(_aiApiKeyKey);
+    if (savedAiKey != null && savedAiKey.isNotEmpty) return savedAiKey;
+
     final savedKey = prefs.getString(_geminiApiKeyKey);
-    if (savedKey != null && savedKey.isNotEmpty) {
-      print('🔍 [CONFIG] Using saved Gemini API key');
-      return savedKey;
-    }
+    if (savedKey != null && savedKey.isNotEmpty) return savedKey;
 
-    // Last resort: Default API key (should be empty in production)
-    if (_defaultGeminiApiKey.isNotEmpty) {
-      print(
-        '⚠️ [CONFIG] Using default Gemini API key (fallback - not recommended for production)',
-      );
-      return _defaultGeminiApiKey;
-    }
-
-    print('⚠️ [CONFIG] Gemini API key not found');
     return null;
   }
 
-  // Cache Gemini API key fetched from database
-  // This is called after successful login
+  // Cache AI API key fetched from database
+  static Future<void> cacheAiApiKeyFromDatabase(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_aiApiKeyFromDbKey, key);
+    print('✅ [CONFIG] AI API key cached');
+  }
+
+  // Cache legacy Gemini key (for backward compatibility)
   static Future<void> cacheGeminiApiKeyFromDatabase(String key) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_geminiApiKeyFromDbKey, key);
-    print('✅ [CONFIG] Gemini API key from database cached');
   }
 
   // Clear database-cached Gemini API key
@@ -187,6 +192,58 @@ class AppConfig {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_geminiApiKeyKey);
     print('🗑️ [CONFIG] Gemini API key cleared');
+  }
+
+  // Get AI Model with priority:
+  // 1. Database (cached in SharedPreferences after login/sync)
+  // 2. Environment variable
+  // 3. User-set preference
+  static Future<String?> getAiModel() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // First priority: Model from DB
+    final aiModel = prefs.getString(_aiModelFromDbKey);
+    if (aiModel != null && aiModel.isNotEmpty) {
+      print('🔍 [CONFIG] Using AI model from database: $aiModel');
+      return aiModel;
+    }
+
+    // Second priority: Environment variable
+    const envModel = String.fromEnvironment('AI_MODEL', defaultValue: '');
+    if (envModel.isNotEmpty) {
+      print('🔍 [CONFIG] Using AI model from environment: $envModel');
+      return envModel;
+    }
+
+    // Third priority: User-set preference
+    final savedModel = prefs.getString(_aiModelKey);
+    if (savedModel != null && savedModel.isNotEmpty) {
+      print('🔍 [CONFIG] Using saved AI model preference: $savedModel');
+      return savedModel;
+    }
+
+    return null;
+  }
+
+  // Cache AI model fetched from database
+  static Future<void> cacheAiModelFromDatabase(String model) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_aiModelFromDbKey, model);
+    print('✅ [CONFIG] AI model cached: $model');
+  }
+
+  // Clear database-cached AI model
+  static Future<void> clearDatabaseCachedAiModel() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_aiModelFromDbKey);
+    print('🗑️ [CONFIG] Database-cached AI model cleared');
+  }
+
+  // Set AI model (user preference)
+  static Future<void> setAiModel(String model) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_aiModelKey, model);
+    print('✅ [CONFIG] AI model preference saved: $model');
   }
 
   // Legacy method for backward compatibility (deprecated)

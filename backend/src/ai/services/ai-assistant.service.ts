@@ -18,7 +18,7 @@ interface ConversationContext {
 export class AIAssistantService {
   private readonly logger = new Logger(AIAssistantService.name);
   private openRouterApiKey: string | null = null;
-  private readonly openRouterModel: string = 'openai/gpt-oss-20b:free';
+  private openRouterModel: string = 'openai/gpt-oss-20b:free';
 
   constructor(
     private prisma: PrismaService,
@@ -50,8 +50,13 @@ export class AIAssistantService {
     userId: bigint,
     dto: ChatMessageDto,
   ): Promise<{ message: string; conversationId: string; sources?: any[] }> {
-    if (!this.openRouterApiKey) {
-      throw new Error('OpenRouter API key not configured');
+    // Resolve dynamic configuration (Database takes priority over .env)
+    const aiConfig = await this.resolveAIConfig();
+    const apiKey = aiConfig.apiKey || this.openRouterApiKey;
+    const model = aiConfig.model || this.openRouterModel;
+
+    if (!apiKey) {
+      throw new Error('AI API key not configured (neither in database nor environment)');
     }
 
     // Get or create conversation
@@ -77,11 +82,13 @@ export class AIAssistantService {
     // Get conversation history for context
     const conversationHistory = await this.getConversationHistory(conversationId);
 
-    // Generate response using OpenRouter
+    // Generate response usingResolved Config
     const response = await this.generateResponse(
       dto.message,
       systemPrompt,
       conversationHistory,
+      model,
+      apiKey,
     );
 
     // Store messages
@@ -310,12 +317,14 @@ Relevant Health Data:
     userMessage: string,
     systemPrompt: string,
     conversationHistory: Array<{ role: string; content: string }> = [],
+    model: string,
+    apiKey: string,
   ): Promise<{
     message: string;
     sources?: any[];
   }> {
     try {
-      // Build messages array with system prompt, conversation history, and current user message
+      // Build messages array
       const messages = [
         {
           role: 'system',
@@ -333,11 +342,13 @@ Relevant Health Data:
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${this.openRouterApiKey}`,
+            'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
+            'HTTP-Referer': this.configService.get<string>('APP_BASE_URL') || 'http://localhost:3000',
+            'X-Title': 'Digital Nurse AI Assistant',
           },
           body: JSON.stringify({
-            model: this.openRouterModel,
+            model: model,
             messages: messages,
           }),
         },
@@ -471,6 +482,24 @@ Relevant Health Data:
       user_id: conv.user_id?.toString(),
       elder_user_id: conv.elder_user_id?.toString(),
     }));
+  }
+
+  /**
+   * Resolve AI configuration from database with fallbacks
+   */
+  private async resolveAIConfig(): Promise<{ apiKey: string | null; model: string | null }> {
+    try {
+      const configs = await this.appConfigService.getConfigsByKeys(['ai_api_key', 'ai_chat_model']);
+      const configMap = new Map(configs.map(c => [c.configKey, c.configValue]));
+      
+      return {
+        apiKey: configMap.get('ai_api_key') || null,
+        model: configMap.get('ai_chat_model') || null,
+      };
+    } catch (error) {
+      this.logger.error('Error resolving AI config from database:', error);
+      return { apiKey: null, model: null };
+    }
   }
 }
 

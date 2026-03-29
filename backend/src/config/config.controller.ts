@@ -1,5 +1,6 @@
-import { Controller, Get, Put, Body, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Put, Body, Param, NotFoundException, BadRequestException } from '@nestjs/common';
 import { AppConfigService } from './config.service';
+import { Public } from '../common/decorators/public.decorator';
 import { UpdateGeminiApiKeyDto } from './dto/update-gemini-api-key.dto';
 
 @Controller('config')
@@ -7,52 +8,60 @@ export class AppConfigController {
   constructor(private readonly configService: AppConfigService) {}
 
   /**
-   * GET /config/gemini-api-key
-   * Returns the Gemini API key from the database
-   * This endpoint requires authentication (JWT guard is applied globally)
+   * GET /config/:key
+   * Returns a specific configuration value from the database
    */
-  @Get('gemini-api-key')
-  async getGeminiApiKey() {
-    const apiKey = await this.configService.getGeminiApiKey();
+  @Public()
+  @Get(':key')
+  async getConfig(@Param('key') key: string) {
+    const normalizedKey = key.replace(/-/g, '_');
+    const config = await this.configService.getConfigByKey(normalizedKey);
 
-    if (!apiKey) {
-      throw new NotFoundException('Gemini API key not configured');
+    if (!config) {
+      throw new NotFoundException(`Configuration ${key} (normalized: ${normalizedKey}) not found`);
     }
 
     return {
-      apiKey,
-      config_key: 'gemini_api_key',
-      config_value: apiKey,
+      apiKey: config.configValue, // Backward compatibility for mobile
+      config_key: config.configKey,
+      config_value: config.configValue,
+      description: config.description,
     };
   }
 
   /**
-   * PUT /config/gemini-api-key
-   * Updates the Gemini API key in the database
-   * This endpoint requires authentication (JWT guard is applied globally)
+   * PUT /config/:key
+   * Updates any configuration key in the database
    */
-  @Put('gemini-api-key')
-  async updateGeminiApiKey(@Body() dto: UpdateGeminiApiKeyDto) {
-    await this.configService.upsertConfig(
-      'gemini_api_key',
-      dto.apiKey,
-      'Google Gemini API key for AI features',
-    );
+  @Put(':key')
+  async updateConfig(
+    @Param('key') key: string,
+    @Body('value') value?: string,
+    @Body('config_value') configValue?: string,
+    @Body('description') description?: string,
+  ) {
+    const finalValue = value ?? configValue;
+
+    if (finalValue === undefined) {
+      throw new BadRequestException('Value is required (as "value" or "config_value")');
+    }
+
+    const normalizedKey = key.replace(/-/g, '_');
+    await this.configService.upsertConfig(normalizedKey, finalValue, description);
 
     return {
-      message: 'Gemini API key updated successfully',
-      config_key: 'gemini_api_key',
+      message: `Configuration ${key} updated successfully`,
+      config_key: key,
     };
   }
 
   /**
    * GET /config
    * Returns all active configuration values
-   * This endpoint requires authentication (JWT guard is applied globally)
    */
+  @Public()
   @Get()
   async getAllConfig() {
-    const configs = await this.configService.getAllConfig();
-    return configs;
+    return this.configService.getAllConfig();
   }
 }

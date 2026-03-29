@@ -147,8 +147,17 @@ export class AIInsightsService {
         expires_at,
         created_at
       FROM ai_insights
-      WHERE user_id = ${userId}::bigint
-        AND is_archived = false
+      WHERE (
+        user_id = ${userId}::bigint 
+        OR elder_user_id = ${userId}::bigint
+        OR elder_user_id IN (
+          SELECT "elderUserId" 
+          FROM elder_assignments 
+          WHERE "caregiverUserId" = ${userId}::bigint 
+          AND "isActive" = true
+        )
+      )
+      AND is_archived = false
     `;
 
     if (dto.elderUserId) {

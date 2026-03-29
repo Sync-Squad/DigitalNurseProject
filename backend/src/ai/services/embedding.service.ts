@@ -74,15 +74,24 @@ export class EmbeddingService {
       throw new Error('Text cannot be empty');
     }
 
-    if (!this.openaiApiKey) {
-      throw new Error('OpenAI API key not configured');
+    // Resolve API key from database (priority) or environment (fallback)
+    const dbConfig = await this.appConfigService.getConfigByKey('ai_api_key');
+    const activeApiKey = dbConfig?.configValue || this.openaiApiKey;
+
+    if (!activeApiKey) {
+      throw new Error('AI API key not configured (neither in database nor environment)');
     }
 
     try {
-      const response = await fetch(`${this.apiBaseUrl}/embeddings`, {
+      // Detect base URL dynamically if using OpenRouter
+      const activeBaseUrl = activeApiKey.startsWith('sk-or-v1-') 
+        ? 'https://openrouter.ai/api/v1' 
+        : 'https://api.openai.com/v1';
+
+      const response = await fetch(`${activeBaseUrl}/embeddings`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${this.openaiApiKey}`,
+          Authorization: `Bearer ${activeApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -115,21 +124,29 @@ export class EmbeddingService {
       return [];
     }
 
-    if (!this.openaiApiKey) {
-      throw new Error('OpenAI API key not configured');
-    }
+    // Resolve API key from database (priority) or environment (fallback)
+    const dbConfig = await this.appConfigService.getConfigByKey('ai_api_key');
+    const activeApiKey = dbConfig?.configValue || this.openaiApiKey;
 
-    // Filter out empty texts
-    const validTexts = texts.filter((text) => text && text.trim().length > 0);
+    const validTexts = texts.filter((t) => t && t.trim().length > 0);
     if (validTexts.length === 0) {
       return [];
     }
 
+    if (!activeApiKey) {
+      throw new Error('AI API key not configured (neither in database nor environment)');
+    }
+
     try {
-      const response = await fetch(`${this.apiBaseUrl}/embeddings`, {
+      // Detect base URL dynamically if using OpenRouter
+      const activeBaseUrl = activeApiKey.startsWith('sk-or-v1-') 
+        ? 'https://openrouter.ai/api/v1' 
+        : 'https://api.openai.com/v1';
+
+      const response = await fetch(`${activeBaseUrl}/embeddings`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${this.openaiApiKey}`,
+          Authorization: `Bearer ${activeApiKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

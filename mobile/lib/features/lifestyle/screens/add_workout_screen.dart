@@ -10,7 +10,7 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
-import '../../../core/services/openai_service.dart';
+import '../../../core/services/ai_analysis_service.dart';
 import '../../../core/utils/timezone_util.dart';
 
 class AddWorkoutScreen extends StatefulWidget {
@@ -27,7 +27,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
   final _descriptionController = TextEditingController();
   final _durationController = TextEditingController();
   final _caloriesController = TextEditingController();
-  final _openAIService = OpenAIService();
+  final _aiAnalysisService = AIAnalysisService();
 
   ActivityType _activityType = ActivityType.walking;
   bool _isAnalyzing = false;
@@ -101,7 +101,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
     });
 
     try {
-      final calories = await _openAIService.analyzeExerciseCalories(
+      final calories = await _aiAnalysisService.analyzeExerciseCalories(
         description,
         duration,
       );

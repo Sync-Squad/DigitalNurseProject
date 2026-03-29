@@ -20,22 +20,31 @@ export class AppConfigService {
   }
 
   /**
-   * Get the Gemini API key specifically
+   * Get the AI API key (checks 'ai_api_key' then 'gemini_api_key')
    */
-  async getGeminiApiKey() {
-    const config = await this.prisma.appConfig.findUnique({
-      where: { configKey: 'gemini_api_key' },
-      select: {
-        configValue: true,
+  async getAiApiKey() {
+    const configs = await this.prisma.appConfig.findMany({
+      where: {
+        configKey: { in: ['ai_api_key', 'gemini_api_key'] },
         isActive: true,
       },
+      orderBy: { configKey: 'asc' }, // ai_api_key comes before gemini_api_key
     });
 
-    if (!config || !config.isActive) {
-      return null;
-    }
+    if (configs.length === 0) return null;
 
-    return config.configValue;
+    // Prefer ai_api_key if both exist
+    const aiKey = configs.find(c => c.configKey === 'ai_api_key');
+    const geminiKey = configs.find(c => c.configKey === 'gemini_api_key');
+
+    return aiKey?.configValue || geminiKey?.configValue || null;
+  }
+
+  /**
+   * Get the Gemini API key specifically (Legacy)
+   */
+  async getGeminiApiKey() {
+    return this.getAiApiKey();
   }
 
   /**
@@ -79,10 +88,12 @@ export class AppConfigService {
   /**
    * Deactivate a config value (soft delete)
    */
-  async deactivateConfig(configKey: string) {
-    return this.prisma.appConfig.update({
-      where: { configKey },
-      data: { isActive: false },
+  /**
+   * Get multiple config values by keys
+   */
+  async getConfigsByKeys(keys: string[]) {
+    return this.prisma.appConfig.findMany({
+      where: { configKey: { in: keys }, isActive: true },
     });
   }
 }

@@ -10,7 +10,7 @@ import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/theme/modern_surface_theme.dart';
 import '../../../core/widgets/modern_scaffold.dart';
-import '../../../core/services/openai_service.dart';
+import '../../../core/services/ai_analysis_service.dart';
 import '../../../core/utils/timezone_util.dart';
 
 class AddMealScreen extends StatefulWidget {
@@ -26,7 +26,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
   final _caloriesController = TextEditingController();
-  final _openAIService = OpenAIService();
+  final _aiAnalysisService = AIAnalysisService();
 
   MealType _mealType = MealType.breakfast;
   bool _isAnalyzing = false;
@@ -76,7 +76,7 @@ class _AddMealScreenState extends State<AddMealScreen> {
     });
 
     try {
-      final calories = await _openAIService.analyzeFoodCalories(description);
+      final calories = await _aiAnalysisService.analyzeFoodCalories(description);
 
       if (mounted) {
         if (calories != null && calories > 0) {
